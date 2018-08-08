@@ -1,4 +1,5 @@
 seed:-1
+exp_name:debug
 debug:False
 data_path:/home/rogupta/wikinet_2/data
 yamada_model:ntee_300_sentence.pickle
@@ -23,6 +24,7 @@ batch_size:32
 num_workers:8
 gram_dim:32
 margin:0.5
+measure:ip
 lr:1e-02
 wd:1e-04
 optim:adagrad
