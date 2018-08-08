@@ -35,7 +35,7 @@ class Validator:
         self.mention_word_indices = np.vstack(self.mention_word_indices_l).astype(np.int32)
         self.context_word_indices = np.vstack(self.context_word_indices_l).astype(np.int32)
         self.all_gold = np.array(self.all_gold).astype(np.int32)
-        self.mask = np.random.choice(np.arange(len(self.mention_gram_indices)), size=query_size)
+        self.mask = np.random.choice(np.arange(len(self.mention_gram_indices)), size=self.args.query_size)
 
         if self.args.debug:
             for i in np.random.choice(range(len(self.all_gold)), size=10):
@@ -200,11 +200,6 @@ class Validator:
             print(mention_combined_embs.shape)
 
         # Create / search in Faiss Index
-        index_ip = faiss.IndexFlatIP(ent_combined_embs.shape[1])
-        index_l2 = faiss.IndexFlatL2(ent_combined_embs.shape[1])
-        index_ip.add(ent_combined_embs.astype(np.float32))
-        index_l2.add(ent_combined_embs.astype(np.float32))
-
         if verbose:
             print("Searching in index")
         if measure == 'ip':
