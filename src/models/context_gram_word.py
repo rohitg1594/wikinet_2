@@ -8,7 +8,7 @@ from src.models.base_model import BaseModel
 class ContextGramWordModel(BaseModel):
 
     def __init__(self, yamada_model=None, gram_embs=None, args=None):
-        super().__init__(self, yamada_model=None, gram_embs=None, args=args)
+        super().__init__(yamada_model, gram_embs, args)
 
     def forward(self, inputs):
         (mention_gram_tokens, mention_word_tokens, context_word_tokens,
