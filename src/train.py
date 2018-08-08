@@ -63,6 +63,11 @@ parser.add_argument('--lr', type=float, help='learning rate')
 parser.add_argument('--wd', type=float, help='weight decay')
 parser.add_argument('--optim', type=str, choices=['adagrad', 'adam'], help='optimizer')
 parser.add_argument('--sparse', type=str2bool, help='sparse gradients')
+# paramters to train
+parser.add_argument('--trian_word', type=str2bool, help='whether to train word embeddings')
+parser.add_argument('--train_ent', type=str2bool, help='whether to train entity embeddings')
+parser.add_argument('--train_gram', type=str2bool, help='whether to train gram embeddings')
+parser.add_argument('--train_linear', type=str2bool, help='whether to train linear layer')
 # cuda
 parser.add_argument("--device", type=int, help="cuda device")
 
