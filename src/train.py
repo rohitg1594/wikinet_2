@@ -92,7 +92,7 @@ logger.addHandler(file_handler, )
 console_handler = logging.StreamHandler(stream=sys.stdout)
 console_handler.setFormatter(log_formatter)
 logger.addHandler(console_handler)
-logger.level = 'DEBUG'
+logger.level = 10
 
 logger.info("Loading Yamada model.")
 yamada_model = load_yamada(join(args.data_path, 'yamada', args.yamada_model))
