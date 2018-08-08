@@ -3,7 +3,7 @@ from os.path import join
 import sys
 
 import logging
-import datetime
+from datetime import datetime
 
 import numpy as np
 
