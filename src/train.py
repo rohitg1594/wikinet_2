@@ -87,11 +87,12 @@ if not os.path.exists(log_path):
 
 file_handler = logging.FileHandler(log_path)
 file_handler.setFormatter(log_formatter)
-logger.addHandler(file_handler)
+logger.addHandler(file_handler, )
 
 console_handler = logging.StreamHandler(stream=sys.stdout)
 console_handler.setFormatter(log_formatter)
 logger.addHandler(console_handler)
+logger.level = 'DEBUG'
 
 logger.info("Loading Yamada model.")
 yamada_model = load_yamada(join(args.data_path, 'yamada', args.yamada_model))
