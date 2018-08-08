@@ -27,4 +27,8 @@ lr:1e-02
 wd:1e-04
 optim:adagrad
 sparse:False
+train_ent:False
+train_word:False
+train_linear:False
+train_gram:True
 device:3
