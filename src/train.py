@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 
 import numpy as np
+np.warnings.filterwarnings('ignore')
 
 import torch
 from torch.autograd import Variable
