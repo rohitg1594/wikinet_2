@@ -17,6 +17,7 @@ norm_word:False
 norm_context:True
 norm_final:True
 cand_gen_rand:True
+num_candidates:32
 num_epochs:10
 batch_size:32
 num_workers:8

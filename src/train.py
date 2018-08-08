@@ -52,6 +52,7 @@ parser.add_argument('--norm_context', type=str2bool, help='whether to normalize 
 parser.add_argument('--norm_final', type=str2bool, help='whether to normalize final embs')
 # model hyperparameters
 parser.add_argument('--cand_gen_rand', type=str2bool, help='whether to generate random candidates')
+parser.add_argument("--num_candidates", type=int, default=32, help="Number of candidates")
 parser.add_argument("--num_epochs", type=int, default=5, help="Number of epochs")
 parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
 parser.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
