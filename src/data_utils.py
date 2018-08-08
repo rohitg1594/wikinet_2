@@ -29,7 +29,7 @@ def pickle_load(path):
     assert os.path.exists(path)
 
     with open(path, 'rb') as f:
-        data = pickle.load(path)
+        data = pickle.load(f)
 
     return data
 
