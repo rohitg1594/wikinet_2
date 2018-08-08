@@ -23,6 +23,7 @@ from src.models.context_gram_word import ContextGramWordModel
 # main
 parser = configargparse.ArgumentParser(description='Training Wikinet 2',
                                  formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
+parser.add('-c', '--my-config', required=True, is_config_file=True, help='config file path')
 parser.add_argument("--seed", type=int, default=-1, help="Initialization seed")
 parser.add_argument("--exp_name", type=str, default="debug", help="Experiment name")
 # debug
