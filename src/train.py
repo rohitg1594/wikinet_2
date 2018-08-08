@@ -1,3 +1,4 @@
+# Main training file
 import os
 from os.path import join
 import sys
@@ -23,8 +24,8 @@ from src.models.context_gram_word import ContextGramWordModel
 
 # main
 parser = configargparse.ArgumentParser(description='Training Wikinet 2',
-                                 formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
-parser.add('-c', '--my-config', required=True, is_config_file=True, help='config file path')
+                                       formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument('-c', '--my-config', required=True, is_config_file=True, help='config file path')
 parser.add_argument("--seed", type=int, default=-1, help="Initialization seed")
 parser.add_argument("--exp_name", type=str, default="debug", help="Experiment name")
 # debug
@@ -139,7 +140,7 @@ train_loader = train_dataset.get_loader(batch_size=args.batch_size,
 logger.info("Dataset created.")
 
 
-validator = Validator(gram_vocab=gram_vocab,
+validator = Validator(gram_dict=gram_vocab,
                       gram_tokenizer=gram_tokenizer,
                       yamada_model=yamada_model,
                       data=dev_data,
@@ -192,7 +193,8 @@ for epoch in range(args.num_epochs):
         data = list(data)
         for d in data:
             d = Variable(d)
-        ymask = Variable(ymask.view(args.batch_size * args.max_ent_size))
+        ymask = data[0]
+        ymask = ymask.view(args.batch_size * args.max_ent_size)
         zeros_2d = Variable(torch.zeros(args.batch_size * args.max_ent_size, args.num_candidates - 1))
 
         if use_cuda:
