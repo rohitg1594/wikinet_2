@@ -73,8 +73,8 @@ if args.wd > 0:
     assert not args.sparse
 
 for arg in vars(args):
-    print('{:<20}\t{}'.format(arg, getattr(args, arg)))
-print('Cuda Available : {}\n'.format(use_cuda))
+    print('{:<15}\t{}'.format(arg, getattr(args, arg)))
+print('{:<15}\t{}'.format('cuda available', use_cuda))
 
 model_dir = join(args.data_path, 'models', args.exp_name)
 if not os.path.exists(model_dir):
