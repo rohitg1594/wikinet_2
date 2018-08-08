@@ -79,7 +79,11 @@ if not os.path.exists(model_dir):
 
 logger = logging.getLogger()
 log_formatter = logging.Formatter(fmt='%(levelname)s:%(asctime)s:%(message)s', datefmt='%I:%M:%S %p')
+
 log_path = join(args.data_path, 'logs', '{}_{}.log'.format(datetime.now().strftime("%Y_%m_%d"), args.exp_name))
+if not os.path.exists(log_path):
+    with open(log_path, 'w') as f:
+        f.write('')
 
 file_handler = logging.FileHandler(log_path)
 file_handler.setFormatter(log_formatter)
