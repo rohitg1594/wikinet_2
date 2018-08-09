@@ -19,7 +19,6 @@ from src.logger import get_logger
 from src.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
-np.set_printoptions(threshold=10**7)
 
 # main
 parser = configargparse.ArgumentParser(description='Training Wikinet 2',

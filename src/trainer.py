@@ -25,7 +25,7 @@ class Trainer(object):
         self.train_validator = train_validator
         self.model_dir = model_dir
         self.min_delta = 1e-03
-        self.patience = self.arge.patience
+        self.patience = self.args.patience
 
         if args.optim == 'adagrad':
             self.optimizer = torch.optim.Adagrad(filter(lambda p: p.requires_grad, self.model.parameters()), lr=args.lr, weight_decay=args.wd)
