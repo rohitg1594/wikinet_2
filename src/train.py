@@ -188,6 +188,7 @@ for epoch in range(args.num_epochs):
             data[i] = Variable(data[i])
 
         ymask = ymask.view(args.batch_size * args.max_ent_size)
+        ymask = Variable(ymask)
         zeros_2d = Variable(torch.zeros(args.batch_size * args.max_ent_size, args.num_candidates - 1))
 
         if use_cuda:
