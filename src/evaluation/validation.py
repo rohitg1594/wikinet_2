@@ -47,7 +47,8 @@ class Validator:
         self.wiki_mention_word_indices = np.vstack(wiki_mention_word_indices_l).astype(np.int32)
         self.wiki_mention_context_indices = np.vstack(wiki_mention_context_indices_l).astype(np.int32)
         self.wiki_all_gold = np.array(wiki_all_gold).astype(np.int32)
-        self.wiki_mask = np.random.choice(np.arange(len(self.wiki_mention_gram_indices)), size=self.args.query_size)
+        self.wiki_mask = np.random.choice(np.arange(len(self.wiki_mention_gram_indices)),
+                                          size=self.args.query_size).astype(np.int32)
 
         (conll_all_gold,
          conll_mention_gram_indices_l,
@@ -130,7 +131,7 @@ class Validator:
         elif split == 'Test':
             func = is_test_doc
         else:
-            logger.error("Conll Split not recognized, one of {Train, Dev, Test}")
+            logger.error("Conll split {} not recognized, choose one of Train, Dev, Test".format(split))
             sys.exit(1)
 
         for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
@@ -288,8 +289,8 @@ class Validator:
             logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data))
             sys.exit(1)
 
+        s = ''
         for i in range(10):
-            s = ''
             if self.args.include_gram:
                 m_g = gram_indices[i]
                 s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
@@ -326,6 +327,8 @@ class Validator:
             logger.info('Ent Shape : {}'.format(ent_combined_embs.shape))
             logger.info('Wiki Mention Shape : {}'.format(wiki_mention_combined_embs.shape))
             logger.info('Conll Mention Shape : {}'.format(conll_mention_combined_embs.shape))
+            logger.info('Wiki Gold Shape : {}'.format(self.wiki_all_gold[self.wiki_mask].shape))
+            logger.info('Conll Gold Shape : {}'.format(self.conll_all_gold.shape))
             print(ent_combined_embs[:5, :])
             print(wiki_mention_combined_embs[:5, :])
             print(conll_mention_combined_embs[:5, :])
@@ -357,9 +360,7 @@ class Validator:
 
         # Evaluate rankings
         logger.info("Starting Evaluation of rankings")
-        top1_wiki, top10_wiki, top100_wiki, mrr_wiki = eval_ranking(I_wiki,
-                                                                    self.wiki_all_gold[self.wiki_mask.astype(np.int32)],
-                                                                    [1, 10, 100])
+        top1_wiki, top10_wiki, top100_wiki, mrr_wiki = eval_ranking(I_wiki, self.wiki_all_gold[self.wiki_mask], [1, 10, 100])
         top1_conll, top10_conll, top100_conll, mrr_conll = eval_ranking(I_conll, self.conll_all_gold, [1, 10, 100])
 
         return top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll
