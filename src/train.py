@@ -121,6 +121,14 @@ for d in data:
 logger.info("Training data loaded.")
 logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
+# Validation
+validator = Validator(gram_dict=gram_vocab,
+                      gram_tokenizer=gram_tokenizer,
+                      yamada_model=yamada_model,
+                      data=dev_data,
+                      args=args)
+logger.info("Validator Created")
+
 # Dataset
 train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
                                 gram_vocab=gram_vocab,
@@ -134,16 +142,7 @@ train_loader = train_dataset.get_loader(batch_size=args.batch_size,
                                         drop_last=True)
 logger.info("Dataset created.")
 
-# Validation
-validator = Validator(gram_dict=gram_vocab,
-                      gram_tokenizer=gram_tokenizer,
-                      yamada_model=yamada_model,
-                      data=dev_data,
-                      args=args)
-logger.info("Validator Created")
-
 gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
-
 if args.include_word:
     model = ContextGramWordModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
 else:

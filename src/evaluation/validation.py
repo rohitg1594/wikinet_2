@@ -295,12 +295,12 @@ class Validator:
                 s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
             if self.args.include_word:
                 m_w = word_indices[i]
-                s += ' '.join([self.rev_gram_dict[token] for token in m_w if token in self.rev_gram_dict]) + '|'
+                s += ' '.join([self.rev_word_dict[token] for token in m_w if token in self.rev_word_dict]) + '|'
             if self.args.include_context:
                 c_w = context_indices[i][:20]
                 s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
+            s += self.rev_ent_dict[gold[i]] + '|'
             if result:
-                s += self.rev_ent_dict[gold] + '>>>>>'
                 s += ','.join([self.rev_ent_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_ent_dict])
             s += '\n'
 
