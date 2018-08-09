@@ -325,11 +325,11 @@ class Validator:
                                                                       data='conll')
 
         if self.args.debug:
-            logger.info('Ent Shape : {}'.format(ent_combined_embs.shape))
-            logger.info('Wiki Mention Shape : {}'.format(wiki_mention_combined_embs.shape))
-            logger.info('Conll Mention Shape : {}'.format(conll_mention_combined_embs.shape))
-            logger.info('Wiki Gold Shape : {}'.format(self.wiki_all_gold[self.wiki_mask].shape))
-            logger.info('Conll Gold Shape : {}'.format(self.conll_all_gold.shape))
+            print('Ent Shape : {}'.format(ent_combined_embs.shape))
+            print('Wiki Mention Shape : {}'.format(wiki_mention_combined_embs.shape))
+            print('Conll Mention Shape : {}'.format(conll_mention_combined_embs.shape))
+            print('Wiki Gold Shape : {}'.format(self.wiki_all_gold[self.wiki_mask].shape))
+            print('Conll Gold Shape : {}'.format(self.conll_all_gold.shape))
             print(ent_combined_embs[:5, :])
             print(wiki_mention_combined_embs[:5, :])
             print(conll_mention_combined_embs[:5, :])
@@ -351,12 +351,12 @@ class Validator:
             print('Conll result : {}'.format(I_conll[:20, :10]))
 
             wiki_debug_result = self._get_debug_error_string(I=I_wiki, data='wiki', result=True)
-            conll_debug_result = self._get_debug_error_string(I=I_conll, data='conll', result=False)
+            conll_debug_result = self._get_debug_error_string(I=I_conll, data='conll', result=True)
 
             print("Wikipedia Debug Results")
             print(wiki_debug_result)
 
-            print("ConllDebug Results")
+            print("Conll Debug Results")
             print(conll_debug_result)
 
         # Evaluate rankings

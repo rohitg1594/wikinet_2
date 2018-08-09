@@ -6,7 +6,6 @@ import sys
 import numpy as np
 
 import torch
-from torch.autograd import Variable
 
 import configargparse
 
@@ -18,6 +17,7 @@ from src.tokenization.gram_tokenizer import get_gram_tokenizer
 from src.models.context_gram import ContextGramModel
 from src.models.context_gram_word import ContextGramWordModel
 from src.logger import get_logger
+from src.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
 
@@ -171,75 +171,15 @@ best_mrr = 0
 logger.info("Starting validation for untrained model.")
 top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(
     model=best_model)
-
 logger.info("Wikipedia, Untrained Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
 logger.info("Conll, Untrained Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
 
+trainer = Trainer(loader=train_loader,
+                  args=args,
+                  validator=validator,
+                  model=model,
+                  model_dir=model_dir,
+                  use_cuda=use_cuda)
 logger.info("Starting Training")
-for epoch in range(args.num_epochs):
-    model.train()
-    running_loss = 0.0
-
-    for i, data in enumerate(train_loader, 0):
-        data = list(data)
-        ymask = data[0]
-        data = data[1:]
-        for i in range(len(data)):
-            data[i] = Variable(data[i])
-
-        ymask = ymask.view(args.batch_size * args.max_ent_size)
-        ymask = Variable(ymask)
-        zeros_2d = Variable(torch.zeros(args.batch_size * args.max_ent_size, args.num_candidates - 1))
-
-        if use_cuda:
-            for i in range(len(data)):
-                data[i] = data[i].cuda(args.device)
-            ymask = ymask.cuda(args.device)
-            zeros_2d = zeros_2d.cuda(args.device)
-
-        optimizer.zero_grad()
-        scores = model(tuple(data))
-
-        scores_pos = scores[:, 0]
-        scores_neg = scores[:, 1:]
-
-        distance_pos = 1 - scores_pos
-        distance_neg = torch.max(zeros_2d, scores_neg - args.margin)
-
-        ymask_2d = ymask.repeat(args.num_candidates - 1).view(args.num_candidates - 1, -1).transpose(0, 1)
-        distance_pos_masked = distance_pos * ymask
-        distance_neg_masked = distance_neg * ymask_2d
-
-        loss_pos = distance_pos_masked.sum() / ymask.sum()
-        loss_neg = distance_neg_masked.sum() / ymask_2d.sum()
-        loss = loss_pos + loss_neg
-        # loss = -loss
-
-        loss.backward()
-        optimizer.step()
-        running_loss += loss.data[0]
-        losses.append(loss.data[0])
-
-    logger.info('Epoch - {}, Loss - {:.4}'.format(epoch, loss.data[0]))
-    save_checkpoint({
-        'epoch': epoch + 1,
-        'state_dict': model.state_dict(),
-        'optimizer': optimizer.state_dict(),
-    }, True, filename=join(model_dir, '{}.ckpt'.format(epoch)))
-    top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=best_model)
-
-    logger.info(
-        "Wikipedia, Epoch - {} Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(epoch, top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-    logger.info(
-        "Conll, Epoch - {} Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(epoch, top1_conll, top10_conll, top100_conll, mrr_conll))
-
-    if mrr_conll > best_mrr:
-        best_model = model
-        best_mrr = mrr_conll
-
-print('Finished Training')
-
-save_checkpoint({
-        'state_dict': best_model.state_dict(),
-        'optimizer': optimizer.state_dict(),
-    }, True, filename=join(model_dir, 'final_model.ckpt'))
+trainer.train()
+logger.info("Finished Training")
