@@ -13,7 +13,9 @@ max_gram_size:40
 max_context_size:200
 max_ent_size:60
 include_word:False
-norm_gram:False
+include_gram:True
+include_context:True
+norm_gram:True
 norm_word:False
 norm_context:True
 norm_final:True

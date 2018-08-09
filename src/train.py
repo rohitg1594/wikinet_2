@@ -44,6 +44,8 @@ parser.add_argument('--max_gram_size', type=int, help='max number of grams')
 parser.add_argument('--max_ent_size', type=int, help='max number of entities considered in abstract')
 # model type
 parser.add_argument('--include_word', type=str2bool, help='whether to include word information')
+parser.add_argument('--include_gram', type=str2bool, help='whether to include word information')
+parser.add_argument('--include_context', type=str2bool, help='whether to include word information')
 parser.add_argument('--norm_gram', type=str2bool, help='whether to normalize gram embs')
 parser.add_argument('--norm_word', type=str2bool, help='whether to normalize word embs')
 parser.add_argument('--norm_context', type=str2bool, help='whether to normalize context embs')
@@ -162,18 +164,11 @@ best_model = model
 best_mrr = 0
 
 logger.info("Starting validation for untrained model.")
-top1, top10, top100, mrr = validator.validate(model=best_model,
-                                              error=args.debug,
-                                              gram=True,
-                                              word=args.include_word,
-                                              context=True,
-                                              norm_gram=args.norm_gram,
-                                              norm_word=args.norm_word,
-                                              norm_context=args.norm_context,
-                                              norm_final=args.norm_final,
-                                              verbose=args.debug,
-                                              measure=args.measure)
-logger.info("Untrained Performance : Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(top1, top10, top100, mrr))
+top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(
+    model=best_model)
+
+logger.info("Wikipedia, Untrained Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+logger.info("Conll, Untrained Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
 
 logger.info("Starting Training")
 for epoch in range(args.num_epochs):
@@ -233,13 +228,13 @@ for epoch in range(args.num_epochs):
     logger.info(
         "Conll, Epoch - {} Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(epoch, top1_conll, top10_conll, top100_conll, mrr_conll))
 
-    if mrr > best_mrr:
+    if mrr_conll > best_mrr:
         best_model = model
-        best_mrr = mrr
+        best_mrr = mrr_conll
 
 print('Finished Training')
 
 save_checkpoint({
-        'state_dict': model.state_dict(),
+        'state_dict': best_model.state_dict(),
         'optimizer': optimizer.state_dict(),
     }, True, filename=join(model_dir, 'final_model.ckpt'))
