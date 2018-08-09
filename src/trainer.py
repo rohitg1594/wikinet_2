@@ -6,6 +6,7 @@ from os.path import join
 
 import torch
 from torch.autograd import Variable
+import torch.nn.functional as F
 
 from src.data_utils import save_checkpoint
 
@@ -14,13 +15,14 @@ logger = logging.getLogger()
 
 class Trainer(object):
 
-    def __init__(self, loader=None, args=None, model=None, validator=None, use_cuda=False, model_dir=None):
+    def __init__(self, loader=None, args=None, model=None, train_validator=None, dev_validator=None, use_cuda=False, model_dir=None):
         self.loader = loader
         self.args = args
         self.model = model
         self.use_cuda = use_cuda
         self.num_epochs = self.args.num_epochs
-        self.validator = validator
+        self.dev_validator = dev_validator
+        self.train_validator = train_validator
         self.model_dir = model_dir
 
         if args.optim == 'adagrad':
@@ -71,6 +73,15 @@ class Trainer(object):
 
         return loss
 
+    def _cross_entropy(self, scores, ymask):
+        labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor), requires_grad=False)
+        if self.use_cuda:
+            labels = labels.cuda()
+
+        loss = F.cross_entropy(scores, labels) * ymask
+
+        return loss
+
     def train(self):
         training_losses = []
         best_model = self.model
@@ -79,7 +90,13 @@ class Trainer(object):
             for i, data in enumerate(self.loader, 0):
                 data, ymask = self._get_next_batch(data)
                 scores = self.model(data)
-                loss = self._cosine_loss(scores, ymask)
+                if self.args.loss_func == 'cosine':
+                    loss = self._cosine_loss(scores, ymask)
+                elif self.args.loss_func == 'cross_entropy':
+                    loss = self._cross_entropy(scores, ymask)
+                else:
+                    logger.error("Loss function {} not recognized, choose one of cosine, cross_entropy")
+                    sys.exit(1)
 
                 loss.backward()
                 self.optimizer.step()
@@ -90,19 +107,35 @@ class Trainer(object):
                 'epoch': epoch + 1,
                 'state_dict': self.model.state_dict(),
                 'optimizer': self.optimizer.state_dict()}, True, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
-            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.validator.validate(model=self.model)
+
+            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.train_validator.validate(
+                model=self.model)
+            logger.info('Train Validation')
             logger.info(
-                "Wikipedia, Epoch - {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
-                                                                                                               top1_wiki,
-                                                                                                               top10_wiki,
-                                                                                                               top100_wiki,
-                                                                                                               mrr_wiki))
+                "Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki,
+                                                                                                              top10_wiki,
+                                                                                                              top100_wiki,
+                                                                                                              mrr_wiki))
             logger.info(
-                "Conll, Epoch - {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
-                                                                                                           top1_conll,
-                                                                                                           top10_conll,
-                                                                                                           top100_conll,
-                                                                                                           mrr_conll))
+                "Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll,
+                                                                                                          top10_conll,
+                                                                                                          top100_conll,
+                                                                                                          mrr_conll))
+
+            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.dev_validator.validate(
+                model=self.model)
+            logger.info('Dev Validation')
+            logger.info(
+                "Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki,
+                                                                                                              top10_wiki,
+                                                                                                              top100_wiki,
+                                                                                                              mrr_wiki))
+            logger.info(
+                "Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll,
+                                                                                                          top10_conll,
+                                                                                                          top100_conll,
+                                                                                                          mrr_conll))
+
             if mrr_conll > self.best_valid_metric:
                 best_model = self.model
                 self.best_valid_metric = mrr_conll

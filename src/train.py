@@ -58,6 +58,7 @@ parser.add_argument("--num_epochs", type=int, default=5, help="Number of epochs"
 parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
 parser.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
 parser.add_argument('--gram_dim', type=int, help='dimension of gram embeddings')
+parser.add_argument('--loss_func', type=str, default='cross_entropy', choices=['cross_entropy', 'cosine'], help='loss function')
 parser.add_argument('--margin', type=float, help='margin of hinge loss')
 parser.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
 parser.add_argument('--lr', type=float, help='learning rate')
@@ -123,12 +124,17 @@ logger.info("Training data loaded.")
 logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
 # Validation
-validator = Validator(gram_dict=gram_vocab,
-                      gram_tokenizer=gram_tokenizer,
-                      yamada_model=yamada_model,
-                      data=dev_data,
-                      args=args)
-logger.info("Validator Created")
+train_validator = Validator(gram_dict=gram_vocab,
+                            gram_tokenizer=gram_tokenizer,
+                            yamada_model=yamada_model,
+                            data=train_data,
+                            args=args)
+dev_validator = Validator(gram_dict=gram_vocab,
+                          gram_tokenizer=gram_tokenizer,
+                          yamada_model=yamada_model,
+                          data=train_data,
+                          args=args)
+logger.info("Validators created.")
 
 # Dataset
 train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
@@ -153,13 +159,20 @@ if use_cuda:
 logger.info('Model created.')
 
 logger.info("Starting validation for untrained model.")
-top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
+top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = train_validator.validate(model=model)
+logger.info('Train Validation')
+logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
+
+top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = dev_validator.validate(model=model)
+logger.info('Dev Validation')
 logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
 logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
 
 trainer = Trainer(loader=train_loader,
                   args=args,
-                  validator=validator,
+                  train_validator=train_validator,
+                  dev_validator=dev_validator,
                   model=model,
                   model_dir=model_dir,
                   use_cuda=use_cuda)
