@@ -60,6 +60,7 @@ class Validator:
         self.conll_mention_context_indices = np.vstack(conll_mention_context_indices_l).astype(np.int32)
         self.conll_all_gold = np.array(conll_all_gold).astype(np.int32)
 
+        print()
         if self.args.debug:
             wiki_debug_result = self._get_debug_error_string(data='wiki', result=False)
             conll_debug_result = self._get_debug_error_string(data='conll', result=False)
@@ -135,7 +136,7 @@ class Validator:
             sys.exit(1)
 
         for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
-            context_word_tokens = [self.rev_word_dict.get(token, 0) for token in text.lower().split()]
+            context_word_tokens = [self.word_dict.get(token, 0) for token in text.lower().split()]
             context_word_tokens = equalize_len(context_word_tokens, self.args.max_context_size)
             for ent_str, (begin, end) in gold_ents:
                 if ent_str in self.ent_dict:
@@ -318,9 +319,9 @@ class Validator:
                                                                      context_indices=self.wiki_mention_context_indices,
                                                                      data='wiki')
         conll_mention_combined_embs = self._get_mention_combined_embs(params=params,
-                                                                      word_indices=self.wiki_mention_word_indices,
-                                                                      gram_indices=self.wiki_mention_gram_indices,
-                                                                      context_indices=self.wiki_mention_context_indices,
+                                                                      word_indices=self.conll_mention_word_indices,
+                                                                      gram_indices=self.conll_mention_gram_indices,
+                                                                      context_indices=self.conll_mention_context_indices,
                                                                       data='conll')
 
         if self.args.debug:
