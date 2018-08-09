@@ -56,12 +56,12 @@ class CombinedDataSet(object):
 
         all_candidate_ids = np.zeros((self.args.max_ent_size, self.args.num_candidates)).astype(np.int64)
         all_candidate_grams = np.zeros((self.args.max_ent_size, self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
-        mention_gram_tokens = np.zeros((self.args.max_ent_size, self.args.max_gram_size)).astype(np.int64)
+        all_mention_gram_tokens = np.zeros((self.args.max_ent_size, self.args.max_gram_size)).astype(np.int64)
 
         if self.args.include_word:
             all_candidate_words = np.zeros(
                 (self.args.max_ent_size, self.args.num_candidates, self.args.max_word_size)).astype(np.int64)
-            mention_word_tokens = np.zeros((self.args.max_ent_size, self.args.max_word_size)).astype(np.int64)
+            all_mention_word_tokens = np.zeros((self.args.max_ent_size, self.args.max_word_size)).astype(np.int64)
 
         # Mask of indices to ignore for final loss
         mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
@@ -74,17 +74,15 @@ class CombinedDataSet(object):
                 continue
 
             # Mention Gram Tokens
-            mention_gram_tokens_array = np.array([self.gram_vocab.get(token, 0)
-                                                  for token in self.gram_tokenizer(mention)][:self.args.max_gram_size],
-                                                 dtype=np.int64)
-            mention_gram_tokens[ent_idx, :len(mention_gram_tokens_array)] = mention_gram_tokens_array
+            mention_gram_tokens = [self.gram_vocab.get(token, 0) for token in self.gram_tokenizer(mention)]
+            mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
+            all_mention_gram_tokens[ent_idx] = np.array(mention_gram_tokens, dtype=np.int64)
 
             # Mention Word Tokens
             if self.args.include_word:
-                mention_word_tokens_array = np.array([self.word_vocab.get(token, 0)
-                                                      for token in mention.lower().split()][:self.args.max_word_size],
-                                                     dtype=np.int64)
-                mention_word_tokens[ent_idx, :len(mention_word_tokens_array)] = mention_word_tokens_array
+                mention_word_tokens = [self.gram_vocab.get(token, 0) for token in mention.lower().split()]
+                mention_word_tokens = equalize_len(mention_word_tokens, self.args.max_word_size)
+                all_mention_word_tokens[ent_idx] = np.array(mention_word_tokens, dtype=np.int64)
 
             # Candidate Generation
             if self.args.cand_gen_rand:
@@ -123,34 +121,35 @@ class CombinedDataSet(object):
 
             for cand_idx, candidate_id in enumerate(candidate_ids):
                 candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
-                candidate_gram_tokens = np.array([self.gram_vocab.get(token, 0)
-                                                  for token in self.gram_tokenizer(candidate_str)][:self.args.max_gram_size],
-                                                 dtype=np.int64)
-                candidate_gram_tokens_matr[cand_idx, :len(candidate_gram_tokens)] = candidate_gram_tokens
 
+                # Candidate Gram Tokens
+                candidate_gram_tokens = [self.gram_vocab[token] for token in self.gram_tokenizer(candidate_str)
+                                         if token in self.gram_vocab]
+                candidate_gram_tokens = equalize_len(candidate_gram_tokens, self.args.max_gram_size)
+                candidate_gram_tokens_matr[cand_idx] = np.array(candidate_gram_tokens, dtype=np.int64)
+
+                # Candidate Word Tokens
                 if self.args.include_word:
-                    candidate_word_tokens = np.array([self.word_vocab.get(token, 0)
-                                                      for token in
-                                                      candidate_str.lower().split()[:self.args.max_word_size]],
-                                                     dtype=np.int64)
-                    candidate_word_tokens_matr[cand_idx, :len(candidate_word_tokens)] = candidate_word_tokens
+                    candidate_word_tokens = [self.word_vocab[token] for token in candidate_str.lower().split()
+                                             if token in self.word_vocab]
+                    candidate_word_tokens = equalize_len(candidate_gram_tokens, self.args.max_word_size)
+                    candidate_word_tokens_matr[cand_idx] = np.array(candidate_word_tokens, dtype=np.int64)
 
             all_candidate_grams[ent_idx] = candidate_gram_tokens_matr
-
             if self.args.include_word:
                 all_candidate_words[ent_idx] = candidate_word_tokens_matr
 
         if self.args.include_word:
             return (mask,
-                    mention_gram_tokens,
-                    mention_word_tokens,
+                    all_mention_gram_tokens,
+                    all_mention_word_tokens,
                     context_word_tokens_array,
                     all_candidate_grams,
                     all_candidate_words,
                     all_candidate_ids)
         else:
             return (mask,
-                    mention_gram_tokens,
+                    all_mention_gram_tokens,
                     context_word_tokens_array,
                     all_candidate_grams,
                     all_candidate_ids)

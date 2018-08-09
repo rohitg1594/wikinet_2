@@ -36,6 +36,7 @@ class Validator:
         self.args = args
 
         self.ent_gram_indices, self.ent_word_indices = self._gen_ent_tokens()
+        print(self.ent_gram_indices)
         (self.wiki_all_gold,
          self.wiki_mention_gram_indices_l,
          self.wiki_mention_word_indices_l,

@@ -186,7 +186,7 @@ for epoch in range(args.num_epochs):
         data = data[1:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
-    
+
         ymask = ymask.view(args.batch_size * args.max_ent_size)
         zeros_2d = Variable(torch.zeros(args.batch_size * args.max_ent_size, args.num_candidates - 1))
 
