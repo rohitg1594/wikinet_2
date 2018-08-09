@@ -19,7 +19,7 @@ class Trainer(object):
         self.args = args
         self.model = model
         self.use_cuda = use_cuda
-        self.num_epochs = self.arg.num_epochs
+        self.num_epochs = self.args.num_epochs
         self.validator = validator
         self.model_dir = model_dir
 
@@ -76,7 +76,7 @@ class Trainer(object):
         for epoch in range(self.num_epochs):
             self.model.train()
             for i, data in enumerate(self.loader, 0):
-                data, ymask, zeros_2d = self._get_next_batch(data)
+                data, ymask = self._get_next_batch(data)
                 scores = self.model(data)
                 loss = self._cosine_loss(scores, ymask)
 

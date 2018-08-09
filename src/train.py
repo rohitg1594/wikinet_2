@@ -1,7 +1,6 @@
 # Main training file
 import os
 from os.path import join
-import sys
 
 import numpy as np
 
@@ -10,7 +9,7 @@ import torch
 import configargparse
 
 from src.utils import str2bool, normal_initialize
-from src.data_utils import load_yamada, load_vocab, pickle_load, save_checkpoint
+from src.data_utils import load_yamada, load_vocab, pickle_load
 from src.evaluation.validation import Validator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
@@ -95,6 +94,7 @@ logger.info("Model loaded.")
 # Gram
 gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type)
 gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
+gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
 
 # Training Data
 logger.info("Loading Training data.")
@@ -121,6 +121,7 @@ for d in data:
 logger.info("Training data loaded.")
 logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
+
 # Validation
 validator = Validator(gram_dict=gram_vocab,
                       gram_tokenizer=gram_tokenizer,
@@ -142,35 +143,17 @@ train_loader = train_dataset.get_loader(batch_size=args.batch_size,
                                         drop_last=True)
 logger.info("Dataset created.")
 
-gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
+# Model
 if args.include_word:
     model = ContextGramWordModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
 else:
     model = ContextGramModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
-logger.info('Model created.')
-
 if use_cuda:
     model = model.cuda(args.device)
-
-if args.optim == 'adagrad':
-    optimizer = torch.optim.Adagrad(filter(lambda p: p.requires_grad, model.parameters()),
-                                    lr=args.lr,
-                                    weight_decay=args.wd)
-elif args.optim == 'adam':
-    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),
-                                 lr=args.lr,
-                                 weight_decay=args.wd)
-else:
-    logger.error("Optimizer {} not recognized, choose between adam, adagrad".format(args.optim))
-    sys.exit(1)
-
-losses = []
-best_model = model
-best_mrr = 0
+logger.info('Model created.')
 
 logger.info("Starting validation for untrained model.")
-top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(
-    model=best_model)
+top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=best_model)
 logger.info("Wikipedia, Untrained Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
 logger.info("Conll, Untrained Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
 
