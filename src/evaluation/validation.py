@@ -2,12 +2,19 @@
 import numpy as np
 import faiss
 
+from os.path import join
+
+import re
+
 from logging import getLogger
 
 from src.utils import reverse_dict, equalize_len, normalize
 from src.evaluation.eval_utils import eval_ranking
+from src.conll.loaders import is_dev_doc, is_test_doc, is_training_doc, iter_docs
 
 logger = getLogger()
+
+RE_DOCID = re.compile('^\d+')
 
 class Validator:
     def __init__(self,
@@ -107,6 +114,34 @@ class Validator:
 
         return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
 
+    def _gen_conll_mention_tokens(self):
+        all_context_word_tokens = []
+        all_mention_word_tokens = []
+        all_mention_gram_tokens = []
+        all_gold = []
+
+        for func in [is_training_doc, is_dev_doc, is_test_doc]:
+            for i, (text, gold_ents, num_tokens, proper_mentions, doc_id_str) in enumerate(
+                    iter_docs(join(self.args.data_path, 'Conll',
+                                   'AIDA-YAGO2-dataset.tsv'), func)):
+                context_word_tokens = [self.rev_word_dict.get(token, 0) for token in text.lower().split()]
+                context_word_tokens = equalize_len(context_word_tokens)
+                for ent_str, (begin, end) in gold_ents:
+                    if ent_str in self.ent_dict:
+                        mention = text[begin:end]
+                        all_gold.append(self.ent_dict[ent_str])
+                        all_context_word_tokens.append(context_word_tokens)
+
+                        mention_gram_tokens = [self.gram_dict.get(token, 0) for token in self.tokenizer(mention)]
+                        mention_gram_tokens = equalize_len(mention_gram_tokens)
+                        all_mention_gram_tokens.append(mention_gram_tokens)
+
+                        mention_word_tokens = [self.word_dict.get(token, 0) for token in mention.lower().split()]
+                        mention_word_tokens = equalize_len(mention_word_tokens)
+                        all_mention_word_tokens.append(mention_word_tokens)
+
+        return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
+
     def validate(self,
                  model=None,
                  error=False,
@@ -196,14 +231,19 @@ class Validator:
         if verbose:
             logger.info('Ent Shape : {}'.format(ent_combined_embs.shape))
             logger.info('Mention Shape : {}'.format(ent_combined_embs.shape))
+            print(ent_combined_embs[:10, :10])
+            print(mention_combined_embs[:10, :10])
 
         # Create / search in Faiss Index
         if verbose:
             logger.info("Searching in index")
+
         if measure == 'ip':
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
         else:
-            index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
+            index = faiss.IndexFlatL2(mention_combined_embs.shape[1])
+
+
         D, I = index.search(mention_combined_embs.astype(np.float32), 100)
         if verbose:
             print(I[:20, :10])
