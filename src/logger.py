@@ -9,7 +9,6 @@ import logging
 
 
 def get_logger(args):
-    # Logging
     logger = logging.getLogger()
     log_formatter = logging.Formatter(fmt='%(levelname)s:%(asctime)s:%(message)s', datefmt='%I:%M:%S %p')
 

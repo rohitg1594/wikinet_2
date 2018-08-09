@@ -204,6 +204,7 @@ class Validator:
             index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
         D, I = index.search(mention_combined_embs.astype(np.float32), 100)
         if verbose:
+            print(I[:20, :10])
             self.logger.info("Search Complete")
 
         # Error Analysis
