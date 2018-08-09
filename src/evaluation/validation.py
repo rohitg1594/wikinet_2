@@ -24,12 +24,11 @@ class Validator:
         self.data = data
         self.args = args
 
-        (self.ent_gram_indices,
-         self.ent_word_indices,
-         self.all_gold,
+        self.ent_gram_indices, self.ent_word_indices = self._gen_ent_tokens()
+        (self.all_gold,
          self.mention_gram_indices_l,
          self.mention_word_indices_l,
-         self.context_word_indices_l) = self._gen_tokens()
+         self.context_word_indices_l) = self._gen_wiki_mention_tokens()
 
         self.mention_gram_indices = np.vstack(self.mention_gram_indices_l).astype(np.int32)
         self.mention_word_indices = np.vstack(self.mention_word_indices_l).astype(np.int32)
@@ -50,20 +49,23 @@ class Validator:
                 print(s)
                 print()
 
-    def _gen_tokens(self):
-        ent_gram_indices = np.zeros((len(self.ent_dict) + 1, self.args.max_gram_size)).astype(np.int32)
-        ent_word_indices = np.zeros((len(self.ent_dict) + 1, self.args.max_word_size)).astype(np.int32)
+    def _gen_ent_tokens(self):
+        ent_gram_tokens = np.zeros((len(self.ent_dict) + 1, self.args.max_gram_size)).astype(np.int32)
+        ent_word_tokens = np.zeros((len(self.ent_dict) + 1, self.args.max_word_size)).astype(np.int32)
         for ent_str, ent_id in self.ent_dict.items():
             gram_tokens = self.tokenizer(ent_str.replace('_', ' '))
             gram_indices = [self.gram_dict.get(token, 0) for token in gram_tokens]
             gram_indices = equalize_len(gram_indices, self.args.max_gram_size)
-            ent_gram_indices[ent_id] = gram_indices
+            ent_gram_tokens[ent_id] = gram_indices
 
             word_tokens = ent_str.replace('_', ' ').lower().split()
             word_indices = [self.word_dict.get(token, 0) for token in word_tokens]
             word_indices = equalize_len(word_indices, self.args.max_word_size)
-            ent_word_indices[ent_id] = word_indices
+            ent_word_tokens[ent_id] = word_indices
 
+        return ent_gram_tokens, ent_word_tokens
+
+    def _gen_wiki_mention_tokens(self):
         all_mention_gram_tokens = []
         all_mention_word_tokens = []
         all_context_word_tokens = []
@@ -100,12 +102,7 @@ class Validator:
                                                             self.args.max_context_size)).astype(np.int64)
                 all_context_word_tokens.append(context_word_tokens)
 
-        return (ent_gram_indices,
-                ent_word_indices,
-                all_gold,
-                all_mention_gram_tokens,
-                all_mention_word_tokens,
-                all_context_word_tokens)
+        return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
 
     def validate(self,
                  model=None,
@@ -223,9 +220,9 @@ class Validator:
                 if context:
                     c_w = context_word_indices[i][:20]
                     s += ' '.join([self.rev_gram_dict[token] for token in c_w if token in self.rev_gram_dict]) + '|'
-                if gram:
-                    s += self.rev_gram_dict[self.all_gold[self.mask[i]]] + '>>>>>'
-                    s += ','.join([self.rev_gram_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_gram_dict])
+                    
+                s += self.rev_ent_dict[self.all_gold[self.mask[i]]] + '>>>>>'
+                s += ','.join([self.rev_ent_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_ent_dict])
                 print(s + '\n')
 
         # Evaluate rankings
