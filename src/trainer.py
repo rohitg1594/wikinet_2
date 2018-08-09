@@ -73,6 +73,7 @@ class Trainer(object):
 
     def train(self):
         training_losses = []
+        best_model = self.model
         for epoch in range(self.num_epochs):
             self.model.train()
             for i, data in enumerate(self.loader, 0):
