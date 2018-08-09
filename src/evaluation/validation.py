@@ -53,7 +53,7 @@ class Validator:
         (conll_all_gold,
          conll_mention_gram_indices_l,
          conll_mention_word_indices_l,
-         conll_mention_context_indices_l) = self._get_conll_mention_tokens(split=self.args.conll_split)
+         conll_mention_context_indices_l) = self._get_conll_mention_tokens()
 
         self.conll_mention_gram_indices = np.vstack(conll_mention_gram_indices_l).astype(np.int32)
         self.conll_mention_word_indices = np.vstack(conll_mention_word_indices_l).astype(np.int32)
@@ -118,20 +118,20 @@ class Validator:
 
         return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
 
-    def _get_conll_mention_tokens(self, split='Train'):
+    def _get_conll_mention_tokens(self):
         all_context_word_tokens = []
         all_mention_word_tokens = []
         all_mention_gram_tokens = []
         all_gold = []
 
-        if split == 'Train':
+        if self.args.split == 'train':
             func = is_training_doc
-        elif split == 'Dev':
+        elif self.args.split == 'dev':
             func = is_dev_doc
-        elif split == 'Test':
+        elif self.args.split == 'test':
             func = is_test_doc
         else:
-            logger.error("Conll split {} not recognized, choose one of Train, Dev, Test".format(split))
+            logger.error("Conll split {} not recognized, choose one of train, dev, test".format(self.args.split))
             sys.exit(1)
 
         for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
