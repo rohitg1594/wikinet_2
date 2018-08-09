@@ -1,9 +1,9 @@
 # Main training file
 import os
 from os.path import join
+import sys
 
 import numpy as np
-np.warnings.filterwarnings('ignore')
 
 import torch
 from torch.autograd import Variable
@@ -19,12 +19,14 @@ from src.models.context_gram import ContextGramModel
 from src.models.context_gram_word import ContextGramWordModel
 from src.logger import get_logger
 
+np.warnings.filterwarnings('ignore')
+
 # main
 parser = configargparse.ArgumentParser(description='Training Wikinet 2',
                                        formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('-c', '--my-config', required=True, is_config_file=True, help='config file path')
-parser.add_argument("--seed", type=int, default=-1, help="Initialization seed")
-parser.add_argument("--exp_name", type=str, default="debug", help="Experiment name")
+parser.add_argument('--my-config', required=True, is_config_file=True, help='config file path')
+parser.add_argument('--seed', type=int, default=-1, help="Initialization seed")
+parser.add_argument('--exp_name', type=str, default="debug", help="Experiment name")
 # debug
 parser.add_argument("--debug", type=str2bool, default=True, help="whether to debug")
 # data
@@ -33,7 +35,6 @@ parser.add_argument('--yamada_model', type=str, help='name of yamada model')
 parser.add_argument('--num_shards', type=int, help='number of shards of training file')
 parser.add_argument('--gram_type', type=str, choices=['unigram', 'bigram', 'trigram'], help='type of gram tokenization')
 parser.add_argument('--gram_vocab', type=str, help='name of gram vocab file')
-# train_size
 parser.add_argument('--train_size', type=int, help='number of training abstracts')
 # validation
 parser.add_argument('--query_size', type=int, help='number of queries during validation')
@@ -160,6 +161,10 @@ elif args.optim == 'adam':
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),
                                  lr=args.lr,
                                  weight_decay=args.wd)
+else:
+    logger.error("Optimizer {} not recognized, choose between adam, adagrad".format(args.optim))
+    sys.exit(1)
+
 losses = []
 best_model = model
 best_mrr = 0

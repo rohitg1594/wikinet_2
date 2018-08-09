@@ -156,8 +156,8 @@ class Validator:
         return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
 
     @staticmethod
-    def _get_model_params(self, model):
-        params = dict
+    def _get_model_params(model):
+        params = dict()
 
         params['word_embs'] = model.state_dict()['word_embs.weight'].cpu().numpy()
         params['ent_embs'] = model.state_dict()['ent_embs.weight'].cpu().numpy()
