@@ -234,7 +234,7 @@ class Validator:
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
         else:
             index = faiss.IndexFlatL2(mention_combined_embs.shape[1])
-
+        index.add(ent_combined_embs)
         D, I = index.search(mention_combined_embs.astype(np.float32), 100)
         if verbose:
             print(I[:20, :10])
