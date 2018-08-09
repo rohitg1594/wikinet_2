@@ -15,14 +15,13 @@ logger = logging.getLogger()
 
 class Trainer(object):
 
-    def __init__(self, loader=None, args=None, model=None, train_validator=None, dev_validator=None, use_cuda=False, model_dir=None):
+    def __init__(self, loader=None, args=None, model=None, dev_validator=None, use_cuda=False, model_dir=None):
         self.loader = loader
         self.args = args
         self.model = model
         self.use_cuda = use_cuda
         self.num_epochs = self.args.num_epochs
         self.dev_validator = dev_validator
-        self.train_validator = train_validator
         self.model_dir = model_dir
         self.min_delta = 1e-03
         self.patience = self.args.patience
@@ -113,30 +112,18 @@ class Trainer(object):
                 'state_dict': self.model.state_dict(),
                 'optimizer': self.optimizer.state_dict()}, True, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
 
-            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.train_validator.validate(
-                model=self.model)
-            logger.info('Train Validation')
-            logger.info(
-                "Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki,
-                                                                                                              top10_wiki,
-                                                                                                              top100_wiki,
-                                                                                                              mrr_wiki))
-            logger.info(
-                "Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll,
-                                                                                                          top10_conll,
-                                                                                                          top100_conll,
-                                                                                                          mrr_conll))
-
             top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.dev_validator.validate(
                 model=self.model)
             logger.info('Dev Validation')
             logger.info(
-                "Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki,
+                "Wikipedia: Epoch {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
+                                                                                                             top1_wiki,
                                                                                                               top10_wiki,
                                                                                                               top100_wiki,
                                                                                                               mrr_wiki))
             logger.info(
-                "Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll,
+                "Conll: Epoch {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
+                                                                                                         top1_conll,
                                                                                                           top10_conll,
                                                                                                           top100_conll,
                                                                                                           mrr_conll))

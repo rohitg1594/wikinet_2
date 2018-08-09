@@ -134,11 +134,6 @@ for lr in [10 ** -i for i in range(2, 5)]:
             gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
 
             # Validation
-            train_validator = Validator(gram_dict=gram_vocab,
-                                        gram_tokenizer=gram_tokenizer,
-                                        yamada_model=yamada_model,
-                                        data=train_data[:10000],
-                                        args=args)
             dev_validator = Validator(gram_dict=gram_vocab,
                                       gram_tokenizer=gram_tokenizer,
                                       yamada_model=yamada_model,
@@ -169,11 +164,6 @@ for lr in [10 ** -i for i in range(2, 5)]:
             logger.info('Model created.')
 
             logger.info("Starting validation for untrained model.")
-            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = train_validator.validate(model=model)
-            logger.info('Train Validation')
-            logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-            logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
-
             top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = dev_validator.validate(model=model)
             logger.info('Dev Validation')
             logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
@@ -181,7 +171,6 @@ for lr in [10 ** -i for i in range(2, 5)]:
 
             trainer = Trainer(loader=train_loader,
                               args=args,
-                              train_validator=train_validator,
                               dev_validator=dev_validator,
                               model=model,
                               model_dir=model_dir,

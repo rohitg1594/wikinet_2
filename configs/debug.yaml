@@ -22,7 +22,7 @@ norm_context:True
 norm_final:True
 cand_gen_rand:True
 num_candidates:32
-patience:5
+patience:3
 num_epochs:10
 batch_size:32
 num_workers:8

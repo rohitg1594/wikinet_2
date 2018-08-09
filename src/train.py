@@ -125,11 +125,6 @@ logger.info("Training data loaded.")
 logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
 # Validation
-train_validator = Validator(gram_dict=gram_vocab,
-                            gram_tokenizer=gram_tokenizer,
-                            yamada_model=yamada_model,
-                            data=train_data[:10000],
-                            args=args)
 dev_validator = Validator(gram_dict=gram_vocab,
                           gram_tokenizer=gram_tokenizer,
                           yamada_model=yamada_model,
@@ -172,7 +167,6 @@ logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f},
 
 trainer = Trainer(loader=train_loader,
                   args=args,
-                  train_validator=train_validator,
                   dev_validator=dev_validator,
                   model=model,
                   model_dir=model_dir,

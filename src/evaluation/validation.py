@@ -331,7 +331,6 @@ class Validator:
             print(conll_mention_combined_embs[:5, :])
 
         # Create / search in Faiss Index
-        logger.info("Searching in index")
         if self.args.measure == 'ip':
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
         else:
@@ -340,7 +339,6 @@ class Validator:
 
         D_wiki, I_wiki = index.search(wiki_mention_combined_embs.astype(np.float32), 100)
         D_conll, I_conll = index.search(conll_mention_combined_embs.astype(np.float32), 100)
-        logger.info("Search Complete")
 
         if self.args.debug:
             print('Wiki result : {}'.format(I_wiki[:20, :10]))
@@ -356,7 +354,6 @@ class Validator:
             print(conll_debug_result)
 
         # Evaluate rankings
-        logger.info("Starting Evaluation of rankings")
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki = eval_ranking(I_wiki, self.wiki_all_gold[self.wiki_mask], [1, 10, 100])
         top1_conll, top10_conll, top100_conll, mrr_conll = eval_ranking(I_conll, self.conll_all_gold, [1, 10, 100])
 
