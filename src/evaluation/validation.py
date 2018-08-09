@@ -4,7 +4,7 @@ import faiss
 
 from src.utils import reverse_dict, equalize_len, normalize
 from src.evaluation.eval_utils import eval_ranking
-
+from src.log import get_logger
 
 class Validator:
     def __init__(self,
@@ -23,6 +23,7 @@ class Validator:
         self.rev_gram_dict = reverse_dict(self.gram_dict)
         self.data = data
         self.args = args
+        self.logger = get_logger(self.args)
 
         self.ent_gram_indices, self.ent_word_indices = self._gen_ent_tokens()
         (self.all_gold,
@@ -119,8 +120,6 @@ class Validator:
                  measure='ip'):
         model.eval()
 
-        if verbose:
-            print("Starting Validation")
         # Get Embeddings
         word_embs = model.state_dict()['word_embs.weight'].cpu().numpy()
         ent_embs = model.state_dict()['ent_embs.weight'].cpu().numpy()
@@ -193,19 +192,19 @@ class Validator:
             ent_combined_embs = normalize(ent_combined_embs)
 
         if verbose:
-            print(ent_combined_embs.shape)
-            print(mention_combined_embs.shape)
+            self.logger.info('Ent Shape : {}'.format(ent_combined_embs.shape))
+            self.logger.info('Mention Shape : {}'.format(ent_combined_embs.shape))
 
         # Create / search in Faiss Index
         if verbose:
-            print("Searching in index")
+            self.logger.info("Searching in index")
         if measure == 'ip':
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
         else:
             index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
         D, I = index.search(mention_combined_embs.astype(np.float32), 100)
         if verbose:
-            print("Search Complete")
+            self.logger.info("Search Complete")
 
         # Error Analysis
         if error:
@@ -219,17 +218,16 @@ class Validator:
                     s += ' '.join([self.rev_gram_dict[token] for token in m_w if token in self.rev_gram_dict]) + '|'
                 if context:
                     c_w = context_word_indices[i][:20]
-                    s += ' '.join([self.rev_gram_dict[token] for token in c_w if token in self.rev_gram_dict]) + '|'
-                    
+                    s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
+
                 s += self.rev_ent_dict[self.all_gold[self.mask[i]]] + '>>>>>'
                 s += ','.join([self.rev_ent_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_ent_dict])
                 print(s + '\n')
 
         # Evaluate rankings
         if verbose:
-            print("Starting Evaluation of rankings")
+            self.logger.info("Starting Evaluation of rankings")
 
         top1, top10, top100, mrr = eval_ranking(I, self.all_gold[self.mask.astype(np.int32)], [1, 10, 100], also_topk=True)
-        print('mrr : {}'.format(mrr))
 
         return top1, top10, top100, mrr

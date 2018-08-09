@@ -1,10 +1,6 @@
 # Main training file
 import os
 from os.path import join
-import sys
-
-import logging
-from datetime import datetime
 
 import numpy as np
 np.warnings.filterwarnings('ignore')
@@ -21,6 +17,7 @@ from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
 from src.models.context_gram import ContextGramModel
 from src.models.context_gram_word import ContextGramWordModel
+from src.log import get_logger
 
 # main
 parser = configargparse.ArgumentParser(description='Training Wikinet 2',
@@ -86,24 +83,7 @@ model_dir = join(args.data_path, 'models', args.exp_name)
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
-# Logging
-logger = logging.getLogger()
-log_formatter = logging.Formatter(fmt='%(levelname)s:%(asctime)s:%(message)s', datefmt='%I:%M:%S %p')
-
-log_path = join(args.data_path, 'logs', '{}_{}.log'.format(datetime.now().strftime("%Y_%m_%d"), args.exp_name))
-if not os.path.exists(log_path):
-    with open(log_path, 'w') as f:
-        f.write('')
-
-file_handler = logging.FileHandler(log_path)
-file_handler.setFormatter(log_formatter)
-logger.addHandler(file_handler, )
-
-console_handler = logging.StreamHandler(stream=sys.stdout)
-console_handler.setFormatter(log_formatter)
-logger.addHandler(console_handler)
-logger.level = 10
-
+logger = get_logger(args)
 logger.info("Loading Yamada model.")
 yamada_model = load_yamada(join(args.data_path, 'yamada', args.yamada_model))
 logger.info("Model loaded.")
