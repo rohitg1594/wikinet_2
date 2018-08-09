@@ -3,6 +3,7 @@ import numpy as np
 import faiss
 
 from os.path import join
+import sys
 
 import re
 
@@ -35,18 +36,28 @@ class Validator:
         self.data = data
         self.args = args
 
-        self.ent_gram_indices, self.ent_word_indices = self._gen_ent_tokens()
-        print(self.ent_gram_indices)
-        (self.wiki_all_gold,
-         self.wiki_mention_gram_indices_l,
-         self.wiki_mention_word_indices_l,
-         self.wiki_context_word_indices_l) = self._gen_wiki_mention_tokens()
+        self.ent_gram_indices, self.ent_word_indices = self._get_ent_tokens()
 
-        self.wiki_mention_gram_indices = np.vstack(self.wiki_mention_gram_indices_l).astype(np.int32)
-        self.wiki_mention_word_indices = np.vstack(self.wiki_mention_word_indices_l).astype(np.int32)
-        self.wiki_context_word_indices = np.vstack(self.wiki_context_word_indices_l).astype(np.int32)
-        self.wiki_all_gold = np.array(self.wiki_all_gold).astype(np.int32)
-        self.mask = np.random.choice(np.arange(len(self.wiki_mention_gram_indices)), size=self.args.query_size)
+        (wiki_all_gold,
+         wiki_mention_gram_indices_l,
+         wiki_mention_word_indices_l,
+         wiki_mention_context_indices_l) = self._get_wiki_mention_tokens()
+
+        self.wiki_mention_gram_indices = np.vstack(wiki_mention_gram_indices_l).astype(np.int32)
+        self.wiki_mention_word_indices = np.vstack(wiki_mention_word_indices_l).astype(np.int32)
+        self.wiki_mention_context_indices = np.vstack(wiki_mention_context_indices_l).astype(np.int32)
+        self.wiki_all_gold = np.array(wiki_all_gold).astype(np.int32)
+        self.wiki_mask = np.random.choice(np.arange(len(self.wiki_mention_gram_indices)), size=self.args.query_size)
+
+        (conll_all_gold,
+         conll_mention_gram_indices_l,
+         conll_mention_word_indices_l,
+         conll_mention_context_indices_l) = self._get_conll_mention_tokens()
+
+        self.conll_mention_gram_indices = np.vstack(conll_mention_gram_indices_l).astype(np.int32)
+        self.conll_mention_word_indices = np.vstack(conll_mention_word_indices_l).astype(np.int32)
+        self.conll_mention_context_indices = np.vstack(conll_mention_context_indices_l).astype(np.int32)
+        self.conll_all_gold = np.array(conll_all_gold).astype(np.int32)
 
         if self.args.debug:
             for i in np.random.choice(range(len(self.wiki_all_gold)), size=10):
@@ -55,13 +66,13 @@ class Validator:
                 s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
                 m_w = self.wiki_mention_word_indices[i]
                 s += ' '.join([self.rev_word_dict[token] for token in m_w if token in self.rev_word_dict]) + '|'
-                c_w = self.wiki_context_word_indices[i][:20]
+                c_w = self.wiki_mention_context_indices[i][:20]
                 s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
                 s += self.rev_ent_dict[self.wiki_all_gold[i]]
                 print(s)
                 print()
 
-    def _gen_ent_tokens(self):
+    def _get_ent_tokens(self):
         ent_gram_tokens = np.zeros((len(self.ent_dict) + 1, self.args.max_gram_size)).astype(np.int32)
         ent_word_tokens = np.zeros((len(self.ent_dict) + 1, self.args.max_word_size)).astype(np.int32)
         for ent_str, ent_id in self.ent_dict.items():
@@ -77,7 +88,7 @@ class Validator:
 
         return ent_gram_tokens, ent_word_tokens
 
-    def _gen_wiki_mention_tokens(self):
+    def _get_wiki_mention_tokens(self):
         all_mention_gram_tokens = []
         all_mention_word_tokens = []
         all_context_word_tokens = []
@@ -109,160 +120,251 @@ class Validator:
 
         return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
 
-    def _gen_conll_mention_tokens(self, dat):
+    def _get_conll_mention_tokens(self, split='Train'):
         all_context_word_tokens = []
         all_mention_word_tokens = []
         all_mention_gram_tokens = []
         all_gold = []
 
-        for func in [is_training_doc, is_dev_doc, is_test_doc]:
-            for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
-                context_word_tokens = [self.rev_word_dict.get(token, 0) for token in text.lower().split()]
-                context_word_tokens = equalize_len(context_word_tokens, self.args.max_context_size)
-                for ent_str, (begin, end) in gold_ents:
-                    if ent_str in self.ent_dict:
-                        mention = text[begin:end]
-                        all_gold.append(self.ent_dict[ent_str])
-                        all_context_word_tokens.append(context_word_tokens)
+        if split == 'Train':
+            func = is_training_doc
+        elif split == 'Dev':
+            func = is_dev_doc
+        elif split == 'Test':
+            func = is_test_doc
+        else:
+            logger.error("Conll Split not recognized, one of {Train, Dev, Test}")
+            sys.exit(1)
 
-                        mention_gram_tokens = [self.gram_dict.get(token, 0) for token in self.tokenizer(mention)]
-                        mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
-                        all_mention_gram_tokens.append(mention_gram_tokens)
+        for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
+            context_word_tokens = [self.rev_word_dict.get(token, 0) for token in text.lower().split()]
+            context_word_tokens = equalize_len(context_word_tokens, self.args.max_context_size)
+            for ent_str, (begin, end) in gold_ents:
+                if ent_str in self.ent_dict:
+                    mention = text[begin:end]
+                    all_gold.append(self.ent_dict[ent_str])
+                    all_context_word_tokens.append(context_word_tokens)
 
-                        mention_word_tokens = [self.word_dict.get(token, 0) for token in mention.lower().split()]
-                        mention_word_tokens = equalize_len(mention_word_tokens, self.args.max_word_size)
-                        all_mention_word_tokens.append(mention_word_tokens)
+                    mention_gram_tokens = [self.gram_dict.get(token, 0) for token in self.tokenizer(mention)]
+                    mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
+                    all_mention_gram_tokens.append(mention_gram_tokens)
+
+                    mention_word_tokens = [self.word_dict.get(token, 0) for token in mention.lower().split()]
+                    mention_word_tokens = equalize_len(mention_word_tokens, self.args.max_word_size)
+                    all_mention_word_tokens.append(mention_word_tokens)
 
         return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
 
-    def validate(self,
-                 model=None,
-                 error=False,
-                 error_size=10,
-                 gram=True,
-                 word=True,
-                 context=True,
-                 norm_gram=True,
-                 norm_word=True,
-                 norm_context=True,
-                 norm_final=False,
-                 verbose=True,
-                 measure='ip'):
-        model.eval()
+    @staticmethod
+    def _get_model_params(self, model):
+        params = dict
 
-        # Get Embeddings
-        word_embs = model.state_dict()['word_embs.weight'].cpu().numpy()
-        ent_embs = model.state_dict()['ent_embs.weight'].cpu().numpy()
-        gram_embs = model.state_dict()['gram_embs.weight'].cpu().numpy()
-        orig_W = model.state_dict()['orig_linear.weight'].cpu().numpy()
-        orig_b = model.state_dict()['orig_linear.bias'].cpu().numpy()
+        params['word_embs'] = model.state_dict()['word_embs.weight'].cpu().numpy()
+        params['ent_embs'] = model.state_dict()['ent_embs.weight'].cpu().numpy()
+        params['gram_embs'] = model.state_dict()['gram_embs.weight'].cpu().numpy()
+        params['W']= model.state_dict()['orig_linear.weight'].cpu().numpy()
+        params['b'] = model.state_dict()['orig_linear.bias'].cpu().numpy()
 
-        if gram:
+        return params
+
+    def _get_ent_combined_embs(self, params=None):
+
+        gram_embs = params['gram_embs']
+        word_embs = params['word_embs']
+        ent_embs = params['ent_embs']
+        W = params['W']
+        b = params['b']
+
+        if self.args.include_word:
             ent_gram_embs = gram_embs[self.ent_gram_indices, :]
             ent_gram_embs = ent_gram_embs.mean(axis=1)
 
-            mention_gram_indices = self.wiki_mention_gram_indices[self.mask, :]
-            mention_gram_embs = gram_embs[mention_gram_indices, :].mean(axis=1)
-
-            if norm_gram:
-                mention_gram_embs = normalize(mention_gram_embs)
+            if self.args.norm_gram:
                 ent_gram_embs = normalize(ent_gram_embs)
 
-        if word:
-            ent_word_embs = ent_embs[self.ent_word_indices, :].mean(axis=1)
-            ent_word_embs = ent_word_embs @ orig_W + orig_b
+        if self.args.include_word:
+            ent_word_embs = word_embs[self.ent_word_indices, :].mean(axis=1)
+            ent_word_embs = ent_word_embs @ W + b
 
-            mention_word_indices = self.wiki_mention_word_indices[self.mask, :]
-            mention_word_embs = word_embs[mention_word_indices, :].mean(axis=1)
-            mention_word_embs = mention_word_embs @ orig_W + orig_b
-
-            if norm_word:
-                mention_word_embs = normalize(mention_word_embs)
+            if self.args.norm_word:
                 ent_word_embs = normalize(ent_word_embs)
 
-        if context:
-            context_word_indices = self.wiki_context_word_indices[self.mask, :]
-            context_word_embs = word_embs[context_word_indices, :].mean(axis=1)
-            context_word_embs = context_word_embs @ orig_W + orig_b
-
-            if norm_context:
-                context_word_embs = normalize(context_word_embs)
-
         # 100
-        if gram and not context and not word:
+        if self.args.include_gram and not self.args.include_context and not self.args.include_word:
             ent_combined_embs = ent_gram_embs
-            mention_combined_embs = mention_gram_embs
         # 001
-        elif not gram and not context and word:
+        elif not self.args.include_gram and not self.args.include_context and self.args.include_word:
             ent_combined_embs = ent_word_embs
-            mention_combined_embs = mention_word_embs
         # 010
-        elif not gram and context and not word:
+        elif not self.args.include_gram and self.args.include_context and not self.args.include_word:
             ent_combined_embs = ent_embs
-            mention_combined_embs = context_word_embs
         # 110
-        elif gram and context and not word:
+        elif self.args.include_gram and self.args.include_context and not self.args.include_word:
             ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs), axis=1)
-            mention_combined_embs = np.concatenate((context_word_embs, mention_gram_embs), axis=1)
         # 101
-        elif gram and not context and word:
+        elif self.args.include_gram and not self.args.include_context and self.args.include_word:
             ent_combined_embs = np.concatenate((ent_word_embs, ent_gram_embs), axis=1)
-            mention_combined_embs = np.concatenate((mention_word_embs, mention_gram_embs), axis=1)
         # 011
-        elif not gram and context and word:
+        elif not self.args.include_gram and self.args.include_context and self.args.include_word:
             ent_combined_embs = np.concatenate((ent_embs, ent_word_embs), axis=1)
-            mention_combined_embs = np.concatenate((context_word_embs, mention_word_embs), axis=1)
         # 111
         else:
             ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_word_embs), axis=1)
-            mention_combined_embs = np.concatenate((context_word_embs, mention_gram_embs, mention_word_embs), axis=1)
 
-        if norm_final:
-            mention_combined_embs = normalize(mention_combined_embs)
+        if self.args.norm_final:
             ent_combined_embs = normalize(ent_combined_embs)
 
-        if verbose:
+        return ent_combined_embs
+
+    def _get_mention_combined_embs(self, params=None, word_indices=None, gram_indices=None, context_indices=None, data='wiki'):
+        gram_embs = params['gram_embs']
+        word_embs = params['word_embs']
+        W = params['W']
+        b = params['b']
+
+        if data == 'wiki':
+            gram_indices = gram_indices[self.wiki_mask, :]
+            context_indices = context_indices[self.wiki_mask, :]
+            word_indices = word_indices[self.wiki_mask, :]
+
+        if self.args.include_gram:
+            mention_gram_embs = gram_embs[gram_indices, :]
+            mention_gram_embs = mention_gram_embs.mean(axis=1)
+
+            if self.args.norm_gram:
+                mention_gram_embs = normalize(mention_gram_embs)
+
+        if self.args.include_word:
+            mention_word_embs = word_embs[word_indices, :].mean(axis=1)
+            mention_word_embs = mention_word_embs @ W + b
+
+            if self.args.norm_word:
+                mention_word_embs = normalize(mention_word_embs)
+
+        if self.args.include_context:
+            mention_context_embs = word_embs[context_indices, :].mean(axis=1)
+            mention_context_embs = mention_context_embs @ W + b
+
+            if self.args.norm_word:
+                mention_context_embs = normalize(mention_context_embs)
+
+        # 100
+        if self.args.include_gram and not self.args.include_context and not self.args.include_word:
+            mention_combined_embs = mention_gram_embs
+        # 001
+        elif not self.args.include_gram and not self.args.include_context and self.args.include_word:
+            mention_combined_embs = mention_word_embs
+        # 010
+        elif not self.args.include_gram and self.args.include_context and not self.args.include_word:
+            mention_combined_embs = mention_context_embs
+        # 110
+        elif self.args.include_gram and self.args.include_context and not self.args.include_word:
+            mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs), axis=1)
+        # 101
+        elif self.args.include_gram and not self.args.include_context and self.args.include_word:
+            mention_combined_embs = np.concatenate((mention_word_embs, mention_gram_embs), axis=1)
+        # 011
+        elif not self.args.include_gram and self.args.include_context and self.args.include_word:
+            mention_combined_embs = np.concatenate((mention_context_embs, mention_word_embs), axis=1)
+        # 111
+        else:
+            mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_word_embs), axis=1)
+
+        if self.args.norm_final:
+            mention_combined_embs = normalize(mention_combined_embs)
+
+        return mention_combined_embs
+
+    def _get_debug_error_string(self, I=None, data='wiki'):
+
+        if data == 'wiki':
+            gram_indices = self.wiki_mention_gram_indices[self.wiki_mask, :]
+            word_indices = self.wiki_mention_word_indices[self.wiki_mask, :]
+            context_indices = self.wiki_mention_context_indices[self.wiki_mask, :]
+            gold = self.wiki_all_gold[self.wiki_mask, :]
+        elif data == 'conll':
+            gram_indices = self.conll_mention_gram_indices
+            word_indices = self.conll_mention_word_indices
+            context_indices = self.conll_mention_context_indices
+            gold = self.conll_all_gold
+        else:
+            logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data))
+            sys.exit(1)
+
+        for i in range(10):
+            s = ''
+            if self.args.include_gram:
+                m_g = gram_indices[i]
+                s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
+            if self.args.include_word:
+                m_w = word_indices[i]
+                s += ' '.join([self.rev_gram_dict[token] for token in m_w if token in self.rev_gram_dict]) + '|'
+            if self.args.include_context:
+                c_w = context_indices[i][:20]
+                s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
+
+            s += self.rev_ent_dict[gold] + '>>>>>'
+            s += ','.join([self.rev_ent_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_ent_dict])
+            s += '\n'
+
+        return s
+
+    def validate(self, model=None):
+        model.eval()
+
+        params = self._get_model_params(model)
+        ent_combined_embs = self._get_ent_combined_embs(params=params)
+        wiki_mention_combined_embs = self._get_mention_combined_embs(params=params,
+                                                                     word_indices=self.wiki_mention_word_indices,
+                                                                     gram_indices=self.wiki_mention_gram_indices,
+                                                                     context_indices=self.wiki_mention_context_indices,
+                                                                     data='wiki')
+        conll_mention_combined_embs = self._get_mention_combined_embs(params=params,
+                                                                      word_indices=self.wiki_mention_word_indices,
+                                                                      gram_indices=self.wiki_mention_gram_indices,
+                                                                      context_indices=self.wiki_mention_context_indices,
+                                                                      data='conll')
+
+        if self.args.debug:
             logger.info('Ent Shape : {}'.format(ent_combined_embs.shape))
-            logger.info('Mention Shape : {}'.format(ent_combined_embs.shape))
+            logger.info('Wiki Mention Shape : {}'.format(wiki_mention_combined_embs.shape))
+            logger.info('Conll Mention Shape : {}'.format(conll_mention_combined_embs.shape))
             print(ent_combined_embs[:5, :])
-            print(mention_combined_embs[:5, :])
+            print(wiki_mention_combined_embs[:5, :])
+            print(conll_mention_combined_embs[:5, :])
 
         # Create / search in Faiss Index
-        if verbose:
-            logger.info("Searching in index")
-
-        if measure == 'ip':
+        logger.info("Searching in index")
+        if self.args.measure == 'ip':
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
         else:
-            index = faiss.IndexFlatL2(mention_combined_embs.shape[1])
+            index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
         index.add(ent_combined_embs)
-        D, I = index.search(mention_combined_embs.astype(np.float32), 100)
-        if verbose:
-            print(I[:20, :10])
-            logger.info("Search Complete")
+
+        D_wiki, I_wiki = index.search(wiki_mention_combined_embs.astype(np.float32), 100)
+        D_conll, I_conll = index.search(conll_mention_combined_embs.astype(np.float32), 100)
+        logger.info("Search Complete")
+
+        if self.args.debug:
+            print('Wiki result : {}'.format(I_wiki[:20, :10]))
+            print('Conll result : {}'.format(I_conll[:20, :10]))
 
         # Error Analysis
-        if error:
-            for i in range(error_size):
-                s = ''
-                if gram:
-                    m_g = mention_gram_indices[i]
-                    s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
-                if word:
-                    m_w = mention_word_indices[i]
-                    s += ' '.join([self.rev_gram_dict[token] for token in m_w if token in self.rev_gram_dict]) + '|'
-                if context:
-                    c_w = context_word_indices[i][:20]
-                    s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
+        if self.args.debug:
+            wiki_debug_result = self._get_debug_error_string(I=I_wiki, data='wiki')
+            conll_debug_result = self._get_debug_error_string(I=I_conll, data='conll')
 
-                s += self.rev_ent_dict[self.wiki_all_gold[self.mask[i]]] + '>>>>>'
-                s += ','.join([self.rev_ent_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_ent_dict])
-                print(s + '\n')
+            print("Wikipedia Debug Results")
+            print(wiki_debug_result)
+
+            print("ConllDebug Results")
+            print(conll_debug_result)
 
         # Evaluate rankings
-        if verbose:
-            logger.info("Starting Evaluation of rankings")
+        logger.info("Starting Evaluation of rankings")
+        top1_wiki, top10_wiki, top100_wiki, mrr_wiki = eval_ranking(I_wiki,
+                                                                    self.wiki_all_gold[self.wiki_mask.astype(np.int32)],
+                                                                    [1, 10, 100])
+        top1_conll, top10_conll, top100_conll, mrr_conll = eval_ranking(I_conll, self.conll_all_gold, [1, 10, 100])
 
-        top1, top10, top100, mrr = eval_ranking(I, self.wiki_all_gold[self.mask.astype(np.int32)], [1, 10, 100], also_topk=True)
-
-        return top1, top10, top100, mrr
+        return top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll

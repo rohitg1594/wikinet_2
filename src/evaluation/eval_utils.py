@@ -1,18 +1,14 @@
 # Util functions for evaluation
 import numpy as np
 
-def eval_ranking(I, gold, ks, also_topk=True):
-    if also_topk:
-        topks = np.zeros(len(ks))
-        for j, k in enumerate(ks):
-            for i in range(I.shape[0]):
-                if gold[i] in I[i, :k]:
-                    topks[j] += 1
+def eval_ranking(I, gold, ks):
+    topks = np.zeros(len(ks))
+    for j, k in enumerate(ks):
+        for i in range(I.shape[0]):
+            if gold[i] in I[i, :k]:
+                topks[j] += 1
 
-        topks /= I.shape[0]
-
-        for k, topk in zip(ks, topks):
-            print('Top {} precision : {:.7f}'.format(k, topk))
+    topks /= I.shape[0]
 
     # Mean Reciprocal Rank
     ranks = []
@@ -23,7 +19,7 @@ def eval_ranking(I, gold, ks, also_topk=True):
         else:
             ranks.append(1 / index)
     mrr = np.mean(np.array(ranks))
-    # print('Mean Reciprocal Rank : {}'.format(mrr))
+
     if not isinstance(mrr, float):
         mrr = mrr[0]
 

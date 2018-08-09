@@ -226,20 +226,12 @@ for epoch in range(args.num_epochs):
         'state_dict': model.state_dict(),
         'optimizer': optimizer.state_dict(),
     }, True, filename=join(model_dir, '{}.ckpt'.format(epoch)))
-    top1, top10, top100, mrr = validator.validate(model=best_model,
-                                                  error=args.debug,
-                                                  gram=True,
-                                                  word=args.include_word,
-                                                  context=True,
-                                                  norm_gram=args.norm_gram,
-                                                  norm_word=args.norm_word,
-                                                  norm_context=args.norm_context,
-                                                  norm_final=args.norm_final,
-                                                  verbose=args.debug,
-                                                  measure=args.measure)
+    top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=best_model)
 
     logger.info(
-        "Epoch : Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(top1, top10, top100, mrr))
+        "Wikipedia, Epoch - {} Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(epoch, top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+    logger.info(
+        "Conll, Epoch - {} Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(epoch, top1_conll, top10_conll, top100_conll, mrr_conll))
 
     if mrr > best_mrr:
         best_model = model
