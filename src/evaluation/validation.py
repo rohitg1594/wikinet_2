@@ -2,9 +2,12 @@
 import numpy as np
 import faiss
 
+from logging import getLogger
+
 from src.utils import reverse_dict, equalize_len, normalize
 from src.evaluation.eval_utils import eval_ranking
-from src.logger import get_logger
+
+logger = getLogger()
 
 class Validator:
     def __init__(self,
@@ -23,7 +26,6 @@ class Validator:
         self.rev_gram_dict = reverse_dict(self.gram_dict)
         self.data = data
         self.args = args
-        self.logger = get_logger(self.args)
 
         self.ent_gram_indices, self.ent_word_indices = self._gen_ent_tokens()
         (self.all_gold,
@@ -192,12 +194,12 @@ class Validator:
             ent_combined_embs = normalize(ent_combined_embs)
 
         if verbose:
-            self.logger.info('Ent Shape : {}'.format(ent_combined_embs.shape))
-            self.logger.info('Mention Shape : {}'.format(ent_combined_embs.shape))
+            logger.info('Ent Shape : {}'.format(ent_combined_embs.shape))
+            logger.info('Mention Shape : {}'.format(ent_combined_embs.shape))
 
         # Create / search in Faiss Index
         if verbose:
-            self.logger.info("Searching in index")
+            logger.info("Searching in index")
         if measure == 'ip':
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
         else:
@@ -205,7 +207,7 @@ class Validator:
         D, I = index.search(mention_combined_embs.astype(np.float32), 100)
         if verbose:
             print(I[:20, :10])
-            self.logger.info("Search Complete")
+            logger.info("Search Complete")
 
         # Error Analysis
         if error:
@@ -227,7 +229,7 @@ class Validator:
 
         # Evaluate rankings
         if verbose:
-            self.logger.info("Starting Evaluation of rankings")
+            logger.info("Starting Evaluation of rankings")
 
         top1, top10, top100, mrr = eval_ranking(I, self.all_gold[self.mask.astype(np.int32)], [1, 10, 100], also_topk=True)
 
