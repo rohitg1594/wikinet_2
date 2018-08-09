@@ -182,9 +182,10 @@ for epoch in range(args.num_epochs):
 
     for i, data in enumerate(train_loader, 0):
         data = list(data)
+        ymask = data[0]
+        data = data[1:]
         for d in data:
             d = Variable(d)
-        ymask = data[0]
         ymask = ymask.view(args.batch_size * args.max_ent_size)
         zeros_2d = Variable(torch.zeros(args.batch_size * args.max_ent_size, args.num_candidates - 1))
 

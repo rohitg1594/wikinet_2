@@ -16,6 +16,7 @@ logger = getLogger()
 
 RE_DOCID = re.compile('^\d+')
 
+
 class Validator:
     def __init__(self,
                  gram_tokenizer=None,
@@ -121,11 +122,9 @@ class Validator:
         all_gold = []
 
         for func in [is_training_doc, is_dev_doc, is_test_doc]:
-            for i, (text, gold_ents, num_tokens, proper_mentions, doc_id_str) in enumerate(
-                    iter_docs(join(self.args.data_path, 'Conll',
-                                   'AIDA-YAGO2-dataset.tsv'), func)):
+            for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
                 context_word_tokens = [self.rev_word_dict.get(token, 0) for token in text.lower().split()]
-                context_word_tokens = equalize_len(context_word_tokens)
+                context_word_tokens = equalize_len(context_word_tokens, self.args.max_context_size)
                 for ent_str, (begin, end) in gold_ents:
                     if ent_str in self.ent_dict:
                         mention = text[begin:end]
@@ -133,11 +132,11 @@ class Validator:
                         all_context_word_tokens.append(context_word_tokens)
 
                         mention_gram_tokens = [self.gram_dict.get(token, 0) for token in self.tokenizer(mention)]
-                        mention_gram_tokens = equalize_len(mention_gram_tokens)
+                        mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
                         all_mention_gram_tokens.append(mention_gram_tokens)
 
                         mention_word_tokens = [self.word_dict.get(token, 0) for token in mention.lower().split()]
-                        mention_word_tokens = equalize_len(mention_word_tokens)
+                        mention_word_tokens = equalize_len(mention_word_tokens, self.args.max_word_size)
                         all_mention_word_tokens.append(mention_word_tokens)
 
         return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
