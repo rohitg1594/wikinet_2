@@ -60,7 +60,6 @@ class Validator:
         self.conll_mention_context_indices = np.vstack(conll_mention_context_indices_l).astype(np.int32)
         self.conll_all_gold = np.array(conll_all_gold).astype(np.int32)
 
-        print()
         if self.args.debug:
             wiki_debug_result = self._get_debug_error_string(data='wiki', result=False)
             conll_debug_result = self._get_debug_error_string(data='conll', result=False)

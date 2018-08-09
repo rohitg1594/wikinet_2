@@ -55,6 +55,7 @@ parser.add_argument('--norm_final', type=str2bool, help='whether to normalize fi
 parser.add_argument('--cand_gen_rand', type=str2bool, help='whether to generate random candidates')
 parser.add_argument("--num_candidates", type=int, default=32, help="Number of candidates")
 parser.add_argument("--num_epochs", type=int, default=5, help="Number of epochs")
+parser.add_argument("--patience", type=int, default=5, help="Patience for early stopping")
 parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
 parser.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
 parser.add_argument('--gram_dim', type=int, help='dimension of gram embeddings')
@@ -132,7 +133,7 @@ train_validator = Validator(gram_dict=gram_vocab,
 dev_validator = Validator(gram_dict=gram_vocab,
                           gram_tokenizer=gram_tokenizer,
                           yamada_model=yamada_model,
-                          data=train_data,
+                          data=dev_data,
                           args=args)
 logger.info("Validators created.")
 

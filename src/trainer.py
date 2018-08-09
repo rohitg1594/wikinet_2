@@ -24,6 +24,8 @@ class Trainer(object):
         self.dev_validator = dev_validator
         self.train_validator = train_validator
         self.model_dir = model_dir
+        self.min_delta = 1e-03
+        self.patience = self.arge.patience
 
         if args.optim == 'adagrad':
             self.optimizer = torch.optim.Adagrad(filter(lambda p: p.requires_grad, self.model.parameters()), lr=args.lr, weight_decay=args.wd)
@@ -33,7 +35,6 @@ class Trainer(object):
             logger.error("Optimizer {} not recognized, choose between adam, adagrad".format(args.optim))
             sys.exit(1)
 
-        self.best_valid_metric = 1e-12
         self.loader_index = 0
 
     def _get_next_batch(self, data):
@@ -85,6 +86,9 @@ class Trainer(object):
     def train(self):
         training_losses = []
         best_model = self.model
+        wait = 0
+        best_mrr = 0
+
         for epoch in range(self.num_epochs):
             self.model.train()
             for i, data in enumerate(self.loader, 0):
@@ -136,9 +140,17 @@ class Trainer(object):
                                                                                                           top100_conll,
                                                                                                           mrr_conll))
 
-            if mrr_conll > self.best_valid_metric:
+            if mrr_conll > best_mrr:
                 best_model = self.model
-                self.best_valid_metric = mrr_conll
+                best_mrr = mrr_conll
+                wait = 0
+            else:
+                if wait >= self.patience:
+                    logger.info("Network not improving, breaking at epoch {}".format(epoch))
+                    break
+                wait += 1
+
+
 
         save_checkpoint({
             'state_dict': best_model.state_dict(),
