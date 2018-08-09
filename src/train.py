@@ -127,7 +127,7 @@ logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_dat
 train_validator = Validator(gram_dict=gram_vocab,
                             gram_tokenizer=gram_tokenizer,
                             yamada_model=yamada_model,
-                            data=train_data,
+                            data=train_data[:10000],
                             args=args)
 dev_validator = Validator(gram_dict=gram_vocab,
                           gram_tokenizer=gram_tokenizer,
