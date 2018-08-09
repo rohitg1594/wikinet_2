@@ -278,7 +278,7 @@ class Validator:
             gram_indices = self.wiki_mention_gram_indices[self.wiki_mask, :]
             word_indices = self.wiki_mention_word_indices[self.wiki_mask, :]
             context_indices = self.wiki_mention_context_indices[self.wiki_mask, :]
-            gold = self.wiki_all_gold[self.wiki_mask, :]
+            gold = self.wiki_all_gold[self.wiki_mask]
         elif data == 'conll':
             gram_indices = self.conll_mention_gram_indices
             word_indices = self.conll_mention_word_indices
@@ -346,8 +346,6 @@ class Validator:
             print('Wiki result : {}'.format(I_wiki[:20, :10]))
             print('Conll result : {}'.format(I_conll[:20, :10]))
 
-        # Error Analysis
-        if self.args.debug:
             wiki_debug_result = self._get_debug_error_string(I=I_wiki, data='wiki', result=True)
             conll_debug_result = self._get_debug_error_string(I=I_conll, data='conll', result=False)
 
