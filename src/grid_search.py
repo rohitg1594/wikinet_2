@@ -105,8 +105,6 @@ data = []
 for i in range(args.num_shards):
     data.extend(pickle_load(join(args.data_path, 'training-yamada-simple', 'data_{}.pickle'.format(i))))
 
-
-
 train_data = []
 dev_data = []
 test_data = []
@@ -130,8 +128,9 @@ for lr in [10 ** -i for i in range(2, 5)]:
     for wd in [10 ** -i for i in range(2, 6)]:
         for gram_dim in [16, 32, 64, 128]:
             args.__dict__['lr'] = lr
-            args.__dict__['wd'] = lr
+            args.__dict__['wd'] = wd
             args.__dict__['gram_dim'] = gram_dim
+            logger.info("Learning Rate : {}, Weight Decay : {}, Gram Dim : {}".format(lr, wd, gram_dim))
             gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
 
             # Validation
