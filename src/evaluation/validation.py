@@ -230,8 +230,8 @@ class Validator:
         if verbose:
             logger.info('Ent Shape : {}'.format(ent_combined_embs.shape))
             logger.info('Mention Shape : {}'.format(ent_combined_embs.shape))
-            print(ent_combined_embs[:10, :10])
-            print(mention_combined_embs[:10, :10])
+            print(ent_combined_embs[:5, :])
+            print(mention_combined_embs[:5, :])
 
         # Create / search in Faiss Index
         if verbose:
@@ -241,7 +241,6 @@ class Validator:
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
         else:
             index = faiss.IndexFlatL2(mention_combined_embs.shape[1])
-
 
         D, I = index.search(mention_combined_embs.astype(np.float32), 100)
         if verbose:
