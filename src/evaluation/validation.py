@@ -4,7 +4,7 @@ import faiss
 
 from src.utils import reverse_dict, equalize_len, normalize
 from src.evaluation.eval_utils import eval_ranking
-from src.log import get_logger
+from src.logger import get_logger
 
 class Validator:
     def __init__(self,

@@ -17,7 +17,7 @@ from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
 from src.models.context_gram import ContextGramModel
 from src.models.context_gram_word import ContextGramWordModel
-from src.log import get_logger
+from src.logger import get_logger
 
 # main
 parser = configargparse.ArgumentParser(description='Training Wikinet 2',

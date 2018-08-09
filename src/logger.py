@@ -26,3 +26,5 @@ def get_logger(args):
     console_handler.setFormatter(log_formatter)
     logger.addHandler(console_handler)
     logger.level = 10
+
+    return logger
