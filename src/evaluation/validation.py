@@ -124,14 +124,14 @@ class Validator:
         all_mention_gram_tokens = []
         all_gold = []
 
-        if self.args.split == 'train':
+        if self.args.conll_split == 'train':
             func = is_training_doc
-        elif self.args.split == 'dev':
+        elif self.args.conll_split == 'dev':
             func = is_dev_doc
-        elif self.args.split == 'test':
+        elif self.args.conll_split == 'test':
             func = is_test_doc
         else:
-            logger.error("Conll split {} not recognized, choose one of train, dev, test".format(self.args.split))
+            logger.error("Conll split {} not recognized, choose one of train, dev, test".format(self.args.conll_split))
             sys.exit(1)
 
         for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
