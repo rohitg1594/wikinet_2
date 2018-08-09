@@ -53,7 +53,7 @@ class Validator:
         (conll_all_gold,
          conll_mention_gram_indices_l,
          conll_mention_word_indices_l,
-         conll_mention_context_indices_l) = self._get_conll_mention_tokens()
+         conll_mention_context_indices_l) = self._get_conll_mention_tokens(split=self.args.conll_split)
 
         self.conll_mention_gram_indices = np.vstack(conll_mention_gram_indices_l).astype(np.int32)
         self.conll_mention_word_indices = np.vstack(conll_mention_word_indices_l).astype(np.int32)

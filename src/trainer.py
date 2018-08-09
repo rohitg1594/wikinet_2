@@ -77,7 +77,7 @@ class Trainer(object):
     def _cross_entropy(self, scores, ymask):
         labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor), requires_grad=False)
         if self.use_cuda:
-            labels = labels.cuda()
+            labels = labels.cuda(self.args.device)
 
         loss = F.cross_entropy(scores, labels) * ymask
 

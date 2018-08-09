@@ -38,6 +38,7 @@ parser.add_argument('--gram_vocab', type=str, help='name of gram vocab file')
 parser.add_argument('--train_size', type=int, help='number of training abstracts')
 # validation
 parser.add_argument('--query_size', type=int, help='number of queries during validation')
+parser.add_argument('--conll_split', type=str, choices=['train', 'dev', 'test'],  help='which split of connl data to evaluate on')
 # model max padding sizes
 parser.add_argument('--max_word_size', type=int, help='max number of words')
 parser.add_argument('--max_context_size', type=int, help='max number of context')
