@@ -86,6 +86,7 @@ model_dir = join(args.data_path, 'models', args.exp_name)
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
+# Logging
 logger = logging.getLogger()
 log_formatter = logging.Formatter(fmt='%(levelname)s:%(asctime)s:%(message)s', datefmt='%I:%M:%S %p')
 
@@ -106,9 +107,12 @@ logger.level = 10
 logger.info("Loading Yamada model.")
 yamada_model = load_yamada(join(args.data_path, 'yamada', args.yamada_model))
 logger.info("Model loaded.")
-gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type)
-gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab))
 
+# Gram
+gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type)
+gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
+
+# Training Data
 logger.info("Loading Training data.")
 data = []
 for i in range(args.num_shards):
@@ -133,6 +137,7 @@ for d in data:
 logger.info("Training data loaded.")
 logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
+# Dataset
 train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
                                 gram_vocab=gram_vocab,
                                 word_vocab=yamada_model['word_dict'],
@@ -145,7 +150,7 @@ train_loader = train_dataset.get_loader(batch_size=args.batch_size,
                                         drop_last=True)
 logger.info("Dataset created.")
 
-
+# Validation
 validator = Validator(gram_dict=gram_vocab,
                       gram_tokenizer=gram_tokenizer,
                       yamada_model=yamada_model,

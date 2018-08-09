@@ -214,14 +214,18 @@ class Validator:
         if error:
             for i in range(error_size):
                 s = ''
-                m_g = mention_gram_indices[i]
-                s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
-                m_w = mention_word_indices[i]
-                s += ' '.join([self.rev_gram_dict[token] for token in m_w if token in self.rev_gram_dict]) + '|'
-                c_w = context_word_indices[i][:20]
-                s += ' '.join([self.rev_gram_dict[token] for token in c_w if token in self.rev_gram_dict]) + '|'
-                s += self.rev_gram_dict[self.all_gold[self.mask[i]]] + '>>>>>'
-                s += ','.join([self.rev_gram_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_gram_dict])
+                if gram:
+                    m_g = mention_gram_indices[i]
+                    s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
+                if word:
+                    m_w = mention_word_indices[i]
+                    s += ' '.join([self.rev_gram_dict[token] for token in m_w if token in self.rev_gram_dict]) + '|'
+                if context:
+                    c_w = context_word_indices[i][:20]
+                    s += ' '.join([self.rev_gram_dict[token] for token in c_w if token in self.rev_gram_dict]) + '|'
+                if gram:
+                    s += self.rev_gram_dict[self.all_gold[self.mask[i]]] + '>>>>>'
+                    s += ','.join([self.rev_gram_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_gram_dict])
                 print(s + '\n')
 
         # Evaluate rankings

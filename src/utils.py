@@ -84,6 +84,7 @@ def equalize_len(data, max_size):
 
         return d
 
+
 def str2bool(v):
     """
     thanks : https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
@@ -94,5 +95,3 @@ def str2bool(v):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
