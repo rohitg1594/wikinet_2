@@ -76,16 +76,17 @@ use_cuda = torch.cuda.is_available()
 
 if args.wd > 0:
     assert not args.sparse
+logger = get_logger(args)
 
+logger.info("Experiment Parameters")
 for arg in vars(args):
-    print('{:<15}\t{}'.format(arg, getattr(args, arg)))
-print('{:<15}\t{}'.format('cuda available', use_cuda))
+    logger.info('{:<15}\t{}'.format(arg, getattr(args, arg)))
+logger.info('{:<15}\t{}'.format('cuda available', use_cuda))
 
 model_dir = join(args.data_path, 'models', args.exp_name)
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
-logger = get_logger(args)
 logger.info("Loading Yamada model.")
 yamada_model = load_yamada(join(args.data_path, 'yamada', args.yamada_model))
 logger.info("Model loaded.")
