@@ -153,7 +153,7 @@ if use_cuda:
 logger.info('Model created.')
 
 logger.info("Starting validation for untrained model.")
-top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=best_model)
+top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
 logger.info("Wikipedia, Untrained Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
 logger.info("Conll, Untrained Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
 
