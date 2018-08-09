@@ -60,17 +60,14 @@ class Validator:
         self.conll_all_gold = np.array(conll_all_gold).astype(np.int32)
 
         if self.args.debug:
-            for i in np.random.choice(range(len(self.wiki_all_gold)), size=10):
-                s = ''
-                m_g = self.wiki_mention_gram_indices[i]
-                s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
-                m_w = self.wiki_mention_word_indices[i]
-                s += ' '.join([self.rev_word_dict[token] for token in m_w if token in self.rev_word_dict]) + '|'
-                c_w = self.wiki_mention_context_indices[i][:20]
-                s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
-                s += self.rev_ent_dict[self.wiki_all_gold[i]]
-                print(s)
-                print()
+            wiki_debug_result = self._get_debug_error_string(data='wiki', result=False)
+            conll_debug_result = self._get_debug_error_string(data='conll', result=False)
+
+            print("Wikipedia Debug Results")
+            print(wiki_debug_result)
+
+            print("ConllDebug Results")
+            print(conll_debug_result)
 
     def _get_ent_tokens(self):
         ent_gram_tokens = np.zeros((len(self.ent_dict) + 1, self.args.max_gram_size)).astype(np.int32)
@@ -175,7 +172,7 @@ class Validator:
         W = params['W']
         b = params['b']
 
-        if self.args.include_word:
+        if self.args.include_gram:
             ent_gram_embs = gram_embs[self.ent_gram_indices, :]
             ent_gram_embs = ent_gram_embs.mean(axis=1)
 
@@ -275,7 +272,7 @@ class Validator:
 
         return mention_combined_embs
 
-    def _get_debug_error_string(self, I=None, data='wiki'):
+    def _get_debug_error_string(self, I=None, data='wiki', result=False):
 
         if data == 'wiki':
             gram_indices = self.wiki_mention_gram_indices[self.wiki_mask, :]
@@ -302,9 +299,9 @@ class Validator:
             if self.args.include_context:
                 c_w = context_indices[i][:20]
                 s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
-
-            s += self.rev_ent_dict[gold] + '>>>>>'
-            s += ','.join([self.rev_ent_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_ent_dict])
+            if result:
+                s += self.rev_ent_dict[gold] + '>>>>>'
+                s += ','.join([self.rev_ent_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_ent_dict])
             s += '\n'
 
         return s
@@ -351,8 +348,8 @@ class Validator:
 
         # Error Analysis
         if self.args.debug:
-            wiki_debug_result = self._get_debug_error_string(I=I_wiki, data='wiki')
-            conll_debug_result = self._get_debug_error_string(I=I_conll, data='conll')
+            wiki_debug_result = self._get_debug_error_string(I=I_wiki, data='wiki', result=True)
+            conll_debug_result = self._get_debug_error_string(I=I_conll, data='conll', result=False)
 
             print("Wikipedia Debug Results")
             print(wiki_debug_result)
