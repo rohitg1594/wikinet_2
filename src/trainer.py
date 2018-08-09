@@ -89,17 +89,19 @@ class Trainer(object):
                 'epoch': epoch + 1,
                 'state_dict': self.model.state_dict(),
                 'optimizer': self.optimizer.state_dict()}, True, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
-            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.validator.validate(model=best_model)
+            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.validator.validate(model=self.model)
             logger.info(
-                "Wikipedia, Epoch - {} Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(epoch, top1_wiki,
-                                                                                               top10_wiki,
-                                                                                               top100_wiki,
-                                                                                               mrr_wiki))
+                "Wikipedia, Epoch - {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
+                                                                                                               top1_wiki,
+                                                                                                               top10_wiki,
+                                                                                                               top100_wiki,
+                                                                                                               mrr_wiki))
             logger.info(
-                "Conll, Epoch - {} Top 1 - {}, Top 10 - {}, Top 100 - {}, MRR - {}".format(epoch, top1_conll,
-                                                                                           top10_conll,
-                                                                                           top100_conll, mrr_conll))
-
+                "Conll, Epoch - {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
+                                                                                                           top1_conll,
+                                                                                                           top10_conll,
+                                                                                                           top100_conll,
+                                                                                                           mrr_conll))
             if mrr_conll > self.best_valid_metric:
                 best_model = self.model
                 self.best_valid_metric = mrr_conll

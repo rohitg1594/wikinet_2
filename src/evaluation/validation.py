@@ -175,8 +175,7 @@ class Validator:
         b = params['b']
 
         if self.args.include_gram:
-            ent_gram_embs = gram_embs[self.ent_gram_indices, :]
-            ent_gram_embs = ent_gram_embs.mean(axis=1)
+            ent_gram_embs = gram_embs[self.ent_gram_indices, :].mean(axis=1)
 
             if self.args.norm_gram:
                 ent_gram_embs = normalize(ent_gram_embs)
@@ -215,20 +214,26 @@ class Validator:
 
         return ent_combined_embs
 
-    def _get_mention_combined_embs(self, params=None, word_indices=None, gram_indices=None, context_indices=None, data='wiki'):
+    def _get_mention_combined_embs(self, params=None, data='wiki'):
         gram_embs = params['gram_embs']
         word_embs = params['word_embs']
         W = params['W']
         b = params['b']
 
         if data == 'wiki':
-            gram_indices = gram_indices[self.wiki_mask, :]
-            context_indices = context_indices[self.wiki_mask, :]
-            word_indices = word_indices[self.wiki_mask, :]
+            gram_indices = self.wiki_mention_gram_indices[self.wiki_mask, :]
+            word_indices = self.wiki_mention_word_indices[self.wiki_mask, :]
+            context_indices = self.wiki_mention_context_indices[self.wiki_mask, :]
+        elif data == 'conll':
+            gram_indices = self.conll_mention_gram_indices
+            word_indices = self.conll_mention_word_indices
+            context_indices = self.conll_mention_context_indices
+        else:
+            logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data))
+            sys.exit(1)
 
         if self.args.include_gram:
-            mention_gram_embs = gram_embs[gram_indices, :]
-            mention_gram_embs = mention_gram_embs.mean(axis=1)
+            mention_gram_embs = gram_embs[gram_indices, :].mean(axis=1)
 
             if self.args.norm_gram:
                 mention_gram_embs = normalize(mention_gram_embs)
@@ -313,16 +318,8 @@ class Validator:
 
         params = self._get_model_params(model)
         ent_combined_embs = self._get_ent_combined_embs(params=params)
-        wiki_mention_combined_embs = self._get_mention_combined_embs(params=params,
-                                                                     word_indices=self.wiki_mention_word_indices,
-                                                                     gram_indices=self.wiki_mention_gram_indices,
-                                                                     context_indices=self.wiki_mention_context_indices,
-                                                                     data='wiki')
-        conll_mention_combined_embs = self._get_mention_combined_embs(params=params,
-                                                                      word_indices=self.conll_mention_word_indices,
-                                                                      gram_indices=self.conll_mention_gram_indices,
-                                                                      context_indices=self.conll_mention_context_indices,
-                                                                      data='conll')
+        wiki_mention_combined_embs = self._get_mention_combined_embs(params=params, data='wiki')
+        conll_mention_combined_embs = self._get_mention_combined_embs(params=params, data='conll')
 
         if self.args.debug:
             print('Ent Shape : {}'.format(ent_combined_embs.shape))
