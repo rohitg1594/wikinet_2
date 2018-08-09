@@ -1,5 +1,6 @@
 # Main training file
-import sys
+import os
+from os.path import join
 
 import numpy as np
 
@@ -7,8 +8,15 @@ import torch
 
 import configargparse
 
-from src.utils import str2bool
-
+from src.utils import str2bool, normal_initialize
+from src.data_utils import load_yamada, load_vocab, pickle_load
+from src.evaluation.validation import Validator
+from src.dataloaders.combined import CombinedDataSet
+from src.tokenization.gram_tokenizer import get_gram_tokenizer
+from src.models.context_gram import ContextGramModel
+from src.models.context_gram_word import ContextGramWordModel
+from src.logger import get_logger
+from src.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
 np.set_printoptions(threshold=10**7)
@@ -70,13 +78,6 @@ parser.add_argument("--device", type=int, help="cuda device")
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
 
-print(args.__dict__)
-args.__dict__['wd'] = 5
-print(args.wd)
-print(args.__dict__)
-sys.exit(1)
-
-
 if args.wd > 0:
     assert not args.sparse
 logger = get_logger(args)
@@ -97,13 +98,14 @@ logger.info("Model loaded.")
 # Gram
 gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type)
 gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
-gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
 
 # Training Data
 logger.info("Loading Training data.")
 data = []
 for i in range(args.num_shards):
     data.extend(pickle_load(join(args.data_path, 'training-yamada-simple', 'data_{}.pickle'.format(i))))
+
+
 
 train_data = []
 dev_data = []
@@ -124,56 +126,60 @@ for d in data:
 logger.info("Training data loaded.")
 logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
-# Validation
-train_validator = Validator(gram_dict=gram_vocab,
-                            gram_tokenizer=gram_tokenizer,
-                            yamada_model=yamada_model,
-                            data=train_data[:10000],
-                            args=args)
-dev_validator = Validator(gram_dict=gram_vocab,
-                          gram_tokenizer=gram_tokenizer,
-                          yamada_model=yamada_model,
-                          data=dev_data,
-                          args=args)
-logger.info("Validators created.")
-
-# Dataset
-train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
-                                gram_vocab=gram_vocab,
-                                word_vocab=yamada_model['word_dict'],
-                                ent2id=yamada_model['ent_dict'],
-                                data=train_data,
-                                args=args)
-train_loader = train_dataset.get_loader(batch_size=args.batch_size,
-                                        shuffle=False,
-                                        num_workers=args.num_workers,
-                                        drop_last=True)
-logger.info("Dataset created.")
-
-# Model
-if args.include_word:
-    model = ContextGramWordModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
-else:
-    model = ContextGramModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
-if use_cuda:
-    model = model.cuda(args.device)
-logger.info('Model created.')
-
-logger.info("Starting validation for untrained model.")
-top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = train_validator.validate(model=model)
-logger.info('Train Validation')
-logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
-
-top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = dev_validator.validate(model=model)
-logger.info('Dev Validation')
-logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
-
 for lr in [10 ** -i for i in range(2, 5)]:
     for wd in [10 ** -i for i in range(2, 6)]:
         for gram_dim in [16, 32, 64, 128]:
-            args.__dict__
+            args.__dict__['lr'] = lr
+            args.__dict__['wd'] = lr
+            args.__dict__['gram_dim'] = gram_dim
+            gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
+
+            # Validation
+            train_validator = Validator(gram_dict=gram_vocab,
+                                        gram_tokenizer=gram_tokenizer,
+                                        yamada_model=yamada_model,
+                                        data=train_data[:10000],
+                                        args=args)
+            dev_validator = Validator(gram_dict=gram_vocab,
+                                      gram_tokenizer=gram_tokenizer,
+                                      yamada_model=yamada_model,
+                                      data=dev_data,
+                                      args=args)
+            logger.info("Validators created.")
+
+            # Dataset
+            train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
+                                            gram_vocab=gram_vocab,
+                                            word_vocab=yamada_model['word_dict'],
+                                            ent2id=yamada_model['ent_dict'],
+                                            data=train_data,
+                                            args=args)
+            train_loader = train_dataset.get_loader(batch_size=args.batch_size,
+                                                    shuffle=False,
+                                                    num_workers=args.num_workers,
+                                                    drop_last=True)
+            logger.info("Dataset created.")
+
+            # Model
+            if args.include_word:
+                model = ContextGramWordModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
+            else:
+                model = ContextGramModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
+            if use_cuda:
+                model = model.cuda(args.device)
+            logger.info('Model created.')
+
+            logger.info("Starting validation for untrained model.")
+            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = train_validator.validate(model=model)
+            logger.info('Train Validation')
+            logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+            logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
+
+            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = dev_validator.validate(model=model)
+            logger.info('Dev Validation')
+            logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+            logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
+
             trainer = Trainer(loader=train_loader,
                               args=args,
                               train_validator=train_validator,

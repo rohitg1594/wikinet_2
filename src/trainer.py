@@ -80,6 +80,7 @@ class Trainer(object):
             labels = labels.cuda(self.args.device)
 
         loss = F.cross_entropy(scores, labels) * ymask
+        loss = loss.sum() / ymask.sum()
 
         return loss
 
