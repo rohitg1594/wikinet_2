@@ -1,5 +1,5 @@
 seed:-1
-exp_name:true_everything_dim_300
+exp_name:true_everything_dim_64_abst_500000
 debug:False
 data_path:/home/rogupta/wikinet_2/data
 yamada_model:ntee_300_sentence.pickle
