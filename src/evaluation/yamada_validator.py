@@ -7,6 +7,7 @@ from logging import getLogger
 
 logger = getLogger()
 
+np.set_printoptions(threshold=10 ** 3)
 
 class YamadaValidator:
     def __init__(self, loader=None, args=None):
@@ -19,10 +20,11 @@ class YamadaValidator:
 
         ymask = data[0].numpy()
         b, e = ymask.shape
+        print(b, e)
         ymask = ymask.reshape(b * e, -1)
-
+        print(ymask)
         labels = data[1].numpy().reshape(b * e, -1)
-
+        print(labels)
         data = data[2:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
