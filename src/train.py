@@ -230,20 +230,19 @@ elif args.model == 'yamada':
 
     if args.include_stats and args.include_string:
         model = YamadaContextStatsString(yamada_model=yamada_model, args=args)
-        logger.info("Model YamadaContextStatsString")
+        logger.info("Model YamadaContextStatsString created.")
     elif args.include_stats and not args.include_string:
         model = YamadaContextStats(yamada_model=yamada_model, args=args)
-        logger.info("Model YamadaContextStats")
+        logger.info("Model YamadaContextStats created.")
     elif not args.include_stats and args.include_string:
         model = YamadaContextString(yamada_model=yamada_model, args=args)
-        logger.info("Model YamadaContextString")
+        logger.info("Model YamadaContextString created.")
     else:
         model = YamadaContext(yamada_model=yamada_model, args=args)
-        logger.info("Model YamadaContext")
+        logger.info("Model YamadaContext created.")
 
     if use_cuda:
         model = model.cuda(args.device)
-    logger.info("Model created.")
 
     logger.info("Starting validation for untrained model.")
     correct, mentions = validator.validate(model=model)
@@ -256,12 +255,12 @@ elif args.model == 'yamada':
                       model=model,
                       model_dir=model_dir)
     logger.info("Starting Training")
-    trainer.train()
+    best_model = trainer.train()
     logger.info("Finished Training")
 
     logger.info("Validation on test set.")
     test_validator = YamadaValidator(loader=test_loader, args=args)
-    correct, mentions = test_validator.validate(model=model)
+    correct, mentions = test_validator.validate(model=best_model)
     perc = correct / mentions * 100
     logger.info('Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 

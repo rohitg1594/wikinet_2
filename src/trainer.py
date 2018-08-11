@@ -199,3 +199,5 @@ class Trainer(object):
         save_checkpoint({
             'state_dict': best_model.state_dict(),
             'optimizer': self.optimizer.state_dict()}, True, filename=join(self.model_dir, 'final_model.ckpt'))
+
+        return best_model
