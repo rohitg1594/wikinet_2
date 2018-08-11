@@ -50,6 +50,6 @@ class YamadaContextStatsString(YamadaBase):
 
         scores = self.output(F.relu(self.dropout(self.hidden(input))))
         scores.squeeze_(dim=3)
-        scores = scores.view(be * max_ent, -1)
+        scores = scores.view(be * max_ent)
 
         return scores, out_vecs
