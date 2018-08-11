@@ -183,7 +183,7 @@ if args.model == 'combined':
     logger.info("Finished Training")
 
 elif args.model == 'yamada':
-    priors, conditionals = load_stats(args, yamada_model)
+    priors, conditionals = pickle_load(join(args.data_path, 'yamada', 'stats.pickle'))
     logger.info("Priors and conditonals loaded.")
 
     pershina = PershinaExamples(args, yamada_model)
