@@ -9,7 +9,7 @@ import torch
 import configargparse
 
 from src.utils import str2bool, normal_initialize
-from src.data_utils import load_vocab, pickle_load, load_stats
+from src.data_utils import load_vocab, pickle_load
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada import YamadaPershina
 from src.evaluation.combined_validator import CombinedValidator
@@ -72,6 +72,7 @@ parser.add_argument('--gram_dim', type=int, help='dimension of gram embeddings')
 parser.add_argument('--loss_func', type=str, default='cross_entropy', choices=['cross_entropy', 'cosine'], help='loss function')
 parser.add_argument('--margin', type=float, help='margin of hinge loss')
 parser.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
+parser.add_argument('--dp', type=float, help='drop out')
 parser.add_argument('--lr', type=float, help='learning rate')
 parser.add_argument('--wd', type=float, help='weight decay')
 parser.add_argument('--optim', type=str, choices=['adagrad', 'adam'], help='optimizer')
@@ -100,6 +101,7 @@ model_dir = join(args.data_path, 'models', args.exp_name)
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
+print()
 logger.info("Loading Yamada model.")
 yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
 logger.info("Model loaded.")
@@ -184,7 +186,7 @@ if args.model == 'combined':
 
 elif args.model == 'yamada':
     priors, conditionals = pickle_load(join(args.data_path, 'yamada', 'stats.pickle'))
-    logger.info("Priors and conditonals loaded.")
+    logger.info("Priors and conditionals loaded.")
 
     pershina = PershinaExamples(args, yamada_model)
     train_data, dev_data, test_data = pershina.get_training_examples()
