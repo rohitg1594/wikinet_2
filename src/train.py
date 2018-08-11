@@ -52,6 +52,7 @@ parser.add_argument('--max_gram_size', type=int, help='max number of grams')
 parser.add_argument('--max_ent_size', type=int, help='max number of entities considered in abstract')
 # model type
 parser.add_argument('--model', type=str, choices=['combined', 'yamada'], help='model type')
+parser.add_argument('--init_rand', type=str2bool, help='whether to initialize the combined model randomly')
 parser.add_argument('--include_string', type=str2bool, help='whether to include string information in yamada model')
 parser.add_argument('--include_stats', type=str2bool, help='whether to include stats information in yamada model')
 parser.add_argument('--include_word', type=str2bool, help='whether to include word information in combined model')

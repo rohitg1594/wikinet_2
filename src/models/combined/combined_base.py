@@ -11,17 +11,21 @@ class CombinedBase(nn.Module):
 
         self.word_embs = nn.Embedding(yamada_model['word_emb'].shape[0], yamada_model['word_emb'].shape[1],
                                       padding_idx=0, sparse=self.args.sparse)
-        self.word_embs.weight.data.copy_(torch.from_numpy(yamada_model['word_emb']))
+
+        if not self.args.init_rand:
+            self.word_embs.weight.data.copy_(torch.from_numpy(yamada_model['word_emb']))
         self.word_embs.weight.requires_grad = self.args.train_word
 
         self.ent_embs = nn.Embedding(yamada_model['ent_emb'].shape[0], yamada_model['ent_emb'].shape[1],
                                      padding_idx=0, sparse=self.args.sparse)
-        self.ent_embs.weight.data.copy_(torch.from_numpy(yamada_model['ent_emb']))
+        if not self.args.init_rand:
+            self.ent_embs.weight.data.copy_(torch.from_numpy(yamada_model['ent_emb']))
         self.ent_embs.weight.requires_grad = self.args.train_ent
 
         self.orig_linear = nn.Linear(yamada_model['W'].shape[0], yamada_model['W'].shape[1])
-        self.orig_linear.weight.data.copy_(torch.from_numpy(yamada_model['W']))
-        self.orig_linear.bias.data.copy_(torch.from_numpy(yamada_model['b']))
+        if not self.args.init_rand:
+            self.orig_linear.weight.data.copy_(torch.from_numpy(yamada_model['W']))
+            self.orig_linear.bias.data.copy_(torch.from_numpy(yamada_model['b']))
         self.orig_linear.requires_grad = self.args.train_linear
 
         self.gram_embs = nn.Embedding(gram_embs.shape[0], gram_embs.shape[1], padding_idx=0, sparse=self.args.sparse)
