@@ -166,6 +166,7 @@ class Trainer(object):
         for epoch in range(self.num_epochs):
             self.model = self.model.train()
             for _, data in enumerate(self.loader, 0):
+                print(data)
                 loss = self.step(data)
                 training_losses.append(loss.data[0])
 
