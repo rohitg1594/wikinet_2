@@ -9,12 +9,19 @@ import torch
 import configargparse
 
 from src.utils import str2bool, normal_initialize
-from src.data_utils import load_yamada, load_vocab, pickle_load
-from src.evaluation.validation import Validator
+from src.data_utils import load_yamada, load_vocab, pickle_load, load_stats
+from src.conll.pershina import PershinaExamples
+from src.dataloaders.yamada import YamadaPershina
+from src.evaluation.combined_validator import CombinedValidator
+from src.evaluation.yamada_validator import YamadaValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
-from src.models.context_gram import ContextGramModel
-from src.models.context_gram_word import ContextGramWordModel
+from src.models.combined.combined_context_gram import CombinedContextGram
+from src.models.combined.combined_context_gram_word import ContextGramWordCombined
+from src.models.yamada.yamada_context import YamadaContext
+from src.models.yamada.yamada_context_stats import YamadaContextStats
+from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
+from src.models.yamada.yamada_context_string import YamadaContextString
 from src.logger import get_logger
 from src.trainer import Trainer
 
@@ -44,9 +51,12 @@ parser.add_argument('--max_context_size', type=int, help='max number of context'
 parser.add_argument('--max_gram_size', type=int, help='max number of grams')
 parser.add_argument('--max_ent_size', type=int, help='max number of entities considered in abstract')
 # model type
-parser.add_argument('--include_word', type=str2bool, help='whether to include word information')
-parser.add_argument('--include_gram', type=str2bool, help='whether to include word information')
-parser.add_argument('--include_context', type=str2bool, help='whether to include word information')
+parser.add_argument('--model', type=str, choices=['combined', 'yamada'], help='model type')
+parser.add_argument('--include_string', type=str2bool, help='whether to include string information in yamada model')
+parser.add_argument('--include_stats', type=str2bool, help='whether to include stats information in yamada model')
+parser.add_argument('--include_word', type=str2bool, help='whether to include word information in combined model')
+parser.add_argument('--include_gram', type=str2bool, help='whether to include gram information in combined model')
+parser.add_argument('--include_context', type=str2bool, help='whether to include context information in combined model')
 parser.add_argument('--norm_gram', type=str2bool, help='whether to normalize gram embs')
 parser.add_argument('--norm_word', type=str2bool, help='whether to normalize word embs')
 parser.add_argument('--norm_context', type=str2bool, help='whether to normalize context embs')
@@ -94,78 +104,139 @@ logger.info("Loading Yamada model.")
 yamada_model = load_yamada(join(args.data_path, 'yamada', args.yamada_model))
 logger.info("Model loaded.")
 
-# Gram
-gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type)
-gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
-gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
 
-# Training Data
-logger.info("Loading Training data.")
-data = []
-for i in range(args.num_shards):
-    data.extend(pickle_load(join(args.data_path, 'training-yamada-simple', 'data_{}.pickle'.format(i))))
+if args.model == 'combined':
+    # Gram
+    gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type)
+    gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
+    gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
 
-train_data = []
-dev_data = []
-test_data = []
-for d in data:
-    if len(train_data) == args.train_size:
-        break
-    r = np.random.random()
-    if r < 0.8:
-        train_data.append(d)
+    # Training Data
+    logger.info("Loading Training data.")
+    data = []
+    for i in range(args.num_shards):
+        data.extend(pickle_load(join(args.data_path, 'training-yamada-simple', 'data_{}.pickle'.format(i))))
 
-    elif 0.8 < r < 0.9:
-        dev_data.append(d)
+    train_data = []
+    dev_data = []
+    test_data = []
+    for d in data:
+        if len(train_data) == args.train_size:
+            break
+        r = np.random.random()
+        if r < 0.8:
+            train_data.append(d)
 
+        elif 0.8 < r < 0.9:
+            dev_data.append(d)
+
+        else:
+            test_data.append(d)
+
+    logger.info("Training data loaded.")
+    logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
+
+    # Validation
+    validator = CombinedValidator(gram_dict=gram_vocab,
+                                  gram_tokenizer=gram_tokenizer,
+                                  yamada_model=yamada_model,
+                                  data=dev_data,
+                                  args=args)
+    logger.info("Validators created.")
+
+    # Dataset
+    train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
+                                    gram_vocab=gram_vocab,
+                                    word_vocab=yamada_model['word_dict'],
+                                    ent2id=yamada_model['ent_dict'],
+                                    data=train_data,
+                                    args=args)
+    train_loader = train_dataset.get_loader(batch_size=args.batch_size,
+                                            shuffle=False,
+                                            num_workers=args.num_workers,
+                                            drop_last=True)
+    logger.info("Dataset created.")
+
+    # Model
+    if args.include_word:
+        model = ContextGramWordCombined(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
     else:
-        test_data.append(d)
+        model = CombinedContextGram(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
+    if use_cuda:
+        model = model.cuda(args.device)
+    logger.info('Model created.')
 
-logger.info("Training data loaded.")
-logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
+    logger.info("Starting validation for untrained model.")
+    top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
+    logger.info('Dev Validation')
+    logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+    logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
 
-# Validation
-dev_validator = Validator(gram_dict=gram_vocab,
-                          gram_tokenizer=gram_tokenizer,
-                          yamada_model=yamada_model,
-                          data=dev_data,
-                          args=args)
-logger.info("Validators created.")
+    trainer = Trainer(loader=train_loader,
+                      args=args,
+                      validator=validator,
+                      model=model,
+                      model_dir=model_dir,
+                      use_cuda=use_cuda)
+    logger.info("Starting Training")
+    trainer.train()
+    logger.info("Finished Training")
 
-# Dataset
-train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
-                                gram_vocab=gram_vocab,
-                                word_vocab=yamada_model['word_dict'],
-                                ent2id=yamada_model['ent_dict'],
-                                data=train_data,
-                                args=args)
-train_loader = train_dataset.get_loader(batch_size=args.batch_size,
-                                        shuffle=False,
-                                        num_workers=args.num_workers,
-                                        drop_last=True)
-logger.info("Dataset created.")
+elif args.model == 'yamada':
+    priors, conditionals = load_stats(args, yamada_model)
+    logger.info("Priors and conditonals loaded.")
 
-# Model
-if args.include_word:
-    model = ContextGramWordModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
-else:
-    model = ContextGramModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
-if use_cuda:
-    model = model.cuda(args.device)
-logger.info('Model created.')
+    pershina = PershinaExamples(args, yamada_model)
+    train_data, dev_data, test_data = pershina.get_training_examples()
+    logger.info("Training data created.")
 
-logger.info("Starting validation for untrained model.")
-top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = dev_validator.validate(model=model)
-logger.info('Dev Validation')
-logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
+    train_dataset = YamadaPershina(ent_conditional=conditionals,
+                                   ent_prior=priors,
+                                   yamada_model=yamada_model,
+                                   data=train_data,
+                                   args=args)
+    train_loader = train_dataset.get_loader(batch_size=args.batch_size,
+                                            shuffle=False,
+                                            num_workers=args.num_workers,
+                                            drop_last=False)
 
-trainer = Trainer(loader=train_loader,
-                  args=args,
-                  dev_validator=dev_validator,
-                  model=model,
-                  model_dir=model_dir,
-                  use_cuda=use_cuda)
-logger.info("Starting Training")
-trainer.train()
-logger.info("Finished Training")
+    dev_dataset = YamadaPershina(ent_conditional=conditionals,
+                                 ent_prior=priors,
+                                 yamada_model=yamada_model,
+                                 data=dev_data,
+                                 args=args)
+    dev_loader = train_dataset.get_loader(batch_size=args.batch_size,
+                                          shuffle=False,
+                                          num_workers=args.num_workers,
+                                          drop_last=False)
+    logger.info("Dataset created.")
+
+    validator = YamadaValidator(loader=dev_loader, args=args)
+    logger.info("Validator created.")
+
+    if args.include_stats and not args.include_string:
+        model = YamadaContextStats(yamada_model=yamada_model, args=args)
+    elif not args.include_stats and args.include_string:
+        model = YamadaContextString(yamada_model=yamada_model, args=args)
+    elif not args.include_stats and not args.include_string:
+        model = YamadaContext(yamada_model=yamada_model, args=args)
+    else:
+        model = YamadaContextStatsString(yamada_model=yamada_model, args=args)
+    logger.info("Model created.")
+
+    logger.info("Starting validation for untrained model.")
+    correct, mentions = validator.validate(model=model)
+    perc = correct / mentions * 100
+    logger.error('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
+
+    trainer = Trainer(loader=train_loader,
+                      args=args,
+                      validator=validator,
+                      model=model,
+                      model_dir=model_dir,
+                      use_cuda=use_cuda)
+    logger.info("Starting Training")
+    trainer.train()
+    logger.info("Finished Training")
+
+

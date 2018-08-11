@@ -1,9 +1,9 @@
-# Other models are based on this model
+# Combined models are based on this model
 import torch
 import torch.nn as nn
 
 
-class BaseModel(nn.Module):
+class CombinedBase(nn.Module):
 
     def __init__(self, yamada_model=None, gram_embs=None, args=None):
         super().__init__()

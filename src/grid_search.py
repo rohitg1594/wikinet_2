@@ -10,11 +10,11 @@ import configargparse
 
 from src.utils import str2bool, normal_initialize
 from src.data_utils import load_yamada, load_vocab, pickle_load
-from src.evaluation.validation import Validator
+from src.evaluation.combined_validator import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
-from src.models.context_gram import ContextGramModel
-from src.models.context_gram_word import ContextGramWordModel
+from src.models.combined.combined_context_gram import CombinedContextGram
+from src.models.combined.combined_context_gram_word import ContextGramWordCombined
 from src.logger import get_logger
 from src.trainer import Trainer
 
@@ -134,11 +134,11 @@ for lr in [10 ** -i for i in range(2, 5)]:
             gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
 
             # Validation
-            dev_validator = Validator(gram_dict=gram_vocab,
-                                      gram_tokenizer=gram_tokenizer,
-                                      yamada_model=yamada_model,
-                                      data=dev_data,
-                                      args=args)
+            dev_validator = CombinedValidator(gram_dict=gram_vocab,
+                                              gram_tokenizer=gram_tokenizer,
+                                              yamada_model=yamada_model,
+                                              data=dev_data,
+                                              args=args)
             logger.info("Validators created.")
 
             # Dataset
@@ -156,9 +156,9 @@ for lr in [10 ** -i for i in range(2, 5)]:
 
             # Model
             if args.include_word:
-                model = ContextGramWordModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
+                model = ContextGramWordCombined(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
             else:
-                model = ContextGramModel(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
+                model = CombinedContextGram(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
             if use_cuda:
                 model = model.cuda(args.device)
             logger.info('Model created.')
@@ -171,7 +171,7 @@ for lr in [10 ** -i for i in range(2, 5)]:
 
             trainer = Trainer(loader=train_loader,
                               args=args,
-                              dev_validator=dev_validator,
+                              validator=dev_validator,
                               model=model,
                               model_dir=model_dir,
                               use_cuda=use_cuda)

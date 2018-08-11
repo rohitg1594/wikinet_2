@@ -15,13 +15,13 @@ logger = logging.getLogger()
 
 class Trainer(object):
 
-    def __init__(self, loader=None, args=None, model=None, dev_validator=None, use_cuda=False, model_dir=None):
+    def __init__(self, loader=None, args=None, model=None, validator=None, use_cuda=False, model_dir=None):
         self.loader = loader
         self.args = args
         self.model = model
         self.use_cuda = use_cuda
         self.num_epochs = self.args.num_epochs
-        self.dev_validator = dev_validator
+        self.validator = validator
         self.model_dir = model_dir
         self.min_delta = 1e-03
         self.patience = self.args.patience
@@ -36,7 +36,7 @@ class Trainer(object):
 
         self.loader_index = 0
 
-    def _get_next_batch(self, data):
+    def _combined_get_next_batch(self, data):
         data = list(data)
         ymask = data[0]
         data = data[1:]
@@ -51,7 +51,35 @@ class Trainer(object):
                 data[i] = data[i].cuda(self.args.device)
             ymask = ymask.cuda(self.args.device)
 
-        return tuple(data), ymask
+        labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor),
+                          requires_grad=False)
+
+        return tuple(data), ymask, labels
+
+    def _yamada_get_next_batch(self, data):
+        data = list(data)
+        ymask = data[0].numpy()
+        labels = data[1].numpy()
+        data = data[2:]
+        for i in range(len(data)):
+            data[i] = Variable(data[i])
+
+        if self.args.use_cuda:
+            for i in range(len(data)):
+                data[i] = data[i].cuda(self.args.device)
+            ymask = ymask.cuda(self.args.device)
+            labels = labels.cuda(self.args.device)
+
+        return tuple(data), ymask, labels
+
+    def _get_next_batch(self, data):
+        if self.args.model == 'combined':
+            return self._combined_get_next_batch(data)
+        elif self.args.model == 'yamada':
+            return self._yamada_get_next_batch(data)
+        else:
+            logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model))
+            sys.exit(1)
 
     def _cosine_loss(self, scores, ymask):
         zeros_2d = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size, self.args.num_candidates - 1))
@@ -73,8 +101,7 @@ class Trainer(object):
 
         return loss
 
-    def _cross_entropy(self, scores, ymask):
-        labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor), requires_grad=False)
+    def _cross_entropy(self, scores, ymask, labels):
         if self.use_cuda:
             labels = labels.cuda(self.args.device)
 
@@ -83,27 +110,58 @@ class Trainer(object):
 
         return loss
 
+    def step(self, data):
+        data, ymask, labels = self._get_next_batch(data)
+        scores = self.model(data)
+        if self.args.loss_func == 'cosine':
+            loss = self._cosine_loss(scores, ymask)
+        elif self.args.loss_func == 'cross_entropy':
+            loss = self._cross_entropy(scores, ymask, labels)
+        else:
+            logger.error("Loss function {} not recognized, choose one of cosine, cross_entropy")
+            sys.exit(1)
+
+        loss.backward()
+        self.optimizer.step()
+
+        return loss
+
+    def combined_validate(self, epoch):
+        top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.validator.validate(
+            model=self.model)
+        logger.info('Dev Validation')
+        logger.info(
+            "Wikipedia: Epoch {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
+                                                                                                         top1_wiki,
+                                                                                                         top10_wiki,
+                                                                                                         top100_wiki,
+                                                                                                         mrr_wiki))
+        logger.info(
+            "Conll: Epoch {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
+                                                                                                     top1_conll,
+                                                                                                     top10_conll,
+                                                                                                     top100_conll,
+                                                                                                     mrr_conll))
+        return mrr_conll
+
+    def yamada_validate(self, epoch):
+        correct, mentions = self.validator.validate(model=self.model)
+        logger.info('Dev Validation')
+        perc = correct / mentions * 100
+        logger.error('Epoch : {}, Correct : {}, Mention : {}, Percentage : {}'.format(epoch, correct, mentions, perc))
+
+        return perc
+
     def train(self):
         training_losses = []
         best_model = self.model
         wait = 0
-        best_mrr = 0
+        best_valid_metric = 0
 
         for epoch in range(self.num_epochs):
             self.model.train()
-            for i, data in enumerate(self.loader, 0):
-                data, ymask = self._get_next_batch(data)
-                scores = self.model(data)
-                if self.args.loss_func == 'cosine':
-                    loss = self._cosine_loss(scores, ymask)
-                elif self.args.loss_func == 'cross_entropy':
-                    loss = self._cross_entropy(scores, ymask)
-                else:
-                    logger.error("Loss function {} not recognized, choose one of cosine, cross_entropy")
-                    sys.exit(1)
-
-                loss.backward()
-                self.optimizer.step()
+            for _, data in enumerate(self.loader, 0):
+                loss = self.step(data)
                 training_losses.append(loss.data[0])
 
             logger.info('Epoch - {}, Loss - {:.4}'.format(epoch, loss.data[0]))
@@ -112,33 +170,23 @@ class Trainer(object):
                 'state_dict': self.model.state_dict(),
                 'optimizer': self.optimizer.state_dict()}, True, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
 
-            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.dev_validator.validate(
-                model=self.model)
-            logger.info('Dev Validation')
-            logger.info(
-                "Wikipedia: Epoch {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
-                                                                                                             top1_wiki,
-                                                                                                              top10_wiki,
-                                                                                                              top100_wiki,
-                                                                                                              mrr_wiki))
-            logger.info(
-                "Conll: Epoch {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
-                                                                                                         top1_conll,
-                                                                                                          top10_conll,
-                                                                                                          top100_conll,
-                                                                                                          mrr_conll))
+            if self.args.model == 'combined':
+                valid_metric = self.combined_validate(epoch)
+            elif self.args.model == 'yamada':
+                valid_metric = self.yamada_validate(epoch)
+            else:
+                logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model))
+                sys.exit(1)
 
-            if mrr_conll > best_mrr:
+            if valid_metric > best_valid_metric:
                 best_model = self.model
-                best_mrr = mrr_conll
+                best_valid_metric = valid_metric
                 wait = 0
             else:
                 if wait >= self.patience:
                     logger.info("Network not improving, breaking at epoch {}".format(epoch))
                     break
                 wait += 1
-
-
 
         save_checkpoint({
             'state_dict': best_model.state_dict(),

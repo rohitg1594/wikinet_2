@@ -11,14 +11,14 @@ from logging import getLogger
 
 from src.utils import reverse_dict, equalize_len, normalize
 from src.evaluation.eval_utils import eval_ranking
-from src.conll.loaders import is_dev_doc, is_test_doc, is_training_doc, iter_docs
+from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
 
 logger = getLogger()
 
 RE_DOCID = re.compile('^\d+')
 
 
-class Validator:
+class CombinedValidator:
     def __init__(self,
                  gram_tokenizer=None,
                  gram_dict=None,

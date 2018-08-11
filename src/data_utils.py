@@ -3,12 +3,13 @@ import torch
 import numpy as np
 
 import os
+from os.path import join
 import sys
 import shutil
 
 import pickle
 
-from src.utils import normalize
+from src.utils import normalize, reverse_dict
 
 
 def load_vocab(vocab_path, max_vocab=-1, plus_one=False):
@@ -83,3 +84,33 @@ def load_yamada(path):
             'ent_emb': orig_ent_emb,
             'W': orig_W,
             'b': orig_b}
+
+
+def load_stats(args, yamada_model):
+    priors = pickle_load(join(args.data_path, "yamada-orig", "ent_priors.pickle"))
+    conditionals = pickle_load(join(args.data_path, "yamada-orig", "ent_conditionals.pickle"))
+    ent2index = pickle_load(join(args.data_path, "yamada-orig", "yamada_ent2index.pickle"))
+    index2ent = reverse_dict(ent2index)
+    ent_dict = yamada_model['ent_dict']
+    ent_rev = reverse_dict(ent_dict)
+
+    ent_priors = {}
+    for ent_index, p in priors.items():
+        ent_str = index2ent[ent_index]
+        if ent_str in ent_dict:
+            ent_id = ent_dict[ent_str]
+            ent_priors[ent_id] = p
+
+    ent_conditionals = {}
+    for mention, cond_dict in conditionals.items():
+        orig_cond_dict = {}
+        for ent_id, p_m in cond_dict.items():
+            if ent_id in ent_rev:
+                ent_str = ent_rev[ent_id]
+                if ent_str in ent_dict:
+                    orig_ent_id = ent_dict[ent_str]
+                    orig_cond_dict[orig_ent_id] = p_m
+        if len(orig_cond_dict) > 0:
+            ent_conditionals[mention] = orig_cond_dict
+
+    return priors, conditionals
