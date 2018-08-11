@@ -44,14 +44,14 @@ class Trainer(object):
 
         ymask = ymask.view(self.args.batch_size * self.args.max_ent_size)
         ymask = Variable(ymask)
+        labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor),
+                          requires_grad=False)
 
         if self.args.use_cuda:
             for i in range(len(data)):
                 data[i] = data[i].cuda(self.args.device)
             ymask = ymask.cuda(self.args.device)
-
-        labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor),
-                          requires_grad=False)
+            labels = labels.cuda(self.args.device)
 
         return tuple(data), ymask, labels
 
@@ -65,12 +65,14 @@ class Trainer(object):
         data = data[2:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
-        labels = Variable(labels)
+        ymask = Variable(ymask)
+        labels = Variable(labels, requires_grad=False)
 
         if self.args.use_cuda:
             for i in range(len(data)):
                 data[i] = data[i].cuda(self.args.device)
             ymask = ymask.cuda(self.args.device)
+            labels = labels.cuda(self.args.device)
 
         return tuple(data), ymask, labels
 
