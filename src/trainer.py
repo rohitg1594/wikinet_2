@@ -56,23 +56,8 @@ class Trainer(object):
         return tuple(data), ymask, labels
 
     def _yamada_get_next_batch(self, data):
-        data = list(data)
 
-        ymask = data[0].numpy()
-        b, e = ymask.shape
-        ymask = ymask.reshape(b * e, -1)
-
-        labels = data[1].numpy().reshape(b * e, -1)
-
-        data = data[2:]
-        for i in range(len(data)):
-            data[i] = Variable(data[i])
-
-        if self.args.use_cuda:
-            for i in range(len(data)):
-                data[i] = data[i].cuda(self.args.device)
-
-        return tuple(data), ymask, labels
+        return self.validator.get_next_batch(data)
 
     def _get_next_batch(self, data):
         if self.args.model == 'combined':

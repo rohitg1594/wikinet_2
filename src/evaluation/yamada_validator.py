@@ -15,7 +15,7 @@ class YamadaValidator:
         self.loader = loader
         self.args = args
 
-    def _get_next_batch(self, data):
+    def get_next_batch(self, data):
         data = list(data)
 
         ymask = data[0].numpy()
@@ -42,7 +42,7 @@ class YamadaValidator:
         total_mention = 0
 
         for batch_no, data in enumerate(self.loader, 0):
-            data, ymask, labels = self._get_next_batch(data)
+            data, ymask, labels = self.get_next_batch(data)
 
             scores, out_vecs = model(data)
             scores = scores.cpu().data.numpy()
