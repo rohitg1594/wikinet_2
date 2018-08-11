@@ -11,7 +11,7 @@ import configargparse
 from src.utils import str2bool, normal_initialize
 from src.data_utils import load_vocab, pickle_load
 from src.conll.pershina import PershinaExamples
-from src.dataloaders.yamada import YamadaPershina
+from src.dataloaders.yamada_pershina import YamadaPershina
 from src.evaluation.combined_validator import CombinedValidator
 from src.evaluation.yamada_validator import YamadaValidator
 from src.dataloaders.combined import CombinedDataSet
