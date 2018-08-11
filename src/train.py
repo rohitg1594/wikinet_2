@@ -228,14 +228,19 @@ elif args.model == 'yamada':
     validator = YamadaValidator(loader=dev_loader, args=args)
     logger.info("Validator created.")
 
-    if args.include_stats and not args.include_string:
+    if args.include_stats and args.include_string:
+        model = YamadaContextStatsString(yamada_model=yamada_model, args=args)
+        logger.info("Model YamadaContextStatsString")
+    elif args.include_stats and not args.include_string:
         model = YamadaContextStats(yamada_model=yamada_model, args=args)
+        logger.info("Model YamadaContextStats")
     elif not args.include_stats and args.include_string:
         model = YamadaContextString(yamada_model=yamada_model, args=args)
-    elif not args.include_stats and not args.include_string:
-        model = YamadaContext(yamada_model=yamada_model, args=args)
+        logger.info("Model YamadaContextString")
     else:
-        model = YamadaContextStatsString(yamada_model=yamada_model, args=args)
+        model = YamadaContext(yamada_model=yamada_model, args=args)
+        logger.info("Model YamadaContext")
+
     if use_cuda:
         model = model.cuda(args.device)
     logger.info("Model created.")

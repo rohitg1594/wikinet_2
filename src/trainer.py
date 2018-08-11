@@ -164,7 +164,7 @@ class Trainer(object):
         best_valid_metric = 0
 
         for epoch in range(self.num_epochs):
-            self.model.train()
+            self.model = self.model.train()
             for _, data in enumerate(self.loader, 0):
                 loss = self.step(data)
                 training_losses.append(loss.data[0])

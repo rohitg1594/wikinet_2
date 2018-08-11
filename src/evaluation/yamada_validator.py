@@ -33,7 +33,7 @@ class YamadaValidator:
         return tuple(data), ymask, labels
 
     def validate(self, model):
-        model.eval()
+        model = model.eval()
 
         total_correct = 0
         total_mention = 0
