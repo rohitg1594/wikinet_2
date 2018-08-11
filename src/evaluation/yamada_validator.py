@@ -16,8 +16,13 @@ class YamadaValidator:
 
     def _get_next_batch(self, data):
         data = list(data)
+
         ymask = data[0].numpy()
-        labels = data[1].numpy()
+        b, e = ymask.shape
+        ymask = ymask.reshape(b * e, -1)
+
+        labels = data[1].numpy().reshape(b * e, -1)
+
         data = data[2:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
@@ -25,8 +30,6 @@ class YamadaValidator:
         if self.args.use_cuda:
             for i in range(len(data)):
                 data[i] = data[i].cuda(self.args.device)
-            ymask = ymask.cuda(self.args.device)
-            labels = labels.cuda(self.args.device)
 
         return tuple(data), ymask, labels
 
@@ -42,8 +45,6 @@ class YamadaValidator:
             scores, out_vecs = model(data)
             scores = scores.cpu().data.numpy()
 
-            ymask = ymask.reshape(self.args.batch_size * self.args.max_ent_size, -1)
-            labels = labels.reshape(self.args.batch_size * self.args.max_ent_size, -1)
             preds = np.argmax(scores, axis=1)
             correct = (np.equal(preds, labels) * ymask).sum()
             mention = ymask.sum()
