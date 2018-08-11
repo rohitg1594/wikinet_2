@@ -33,8 +33,8 @@ class YamadaPershina(object):
         result = []
 
         # Each abstract is of shape num_ents * NUMBER_CANDIDATES
-        all_candidates = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.int32)
-        labels = np.zeros(self.args.max_ent_size).astype(np.int32)
+        all_candidates = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.int64)
+        labels = np.zeros(self.args.max_ent_size).astype(np.int64)
 
         if self.args.include_string:
             exact_match = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.float32)
