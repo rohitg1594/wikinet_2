@@ -207,10 +207,10 @@ elif args.model == 'yamada':
                                  yamada_model=yamada_model,
                                  data=dev_data,
                                  args=args)
-    dev_loader = train_dataset.get_loader(batch_size=args.batch_size,
-                                          shuffle=False,
-                                          num_workers=args.num_workers,
-                                          drop_last=False)
+    dev_loader = dev_dataset.get_loader(batch_size=args.batch_size,
+                                        shuffle=False,
+                                        num_workers=args.num_workers,
+                                        drop_last=False)
     logger.info("Dataset created.")
 
     validator = YamadaValidator(loader=dev_loader, args=args)
