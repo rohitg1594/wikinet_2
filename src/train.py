@@ -213,6 +213,16 @@ elif args.model == 'yamada':
                                         shuffle=False,
                                         num_workers=args.num_workers,
                                         drop_last=False)
+
+    test_dataset = YamadaPershina(ent_conditional=conditionals,
+                                 ent_prior=priors,
+                                 yamada_model=yamada_model,
+                                 data=test_data,
+                                 args=args)
+    test_loader = test_dataset.get_loader(batch_size=args.batch_size,
+                                        shuffle=False,
+                                        num_workers=args.num_workers,
+                                        drop_last=False)
     logger.info("Dataset created.")
 
     validator = YamadaValidator(loader=dev_loader, args=args)
@@ -243,5 +253,11 @@ elif args.model == 'yamada':
     logger.info("Starting Training")
     trainer.train()
     logger.info("Finished Training")
+
+    logger.info("Validation on test set.")
+    test_validator = YamadaValidator(loader=test_loader, args=args)
+    correct, mentions = validator.validate(model=model)
+    perc = correct / mentions * 100
+    logger.info('Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 
 
