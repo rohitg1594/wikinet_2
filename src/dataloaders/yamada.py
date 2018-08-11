@@ -36,10 +36,10 @@ class YamadaPershina(object):
         all_candidates = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.int64)
         labels = np.zeros(self.args.max_ent_size).astype(np.int64)
 
-        if self.args.string_features:
+        if self.args.include_string:
             exact_match = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.int64)
             contains = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.int64)
-        if self.args.stat_features:
+        if self.args.include_stats:
             candidate_priors = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.float32)
             candidate_conditionals = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.float32)
 
@@ -73,7 +73,7 @@ class YamadaPershina(object):
             labels[ent_idx] = true_index
             all_candidates[ent_idx] = np.roll(before, true_index)
 
-            if self.args.string_features:
+            if self.args.include_string:
                 for c_idx, candidate in enumerate(all_candidates[ent_idx]):
                     ent_str = self.id2ent.get(candidate, '')
                     if mention_str == ent_str or mention_str in ent_str:
@@ -81,7 +81,7 @@ class YamadaPershina(object):
                     if ent_str.startswith(mention_str) or ent_str.endswith(mention_str):
                         contains[ent_idx, c_idx] = 1
 
-            if self.args.stat_features:
+            if self.args.include_stats:
                 for c_idx, candidate in enumerate(all_candidates[ent_idx]):
                     candidate_priors[ent_idx, c_idx] = self.ent_prior.get(candidate, 0)
                     if mention_str in self.ent_conditional:
