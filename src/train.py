@@ -73,6 +73,7 @@ parser.add_argument('--loss_func', type=str, default='cross_entropy', choices=['
 parser.add_argument('--margin', type=float, help='margin of hinge loss')
 parser.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
 parser.add_argument('--dp', type=float, help='drop out')
+parser.add_argument('--hidden_size', type=int, help='size of hidden layer in yamada model')
 parser.add_argument('--lr', type=float, help='learning rate')
 parser.add_argument('--wd', type=float, help='weight decay')
 parser.add_argument('--optim', type=str, choices=['adagrad', 'adam'], help='optimizer')
