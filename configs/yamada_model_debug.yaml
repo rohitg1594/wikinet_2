@@ -33,6 +33,7 @@ gram_dim:64
 margin:0.5
 loss_func:cross_entropy
 measure:ip
+dp:0.3
 lr:1e-03
 wd:1e-04
 optim:adagrad
