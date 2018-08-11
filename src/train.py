@@ -65,6 +65,8 @@ parser.add_argument('--norm_final', type=str2bool, help='whether to normalize fi
 parser.add_argument('--cand_gen_rand', type=str2bool, help='whether to generate random candidates')
 parser.add_argument("--num_candidates", type=int, default=32, help="Number of candidates")
 parser.add_argument("--num_epochs", type=int, default=5, help="Number of epochs")
+parser.add_argument("--bold_driver", type=str2bool, default=False, help="whether to use bold driver heuristic to adjust lr")
+parser.add_argument("--save_every", type=int, default=5, help="how often to checkpoint")
 parser.add_argument("--patience", type=int, default=5, help="Patience for early stopping")
 parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
 parser.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
@@ -231,7 +233,7 @@ elif args.model == 'yamada':
     logger.info("Starting validation for untrained model.")
     correct, mentions = validator.validate(model=model)
     perc = correct / mentions * 100
-    logger.error('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
+    logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 
     trainer = Trainer(loader=train_loader,
                       args=args,

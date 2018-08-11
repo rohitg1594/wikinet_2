@@ -35,6 +35,16 @@ class Trainer(object):
 
         self.loader_index = 0
 
+    def lr_bold_driver(self, current_lr, adjust="increase"):
+        """Sets the learning rate by either halving or increasing by 5%."""
+        if adjust == "increase":
+            new_lr = current_lr * 1.05
+        else:
+            new_lr = current_lr / 2
+        logger.info("NEW LR : {}".format(new_lr))
+        for param_group in self.optimizer.param_groups:
+            param_group['lr'] = new_lr
+
     def _combined_get_next_batch(self, data):
         data = list(data)
         ymask = data[0]
@@ -150,7 +160,6 @@ class Trainer(object):
 
     def yamada_validate(self, epoch):
         correct, mentions = self.validator.validate(model=self.model)
-        logger.info('Dev Validation')
         perc = correct / mentions * 100
         logger.info('Epoch : {}, Correct : {}, Mention : {}, Percentage : {}'.format(epoch, correct, mentions, perc))
 
@@ -169,10 +178,11 @@ class Trainer(object):
                 training_losses.append(loss.data[0])
 
             logger.info('Epoch - {}, Loss - {:.4}'.format(epoch, loss.data[0]))
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'state_dict': self.model.state_dict(),
-                'optimizer': self.optimizer.state_dict()}, True, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
+            if epoch % self.args.save_every == 0:
+                save_checkpoint({
+                    'epoch': epoch + 1,
+                    'state_dict': self.model.state_dict(),
+                    'optimizer': self.optimizer.state_dict()}, True, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
 
             if self.args.model == 'combined':
                 valid_metric = self.combined_validate(epoch)
@@ -182,15 +192,24 @@ class Trainer(object):
                 logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model))
                 sys.exit(1)
 
+            for param_group in self.optimizer.param_groups:
+                current_lr = param_group['lr']
+                break
+
             if valid_metric > best_valid_metric:
                 best_model = self.model
                 best_valid_metric = valid_metric
                 wait = 0
+                if self.args.bold_driver:
+                    self._lr_bold_driver(current_lr, adjust="increase")
+
             else:
                 if wait >= self.patience:
                     logger.info("Network not improving, breaking at epoch {}".format(epoch))
                     break
                 wait += 1
+                if self.args.bold_driver:
+                    self._lr_bold_driver(current_lr, adjust="decrease")
 
         save_checkpoint({
             'state_dict': best_model.state_dict(),
