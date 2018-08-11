@@ -256,7 +256,7 @@ elif args.model == 'yamada':
 
     logger.info("Validation on test set.")
     test_validator = YamadaValidator(loader=test_loader, args=args)
-    correct, mentions = validator.validate(model=model)
+    correct, mentions = test_validator.validate(model=model)
     perc = correct / mentions * 100
     logger.info('Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 
