@@ -47,10 +47,6 @@ class YamadaValidator:
             preds = np.argmax(scores, axis=1)
             correct = (np.equal(preds, labels) * ymask).sum()
             mention = ymask.sum()
-            print(labels[:50])
-            print(ymask[:50])
-            print(preds[:50])
-            print('Batch : {}, correct : {}, mention : {}'.format(batch_no, correct, mention))
             total_correct += correct
             total_mention += mention
 

@@ -152,7 +152,7 @@ class Trainer(object):
         correct, mentions = self.validator.validate(model=self.model)
         logger.info('Dev Validation')
         perc = correct / mentions * 100
-        logger.error('Epoch : {}, Correct : {}, Mention : {}, Percentage : {}'.format(epoch, correct, mentions, perc))
+        logger.info('Epoch : {}, Correct : {}, Mention : {}, Percentage : {}'.format(epoch, correct, mentions, perc))
 
         return perc
 
