@@ -34,7 +34,7 @@ class Trainer(object):
             logger.error("Optimizer {} not recognized, choose between adam, adagrad".format(args.optim))
             sys.exit(1)
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', patience=self.args.patience, verbose=True)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', verbose=True)
         self.loader_index = 0
 
     def _combined_get_next_batch(self, data):
