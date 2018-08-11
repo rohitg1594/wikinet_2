@@ -121,7 +121,7 @@ if args.model == 'combined':
     logger.info("Loading Training data.")
     data = []
     for i in range(args.num_shards):
-        data.extend(pickle_load(join(args.data_path, 'training-yamada-simple', 'data_{}.pickle'.format(i))))
+        data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
 
     train_data = []
     dev_data = []
