@@ -224,6 +224,8 @@ elif args.model == 'yamada':
         model = YamadaContext(yamada_model=yamada_model, args=args)
     else:
         model = YamadaContextStatsString(yamada_model=yamada_model, args=args)
+    if use_cuda:
+        model = model.cuda(args.device)
     logger.info("Model created.")
 
     logger.info("Starting validation for untrained model.")
