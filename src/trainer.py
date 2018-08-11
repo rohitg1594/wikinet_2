@@ -15,11 +15,10 @@ logger = logging.getLogger()
 
 class Trainer(object):
 
-    def __init__(self, loader=None, args=None, model=None, validator=None, use_cuda=False, model_dir=None):
+    def __init__(self, loader=None, args=None, model=None, validator=None, model_dir=None):
         self.loader = loader
         self.args = args
         self.model = model
-        self.use_cuda = use_cuda
         self.num_epochs = self.args.num_epochs
         self.validator = validator
         self.model_dir = model_dir
@@ -46,7 +45,7 @@ class Trainer(object):
         ymask = ymask.view(self.args.batch_size * self.args.max_ent_size)
         ymask = Variable(ymask)
 
-        if self.use_cuda:
+        if self.args.use_cuda:
             for i in range(len(data)):
                 data[i] = data[i].cuda(self.args.device)
             ymask = ymask.cuda(self.args.device)
@@ -83,7 +82,7 @@ class Trainer(object):
 
     def _cosine_loss(self, scores, ymask):
         zeros_2d = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size, self.args.num_candidates - 1))
-        if self.use_cuda:
+        if self.args.use_cuda:
             zeros_2d = zeros_2d.cuda(self.args.device)
         scores_pos = scores[:, 0]
         scores_neg = scores[:, 1:]
@@ -102,7 +101,7 @@ class Trainer(object):
         return loss
 
     def _cross_entropy(self, scores, ymask, labels):
-        if self.use_cuda:
+        if self.args.use_cuda:
             labels = labels.cuda(self.args.device)
 
         loss = F.cross_entropy(scores, labels) * ymask

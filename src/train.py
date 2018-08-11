@@ -88,15 +88,15 @@ parser.add_argument("--device", type=int, help="cuda device")
 
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
+args.__dict__['use_cuda'] = use_cuda
+logger = get_logger(args)
 
 if args.wd > 0:
     assert not args.sparse
-logger = get_logger(args)
 
 logger.info("Experiment Parameters")
 for arg in vars(args):
     logger.info('{:<15}\t{}'.format(arg, getattr(args, arg)))
-logger.info('{:<15}\t{}'.format('cuda available', use_cuda))
 
 model_dir = join(args.data_path, 'models', args.exp_name)
 if not os.path.exists(model_dir):
@@ -179,8 +179,7 @@ if args.model == 'combined':
                       args=args,
                       validator=validator,
                       model=model,
-                      model_dir=model_dir,
-                      use_cuda=use_cuda)
+                      model_dir=model_dir)
     logger.info("Starting Training")
     trainer.train()
     logger.info("Finished Training")
@@ -238,8 +237,7 @@ elif args.model == 'yamada':
                       args=args,
                       validator=validator,
                       model=model,
-                      model_dir=model_dir,
-                      use_cuda=use_cuda)
+                      model_dir=model_dir)
     logger.info("Starting Training")
     trainer.train()
     logger.info("Finished Training")
