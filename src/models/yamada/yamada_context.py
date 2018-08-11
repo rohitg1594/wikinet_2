@@ -28,7 +28,6 @@ class YamadaContext(YamadaBase):
 
         # Normalize / Pass through linear layer
         token_embs = F.normalize(self.orig_linear(token_embs), dim=1)
-        out_vecs = token_embs
         token_embs.unsqueeze_(1)
         token_embs = token_embs.expand(be, max_ent, self.emb_dim)
         token_embs = token_embs.unsqueeze(2)
@@ -47,4 +46,4 @@ class YamadaContext(YamadaBase):
         scores.squeeze_(dim=3)
         scores = scores.view(be * max_ent, -1)
 
-        return scores, out_vecs
+        return scores

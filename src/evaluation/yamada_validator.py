@@ -41,7 +41,7 @@ class YamadaValidator:
         for batch_no, data in enumerate(self.loader, 0):
             data, ymask, labels = self.get_next_batch(data)
 
-            scores, out_vecs = model(data)
+            scores = model(data)
             scores = scores.cpu().data.numpy()
 
             preds = np.argmax(scores, axis=1)
