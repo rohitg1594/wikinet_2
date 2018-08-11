@@ -20,11 +20,8 @@ class YamadaValidator:
 
         ymask = data[0].numpy()
         b, e = ymask.shape
-        print(b, e)
         ymask = ymask.reshape(b * e)
-        print(ymask)
         labels = data[1].numpy().reshape(b * e)
-        print(labels)
         data = data[2:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
@@ -50,7 +47,10 @@ class YamadaValidator:
             preds = np.argmax(scores, axis=1)
             correct = (np.equal(preds, labels) * ymask).sum()
             mention = ymask.sum()
-
+            print(labels[:50])
+            print(ymask[:50])
+            print(preds[:50])
+            print('Batch : {}, correct : {}, mention : {}'.format(batch_no, correct, mention))
             total_correct += correct
             total_mention += mention
 
