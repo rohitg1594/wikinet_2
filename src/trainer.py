@@ -35,7 +35,7 @@ class Trainer(object):
 
         self.loader_index = 0
 
-    def lr_bold_driver(self, current_lr, adjust="increase"):
+    def _bold_driver(self, current_lr, adjust="increase"):
         """Sets the learning rate by either halving or increasing by 5%."""
         if adjust == "increase":
             new_lr = current_lr * 1.05
@@ -177,7 +177,7 @@ class Trainer(object):
                 loss = self.step(data)
                 training_losses.append(loss.data[0])
 
-            logger.info('Epoch - {}, Loss - {:.4}'.format(epoch, loss.data[0]))
+            logger.info('Epoch - {}, Training Loss - {:.4}'.format(epoch, loss.data[0]))
             if epoch % self.args.save_every == 0:
                 save_checkpoint({
                     'epoch': epoch + 1,
@@ -201,7 +201,7 @@ class Trainer(object):
                 best_valid_metric = valid_metric
                 wait = 0
                 if self.args.bold_driver:
-                    self._lr_bold_driver(current_lr, adjust="increase")
+                    self._bold_driver(current_lr, adjust="increase")
 
             else:
                 if wait >= self.patience:
@@ -209,7 +209,7 @@ class Trainer(object):
                     break
                 wait += 1
                 if self.args.bold_driver:
-                    self._lr_bold_driver(current_lr, adjust="decrease")
+                    self._bold_driver(current_lr, adjust="decrease")
 
         save_checkpoint({
             'state_dict': best_model.state_dict(),
