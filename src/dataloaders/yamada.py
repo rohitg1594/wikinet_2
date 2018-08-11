@@ -90,9 +90,9 @@ class YamadaPershina(object):
                         candidate_conditionals[ent_idx, c_idx] = 0
 
         result.extend([mask, labels, words_array, all_candidates])
-        if self.args.stat_features:
+        if self.args.include_stats:
             result.extend([candidate_priors, candidate_conditionals])
-        if self.args.string_features:
+        if self.args.include_string:
             result.extend([exact_match, contains])
 
         return result
