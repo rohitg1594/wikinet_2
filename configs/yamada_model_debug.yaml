@@ -1,5 +1,5 @@
 seed:-1
-exp_name:true_everything_train_everything_dim
+exp_name:yamada_model_debug
 debug:False
 data_path:/home/rogupta/wikinet_2/data
 yamada_model:ntee_300_sentence.pickle
@@ -13,7 +13,9 @@ max_word_size:5
 max_gram_size:40
 max_context_size:200
 max_ent_size:60
-model:combined
+model:yamada
+include_string:True
+include_stats:True
 include_word:True
 include_gram:True
 include_context:True
