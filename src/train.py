@@ -9,7 +9,7 @@ import torch
 import configargparse
 
 from src.utils import str2bool, normal_initialize
-from src.data_utils import load_yamada, load_vocab, pickle_load, load_stats
+from src.data_utils import load_vocab, pickle_load, load_stats
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada import YamadaPershina
 from src.evaluation.combined_validator import CombinedValidator
@@ -101,7 +101,7 @@ if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
 logger.info("Loading Yamada model.")
-yamada_model = load_yamada(join(args.data_path, 'yamada', args.yamada_model))
+yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
 logger.info("Model loaded.")
 
 

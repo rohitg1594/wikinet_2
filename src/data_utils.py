@@ -87,9 +87,9 @@ def load_yamada(path):
 
 
 def load_stats(args, yamada_model):
-    priors = pickle_load(join(args.data_path, "yamada-orig", "ent_priors.pickle"))
-    conditionals = pickle_load(join(args.data_path, "yamada-orig", "ent_conditionals.pickle"))
-    ent2index = pickle_load(join(args.data_path, "yamada-orig", "yamada_ent2index.pickle"))
+    priors = pickle_load(join(args.data_path, "yamada", "ent_priors.pickle"))
+    conditionals = pickle_load(join(args.data_path, "yamada", "ent_conditionals.pickle"))
+    ent2index = pickle_load(join(args.data_path, "yamada", "yamada_ent2index.pickle"))
     index2ent = reverse_dict(ent2index)
     ent_dict = yamada_model['ent_dict']
     ent_rev = reverse_dict(ent_dict)
