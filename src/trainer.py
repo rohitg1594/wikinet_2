@@ -65,7 +65,7 @@ class Trainer(object):
         data = data[2:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
-            labels = Variable(labels)
+        labels = Variable(labels)
 
         if self.args.use_cuda:
             for i in range(len(data)):
