@@ -43,13 +43,13 @@ class YamadaPershina(object):
             candidate_priors = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.float32)
             candidate_conditionals = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.float32)
 
-        words_array = np.zeros(self.args.max_word_size, dtype=np.int64)
+        words_array = np.zeros(self.args.max_context_size, dtype=np.int64)
         words, values = self.data[index]
         mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
         mask[:len(values)] = 1
 
-        if len(words) > self.args.max_word_size:
-            words_array[:self.args.max_word_size] = words[:self.args.max_word_size]
+        if len(words) > self.args.max_context_size:
+            words_array[:self.args.max_context_size] = words[:self.args.max_context_size]
         else:
             words_array[:len(words)] = words
 
