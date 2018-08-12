@@ -64,21 +64,25 @@ def full_validation(model, dev_data, ent_dict):
     C = context_matr.shape[0]
     E = ent_embs.shape[0]
 
-    context_expand = context_matr[:, None, :].repeat(E, axis=1)
-    ent_expand = ent_embs[None, :, :].repeat(C, axis=0)
-    dot_expand = dot_products[:, :, None]
+    batch_size = 50
+    num_batches = context_matr.shape[0] // batch_size
+    for batch_no in range(num_batches):
+        batch = context_matr[batch_no * batch_size : (batch_no + 1) * batch_size]
+        context_expand = batch[:, None, :].repeat(E, axis=1)
+        ent_expand = ent_embs[None, :, :].repeat(C, axis=0)
+        dot_expand = dot_products[:, :, None]
 
-    input_vec = np.concatenate((context_expand, dot_expand, ent_expand), axis=2)
-    print(input_vec[:5])
-    print("Input vec shape : {}".format(input_vec.shape))
-    out_hidden = relu(input_vec @ hidden_W + hidden_b)
-    print(out_hidden[:5])
-    print("Out hidden shape : {}".format(out_hidden.shape))
+        input_vec = np.concatenate((context_expand, dot_expand, ent_expand), axis=2)
+        print(input_vec[:5])
+        print("Input vec shape : {}".format(input_vec.shape))
+        out_hidden = relu(input_vec @ hidden_W + hidden_b)
+        print(out_hidden[:5])
+        print("Out hidden shape : {}".format(out_hidden.shape))
 
-    scores = out_hidden @ output_W + output_b
-    print(scores[:5])
-    print("Scores shape : {}".format(scores.shape))
+        scores = out_hidden @ output_W + output_b
+        print(scores[:5])
+        print("Scores shape : {}".format(scores.shape))
 
-    preds = np.argmax(scores, axis=2)
-    print(preds[:5])
-    print("Predictions shape : {}".format(preds.shape))
+        preds = np.argmax(scores, axis=2)
+        print(preds[:5])
+        print("Predictions shape : {}".format(preds.shape))

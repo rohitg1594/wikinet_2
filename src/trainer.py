@@ -179,7 +179,7 @@ class Trainer(object):
                 training_losses.append(loss.data[0])
 
             logger.info('Epoch - {}, Training Loss - {:.4}'.format(epoch, loss.data[0]))
-            if epoch % self.args.save_every == 0:
+            if epoch % self.args.save_every == 0 and epoch != 0:
                 save_checkpoint({
                     'epoch': epoch + 1,
                     'state_dict': self.model.state_dict(),
