@@ -156,7 +156,7 @@ class CombinedValidator:
     @staticmethod
     def _get_model_params(model):
         params = dict()
-
+        print(model.state_dict().keys())
         params['word_embs'] = model.state_dict()['word_embs.weight'].cpu().numpy()
         params['ent_embs'] = model.state_dict()['ent_embs.weight'].cpu().numpy()
         params['gram_embs'] = model.state_dict()['gram_embs.weight'].cpu().numpy()
