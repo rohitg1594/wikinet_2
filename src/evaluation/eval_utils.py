@@ -131,7 +131,7 @@ def full_validation_2(model, dev_data, args, yamda_model):
         context_tensor = context_tensor.cuda(args.device)
         cand_tensor = cand_tensor.cuda(args.device)
 
-    labels_matr = np.array(labels_list)
+    labels_matr = np.vstack(labels_list)
     mask_matr = np.vstack(mask_list)
 
     print("labels shape: {}".format(labels_matr.shape))
