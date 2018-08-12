@@ -75,7 +75,7 @@ class YamadaPershina(object):
                                                     size=self.number_candidates - len(other_cands) - 1)
                 before = np.concatenate((np.array(true_ent)[None], cand_generation, cand_random))
             else:
-                cand_random = np.random.randint(0, self.max_ent, size=999)
+                cand_random = np.random.randint(0, self.max_ent, size=self.number_candidates - 1)
                 before = np.concatenate((np.array(true_ent)[None], cand_random))
 
             true_index = np.random.randint(len(before))
