@@ -5,6 +5,8 @@ import faiss
 from os.path import join
 import sys
 
+from collections import OrderedDict
+
 import re
 
 from logging import getLogger
@@ -157,15 +159,19 @@ class CombinedValidator:
     def _get_model_params(model):
         params = dict()
         print(model.state_dict().keys())
+        new_state_dict = OrderedDict()
         for k, v in model.state_dict().items():
             if 'module' in k:
-                model.state_dict()[k[7:]] = v
-        print(model.state_dict().keys())
-        params['word_embs'] = model.state_dict()['word_embs.weight'].cpu().numpy()
-        params['ent_embs'] = model.state_dict()['ent_embs.weight'].cpu().numpy()
-        params['gram_embs'] = model.state_dict()['gram_embs.weight'].cpu().numpy()
-        params['W']= model.state_dict()['orig_linear.weight'].cpu().numpy()
-        params['b'] = model.state_dict()['orig_linear.bias'].cpu().numpy()
+                name = k[7:]
+            else:
+                name = k
+            new_state_dict[name] = v
+        print(new_state_dict.keys())
+        params['word_embs'] = new_state_dict['word_embs.weight'].cpu().numpy()
+        params['ent_embs'] = new_state_dict['ent_embs.weight'].cpu().numpy()
+        params['gram_embs'] = new_state_dict['gram_embs.weight'].cpu().numpy()
+        params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy()
+        params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()
 
         return params
 
