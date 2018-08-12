@@ -83,6 +83,6 @@ class YamadaValidator:
         context_matr = np.vstack(context_list)
         logger.info("Shape of context matrix : {}".info(context_matr.shape))
         dot_products = context_matr @ ent_embs
-        query_vec =
+        #query_vec =
 
 
