@@ -49,7 +49,7 @@ class Trainer(object):
         labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor),
                           requires_grad=False)
 
-        if self.args.use_cuda:
+        if self.args.use_cuda and isinstance(self.args.device, int):
             for i in range(len(data)):
                 data[i] = data[i].cuda(self.args.device)
             ymask = ymask.cuda(self.args.device)
@@ -166,8 +166,6 @@ class Trainer(object):
         for epoch in range(self.num_epochs):
             self.model = self.model.train()
             for batch_no, data in enumerate(self.loader, 0):
-                if epoch == 0 and batch_no == 0:
-                    print(data)
                 loss = self.step(data)
                 training_losses.append(loss.data[0])
 
