@@ -56,6 +56,7 @@ def full_validation(model, dev_data, ent_dict):
             gold.append(ent_dict[cands[0]])
             context_list.append(context_vec)
     context_matr = np.vstack(context_list)
+    gold = np.array(gold)
     print(context_matr[:5])
     print("Shape of context matrix : {}".format(context_matr.shape))
     dot_products = context_matr @ ent_embs.T
@@ -68,6 +69,7 @@ def full_validation(model, dev_data, ent_dict):
     num_batches = context_matr.shape[0] // batch_size
     for batch_no in range(num_batches):
         batch = context_matr[batch_no * batch_size : (batch_no + 1) * batch_size]
+
         C = batch.shape[0]
         E = ent_embs.shape[0]
 
