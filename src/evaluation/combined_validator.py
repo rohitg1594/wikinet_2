@@ -157,6 +157,10 @@ class CombinedValidator:
     def _get_model_params(model):
         params = dict()
         print(model.state_dict().keys())
+        for k, v in model.state_dict().items():
+            if 'module' in k:
+                model.state_dict()[k[7:]] = v
+        print(model.state_dict().keys())
         params['word_embs'] = model.state_dict()['word_embs.weight'].cpu().numpy()
         params['ent_embs'] = model.state_dict()['ent_embs.weight'].cpu().numpy()
         params['gram_embs'] = model.state_dict()['gram_embs.weight'].cpu().numpy()
@@ -313,7 +317,7 @@ class CombinedValidator:
         return s
 
     def validate(self, model=None):
-        model.eval()
+        model = model.eval()
 
         params = self._get_model_params(model)
         ent_combined_embs = self._get_ent_combined_embs(params=params)
