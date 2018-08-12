@@ -140,11 +140,15 @@ def full_validation_2(model, dev_data, args, yamda_model):
     num_batches = context_tensor.shape[0] // batch_size
     for batch_no in range(num_batches):
         print(batch_no)
-        context_batch = context_tensor[batch_no * batch_size: (batch_no + 1) * batch_size]
-        mask_batch = mask_matr[batch_no * batch_size: (batch_no + 1) * batch_size].reshape(
-            batch_size * args.max_ent_size)
-        labels_batch = labels_matr[batch_no * batch_size: (batch_no + 1) * batch_size].reshape(
-            batch_size * args.max_ent_size)
+        context_batch = context_tensor[batch_no * batch_size: (batch_no + 1) * batch_size, :]
+        mask_batch = mask_matr[batch_no * batch_size: (batch_no + 1) * batch_size, :]
+        print(mask_batch.shape)
+        mask_batch = mask_batch.reshape(batch_size * args.max_ent_size)
+        print(mask_batch.shape)
+        labels_batch = labels_matr[batch_no * batch_size: (batch_no + 1) * batch_size, :]
+        print(labels_batch.shape)
+        labels_batch = labels_batch.reshape(batch_size * args.max_ent_size)
+        print(labels_batch.shape)
 
         scores = model((context_batch, cand_tensor))
         scores = scores.cpu().data.numpy()
