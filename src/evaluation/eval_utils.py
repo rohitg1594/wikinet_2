@@ -118,7 +118,7 @@ def full_validation_2(model, dev_data, args, yamda_model):
         mask[:len(examples)] = 1
         mask_list.append(mask)
 
-        labels_list = [ent_dict(cands[0]) for mention, cands in examples]
+        labels_list = [ent_dict[cands[0]]for mention, cands in examples]
         padded_labels = equalize_len(labels_list, args.max_ent_size)
         labels_list_list.append(padded_labels)
 
