@@ -175,7 +175,8 @@ class Trainer(object):
         for epoch in range(self.num_epochs):
             self.model = self.model.train()
             for batch_no, data in enumerate(self.loader, 0):
-                print(batch_no)
+                if batch_no // 10:
+                    logger.info("Now on batch : {}".format(batch_no))
                 loss = self.step(data)
                 training_losses.append(loss.data[0])
 
