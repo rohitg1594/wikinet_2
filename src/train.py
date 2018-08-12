@@ -229,6 +229,17 @@ elif args.model == 'yamada':
                                         num_workers=args.num_workers,
                                         drop_last=False)
 
+    full_dataset = YamadaPershina(ent_conditional=conditionals,
+                                 ent_prior=priors,
+                                 yamada_model=yamada_model,
+                                 data=dev_data,
+                                 args=args,
+                                 cand_rand=True)
+    full_loader = full_dataset.get_loader(batch_size=args.batch_size,
+                                        shuffle=False,
+                                        num_workers=args.num_workers,
+                                        drop_last=False)
+
     test_dataset = YamadaPershina(ent_conditional=conditionals,
                                  ent_prior=priors,
                                  yamada_model=yamada_model,
@@ -241,6 +252,7 @@ elif args.model == 'yamada':
     logger.info("Dataset created.")
 
     validator = YamadaValidator(loader=dev_loader, args=args)
+    full_validator = YamadaValidator(loader=full_loader, args=args)
     logger.info("Validator created.")
 
     if args.include_stats and args.include_string:
@@ -260,6 +272,9 @@ elif args.model == 'yamada':
         model = model.cuda(args.device)
 
     logger.info("Starting validation for untrained model.")
+    correct, mentions = validator.validate(model)
+    perc = correct / mentions * 100
+    logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 
     trainer = Trainer(loader=train_loader,
                       args=args,
@@ -270,8 +285,8 @@ elif args.model == 'yamada':
     best_model = trainer.train()
     logger.info("Finished Training")
 
-    logger.info("Validating on the entire ent matrix.")
-    correct, mentions = full_validation_2(best_model, dev_data, args, yamada_model)
+    logger.info("Validating on the full without pershina candidates.")
+    correct, mentions = full_validator.validate(best_model)
     perc = correct / mentions * 100
     logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 

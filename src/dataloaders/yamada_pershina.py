@@ -13,7 +13,8 @@ class YamadaPershina(object):
                  ent_conditional=None,
                  yamada_model=None,
                  data=None,
-                 args=None):
+                 args=None,
+                 cand_rand=False):
         super().__init__()
 
         self.args = args
@@ -25,6 +26,7 @@ class YamadaPershina(object):
         self.max_ent = len(self.ent2id)
         self.ent_prior = ent_prior
         self.ent_conditional = ent_conditional
+        self.cand_rand = cand_rand
 
     def __getitem__(self, index):
         if isinstance(index, slice):
@@ -58,17 +60,21 @@ class YamadaPershina(object):
             true_ent = candidates_id[0]
             other_cands = candidates_id[1:]
 
-            if len(other_cands) > self.cand_generation:
-                cand_generation = np.random.choice(np.array(other_cands),
-                                                   replace=False, size=self.cand_generation)
-                cand_random = np.random.randint(0, self.max_ent,
-                                                size=self.number_candidates - self.cand_generation - 1)
+            if not self.cand_rand:
+                if len(other_cands) > self.cand_generation:
+                    cand_generation = np.random.choice(np.array(other_cands),
+                                                       replace=False, size=self.cand_generation)
+                    cand_random = np.random.randint(0, self.max_ent,
+                                                    size=self.number_candidates - self.cand_generation - 1)
+                else:
+                    cand_generation = np.array(other_cands)
+                    cand_random = np.random.randint(0, self.max_ent,
+                                                    size=self.number_candidates - len(other_cands) - 1)
+                before = np.concatenate((np.array(true_ent)[None], cand_generation, cand_random))
             else:
-                cand_generation = np.array(other_cands)
-                cand_random = np.random.randint(0, self.max_ent,
-                                                size=self.number_candidates - len(other_cands) - 1)
+                cand_random = np.random.randint(0, self.max_ent, size=999)
+                before = np.concatenate((np.array(true_ent)[None], cand_random))
 
-            before = np.concatenate((np.array(true_ent)[None], cand_generation, cand_random))
             true_index = np.random.randint(len(before))
             labels[ent_idx] = true_index
             all_candidates[ent_idx] = np.roll(before, true_index)

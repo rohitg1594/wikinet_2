@@ -103,12 +103,14 @@ def full_validation_2(model, dev_data, args, yamda_model):
 
     context_list = []
     labels_list_list = []
+    cands_list_list = []
     mask_list = []
     total_correct = 0
     total_mention = 0
     ent_dict = yamda_model['ent_dict']
     num_ents = yamda_model['ent_emb'].shape[0]
     batch_size = 1
+    cands_size = 500
 
     for word_ids, examples in dev_data:
         padded_word_ids = equalize_len(word_ids, args.max_context_size)
@@ -118,16 +120,20 @@ def full_validation_2(model, dev_data, args, yamda_model):
         mask[:len(examples)] = 1
         mask_list.append(mask)
 
-        labels_list = [ent_dict[cands[0]]for mention, cands in examples]
-        padded_labels = equalize_len(labels_list, args.max_ent_size)
+        labels_list = [ent_dict[cands[0]] for mention, cands in examples]
+        padded_labels = np.array(equalize_len(labels_list, args.max_ent_size))
         labels_list_list.append(padded_labels)
+
+        cands = np.random.randint(0, num_ents, size=(args.max_ent_size, cands_size))
+        cands[0] = padded_labels
+        cands_list_list.append(cands)
 
     context_tensor = Variable(torch.from_numpy(np.vstack(context_list)))
     print("Context tensor shape: {}".format(context_tensor.shape))
 
     cand_matrix = np.arange(num_ents)[None, :].repeat(args.max_ent_size, axis=0)
     cand_expand = cand_matrix[None, :, :].repeat(batch_size, axis=0)
-    cand_tensor = Variable(torch.from_numpy(cand_expand))
+    cand_tensor = Variable(torch.from_numpy(np.vstack(cand_expand)))
     print("Cand tensor shape: {}".format(cand_tensor.shape))
 
     if args.use_cuda and isinstance(args.device, int):
