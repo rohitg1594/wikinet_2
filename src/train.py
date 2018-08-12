@@ -5,6 +5,7 @@ from os.path import join
 import numpy as np
 
 import torch
+from torch.nn import DataParallel
 
 import configargparse
 
@@ -87,7 +88,7 @@ parser.add_argument('--train_ent', type=str2bool, help='whether to train entity 
 parser.add_argument('--train_gram', type=str2bool, help='whether to train gram embeddings')
 parser.add_argument('--train_linear', type=str2bool, help='whether to train linear layer')
 # cuda
-parser.add_argument("--device", type=int, help="cuda device")
+parser.add_argument("--device", type=str, help="cuda device")
 
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
@@ -96,6 +97,14 @@ logger = get_logger(args)
 
 if args.wd > 0:
     assert not args.sparse
+
+if use_cuda:
+    devices = args.device.split(",")
+    if len(devices) > 1:
+        devices = int(devices[0]), int(devices[1])
+    else:
+        devices = int(devices[0])
+    args.__dict__['device'] = devices
 
 logger.info("Experiment Parameters")
 for arg in vars(args):
@@ -169,7 +178,9 @@ if args.model == 'combined':
     else:
         model = CombinedContextGram(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
     if use_cuda:
-        model = model.cuda(args.device)
+        model = model.cuda()
+        if isinstance(args.device, tuple):
+            model = DataParallel(model, args.device)
     logger.info('Model created.')
 
     logger.info("Starting validation for untrained model.")
