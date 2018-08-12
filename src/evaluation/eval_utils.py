@@ -107,7 +107,7 @@ def full_validation_2(model, dev_data, args, yamda_model):
     total_correct = 0
     total_mention = 0
     ent_dict = yamda_model['ent_dict']
-    num_ents = yamda_model['ent_emb'].shape
+    num_ents = yamda_model['ent_emb'].shape[0]
     batch_size = 4
 
     for word_ids, examples in dev_data:
