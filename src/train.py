@@ -178,9 +178,11 @@ if args.model == 'combined':
     else:
         model = CombinedContextGram(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
     if use_cuda:
-        model = model.cuda()
         if isinstance(args.device, tuple):
+            model = model.cuda(args.device[0])
             model = DataParallel(model, args.device)
+        else:
+            model = model.cuda(args.device)
     logger.info('Model created.')
 
     logger.info("Starting validation for untrained model.")
