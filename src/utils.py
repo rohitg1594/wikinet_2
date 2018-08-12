@@ -12,6 +12,12 @@ RE_WIKI_ENT = re.compile(r'.*wiki\/(.*)')
 RE_WS = re.compile('\s+')
 
 
+def relu(x):
+    x_c = x.copy()
+    x_c[x_c < 0] = 0
+    return x_c
+
+
 def PCA(x, k=2):
     x_mean = np.mean(x,0)
     x = x - x_mean
