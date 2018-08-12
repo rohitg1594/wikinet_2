@@ -102,7 +102,7 @@ def full_validation_2(model, dev_data, args, yamda_model):
     model = model.eval()
 
     context_list = []
-    labels_list = []
+    labels_list_list = []
     mask_list = []
     total_correct = 0
     total_mention = 0
@@ -113,11 +113,14 @@ def full_validation_2(model, dev_data, args, yamda_model):
     for word_ids, examples in dev_data:
         padded_word_ids = equalize_len(word_ids, args.max_context_size)
         context_list.append(padded_word_ids)
+
         mask = np.zeros(args.max_ent_size, dtype=np.float32)
         mask[:len(examples)] = 1
         mask_list.append(mask)
-        for mention, cands in examples:
-            labels_list.append(ent_dict[cands[0]])
+
+        labels_list = [ent_dict(cands[0]) for mention, cands in examples]
+        padded_labels = equalize_len(labels_list, args.max_ent_size)
+        labels_list_list.append(padded_labels)
 
     context_tensor = Variable(torch.from_numpy(np.vstack(context_list)))
     print("Context tensor shape: {}".format(context_tensor.shape))
@@ -131,7 +134,7 @@ def full_validation_2(model, dev_data, args, yamda_model):
         context_tensor = context_tensor.cuda(args.device)
         cand_tensor = cand_tensor.cuda(args.device)
 
-    labels_matr = np.vstack(labels_list)
+    labels_matr = np.vstack(labels_list_list)
     mask_matr = np.vstack(mask_list)
 
     print("labels shape: {}".format(labels_matr.shape))
@@ -139,16 +142,17 @@ def full_validation_2(model, dev_data, args, yamda_model):
 
     num_batches = context_tensor.shape[0] // batch_size
     for batch_no in range(num_batches):
-        print(batch_no)
+        print('batch no', batch_no)
         context_batch = context_tensor[batch_no * batch_size: (batch_no + 1) * batch_size, :]
+        print('context batch shape', context_batch.shape)
         mask_batch = mask_matr[batch_no * batch_size: (batch_no + 1) * batch_size, :]
-        print(mask_batch.shape)
+        print('mask batch shape', mask_batch.shape)
         mask_batch = mask_batch.reshape(batch_size * args.max_ent_size)
-        print(mask_batch.shape)
+        print('mask batch shape', mask_batch.shape)
         labels_batch = labels_matr[batch_no * batch_size: (batch_no + 1) * batch_size, :]
-        print(labels_batch.shape)
+        print('labels batch shape', labels_batch.shape)
         labels_batch = labels_batch.reshape(batch_size * args.max_ent_size)
-        print(labels_batch.shape)
+        print('labels batch shape', labels_batch.shape)
 
         scores = model((context_batch, cand_tensor))
         scores = scores.cpu().data.numpy()
