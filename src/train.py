@@ -15,6 +15,7 @@ from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada_pershina import YamadaPershina
 from src.evaluation.combined_validator import CombinedValidator
 from src.evaluation.yamada_validator import YamadaValidator
+from src.evaluation.eval_utils import full_validation
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
 from src.models.combined.combined_context_gram import CombinedContextGram
@@ -271,6 +272,9 @@ elif args.model == 'yamada':
     logger.info("Starting Training")
     best_model = trainer.train()
     logger.info("Finished Training")
+
+    logger.info("Validating on the entire ent matrix.")
+    full_validation(best_model, dev_data, yamada_model['ent_dict'])
 
     logger.info("Validation on test set.")
     test_validator = YamadaValidator(loader=test_loader, args=args)
