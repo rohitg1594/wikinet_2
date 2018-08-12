@@ -28,6 +28,9 @@ class YamadaPershina(object):
         self.ent_conditional = ent_conditional
         self.cand_rand = cand_rand
 
+        if self.cand_rand:
+            self.number_candidates = 1000
+
     def __getitem__(self, index):
         if isinstance(index, slice):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
