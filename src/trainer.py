@@ -49,11 +49,15 @@ class Trainer(object):
         labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor),
                           requires_grad=False)
 
-        if self.args.use_cuda and isinstance(self.args.device, int):
-            for i in range(len(data)):
-                data[i] = data[i].cuda(self.args.device)
-            ymask = ymask.cuda(self.args.device)
-            labels = labels.cuda(self.args.device)
+        if self.args.use_cuda:
+            if isinstance(self.args.device, int):
+                for i in range(len(data)):
+                    data[i] = data[i].cuda(self.args.device)
+                ymask = ymask.cuda(self.args.device)
+                labels = labels.cuda(self.args.device)
+            else:
+                ymask = ymask.cuda(self.args.device[0])
+                labels = labels.cuda(self.args.device[0])
 
         return tuple(data), ymask, labels
 
