@@ -68,14 +68,16 @@ def full_validation(model, dev_data, ent_dict):
     batch_size = 50
     num_batches = context_matr.shape[0] // batch_size
     for batch_no in range(num_batches):
-        batch = context_matr[batch_no * batch_size : (batch_no + 1) * batch_size]
+        context_batch = context_matr[batch_no * batch_size: (batch_no + 1) * batch_size]
+        dot_batch = dot_products[batch_no * batch_size: (batch_no + 1) * batch_size]
 
-        C = batch.shape[0]
+        C = context_batch.shape[0]
         E = ent_embs.shape[0]
 
-        context_expand = batch[:, None, :].repeat(E, axis=1)
+        context_expand = context_batch[:, None, :].repeat(E, axis=1)
         ent_expand = ent_embs[None, :, :].repeat(C, axis=0)
-        dot_expand = dot_products[:, :, None]
+        dot_expand = dot_batch[:, :, None]
+        print(context_expand.shape, ent_expand.shape, dot_expand.shape)
 
         input_vec = np.concatenate((context_expand, dot_expand, ent_expand), axis=2)
         print(input_vec[:5])
