@@ -48,4 +48,4 @@ class YamadaContextStats(YamadaBase):
         scores.squeeze_(dim=3)
         scores = scores.view(be * max_ent, -1)
 
-        return scores, out_vecs
+        return scores
