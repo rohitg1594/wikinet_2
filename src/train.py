@@ -286,10 +286,16 @@ elif args.model == 'yamada':
     logger.info("Finished Training")
 
     logger.info("Validating on the full without pershina candidates.")
-    correct, mentions = full_validator.validate(best_model)
-    perc = correct / mentions * 100
-    logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
-
+    percs = []
+    for _ in range(10):
+        correct, mentions = full_validator.validate(best_model)
+        perc = correct / mentions * 100
+        perc.append(percs)
+        logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
+    percs = np.array(percs)
+    avg = np.mean(percs)
+    std = np.std(percs)
+    logger.info("Average : {}, Std : {}".format(avg, percs))
     logger.info("Validation on test set.")
     test_validator = YamadaValidator(loader=test_loader, args=args)
     correct, mentions = test_validator.validate(model=best_model)
