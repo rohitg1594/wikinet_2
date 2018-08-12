@@ -56,7 +56,7 @@ def full_validation(model, dev_data, ent_dict):
             gold.append(ent_dict[cands[0]])
             context_list.append(context_vec)
     context_matr = np.vstack(context_list)
-    print("Shape of context matrix : {}".info(context_matr.shape))
+    print("Shape of context matrix : {}".format(context_matr.shape))
     dot_products = context_matr @ ent_embs.T
 
     print("Gold : {}".format(gold[:10]))

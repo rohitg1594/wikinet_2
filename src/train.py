@@ -81,7 +81,7 @@ parser.add_argument('--dp', type=float, help='drop out')
 parser.add_argument('--hidden_size', type=int, help='size of hidden layer in yamada model')
 parser.add_argument('--lr', type=float, help='learning rate')
 parser.add_argument('--wd', type=float, help='weight decay')
-parser.add_argument('--optim', type=str, choices=['adagrad', 'adam'], help='optimizer')
+parser.add_argument('--optim', type=str, choices=['adagrad', 'adam', 'rmsprop'], help='optimizer')
 parser.add_argument('--sparse', type=str2bool, help='sparse gradients')
 # paramters to train
 parser.add_argument('--train_word', type=str2bool, help='whether to train word embeddings')
