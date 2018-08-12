@@ -1,4 +1,4 @@
-# This module implements dataloader for the yamada model
+# This module implements dataloader for the yamada model with pershina candidates
 import numpy as np
 import torch
 import torch.utils.data

@@ -114,3 +114,8 @@ def load_stats(args, yamada_model):
             ent_conditionals[mention] = orig_cond_dict
 
     return priors, conditionals
+
+
+def load_normal_data(data):
+    pass
+

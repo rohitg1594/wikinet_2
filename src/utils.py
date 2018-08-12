@@ -4,6 +4,8 @@ import numpy as np
 import string
 import re
 
+import sys
+
 
 RE_WS_PRE_PUCT = re.compile(u'\s+([^a-zA-Z\d])')
 RE_WIKI_ENT = re.compile(r'.*wiki\/(.*)')
@@ -27,8 +29,14 @@ def normal_initialize(dim_0=1000, dim_1=16):
 
 
 def normalize(v):
-    norm = np.linalg.norm(v, axis=1) + 10**-7
-    return v / norm[:, None]
+    if len(v.shape) == 1:
+        return v / (np.linalg.norm(v) + 10**-11)
+    elif len(v.shape) == 2:
+        norm = np.linalg.norm(v, axis=1) + 10**-11
+        return v / norm[:, None]
+    else:
+        print("normalize only accepts arrays of dimensions 1 or 2.")
+        sys.exit(1)
 
 
 def list_line_locations(filename):
