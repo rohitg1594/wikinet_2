@@ -172,6 +172,7 @@ if args.model == 'combined':
                                             num_workers=args.num_workers,
                                             drop_last=True)
     logger.info("Dataset created.")
+    logger.info("There will be {} batches.".format(len(train_loader) // args.batch_size + 1))
 
     # Model
     if args.include_word:
