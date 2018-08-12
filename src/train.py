@@ -290,7 +290,7 @@ elif args.model == 'yamada':
     for _ in range(10):
         correct, mentions = full_validator.validate(best_model)
         perc = correct / mentions * 100
-        perc.append(percs)
+        percs.append(perc)
         logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
     percs = np.array(percs)
     avg = np.mean(percs)
