@@ -295,7 +295,7 @@ elif args.model == 'yamada':
     percs = np.array(percs)
     avg = np.mean(percs)
     std = np.std(percs)
-    logger.info("Average : {}, Std : {}".format(avg, percs))
+    logger.info("Average : {}, Std : {}".format(avg, std))
     logger.info("Validation on test set.")
     test_validator = YamadaValidator(loader=test_loader, args=args)
     correct, mentions = test_validator.validate(model=best_model)
