@@ -82,11 +82,11 @@ def full_validation(model, dev_data, ent_dict):
         input_vec = np.concatenate((context_expand, dot_expand, ent_expand), axis=2)
         print(input_vec[:5])
         print("Input vec shape : {}".format(input_vec.shape))
-        out_hidden = relu(input_vec @ hidden_W + hidden_b)
+        out_hidden = relu(input_vec @ hidden_W.T + hidden_b)
         print(out_hidden[:5])
         print("Out hidden shape : {}".format(out_hidden.shape))
 
-        scores = out_hidden @ output_W + output_b
+        scores = out_hidden @ output_W.T + output_b
         print(scores[:5])
         print("Scores shape : {}".format(scores.shape))
 
