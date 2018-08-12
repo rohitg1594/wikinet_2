@@ -1,9 +1,12 @@
 # Util functions for evaluation
 import numpy as np
 
+import torch
+from torch.autograd import Variable
+
 from collections import OrderedDict
 
-from src.utils import normalize, relu
+from src.utils import normalize, relu, equalize_len
 
 def eval_ranking(I, gold, ks):
     topks = np.zeros(len(ks))
@@ -93,3 +96,63 @@ def full_validation(model, dev_data, ent_dict):
         preds = np.argmax(scores, axis=2)
         print(preds[:5])
         print("Predictions shape : {}".format(preds.shape))
+
+
+def full_validation_2(model, dev_data, args, yamda_model):
+    model = model.eval()
+
+    context_list = []
+    labels_list = []
+    mask_list = []
+    total_correct = 0
+    total_mention = 0
+    ent_dict = yamda_model['ent_dict']
+    num_ents = yamda_model['ent_emb'].shape
+    batch_size = 4
+
+    for word_ids, examples in dev_data:
+        padded_word_ids = equalize_len(word_ids, args.max_context_size)
+        context_list.append(padded_word_ids)
+        mask = np.zeros(args.max_ent_size, dtype=np.float32)
+        mask[:len(examples)] = 1
+        mask_list.append(mask)
+        for mention, cands in examples:
+            labels_list.append(ent_dict[cands[0]])
+
+    context_tensor = Variable(torch.from_numpy(np.vstack(context_list)))
+    print("Context tensor shape: {}".format(context_tensor.shape))
+
+    cand_matrix = np.arange(num_ents)[None, :].repeat(args.max_ent_size, axis=0)
+    cand_expand = cand_matrix[None, :, :].repeat(batch_size, axis=0)
+    cand_tensor = Variable(torch.from_numpy(cand_expand))
+    print("Cand tensor shape: {}".format(cand_tensor.shape))
+
+    if args.use_cuda and isinstance(args.device, int):
+        context_tensor = context_tensor.cuda(args.device)
+        cand_tensor = cand_tensor.cuda(args.device)
+
+    labels_matr = np.array(labels_list)
+    mask_matr = np.vstack(mask_list)
+
+    print("labels shape: {}".format(labels_matr.shape))
+    print("mask shape: {}".format(mask_matr.shape))
+
+    num_batches = context_tensor.shape[0] // batch_size
+    for batch_no in range(num_batches):
+        print(batch_no)
+        context_batch = context_tensor[batch_no * batch_size: (batch_no + 1) * batch_size]
+        mask_batch = mask_matr[batch_no * batch_size: (batch_no + 1) * batch_size].reshape(
+            batch_size * args.max_ent_size)
+        labels_batch = labels_matr[batch_no * batch_size: (batch_no + 1) * batch_size].reshape(
+            batch_size * args.max_ent_size)
+
+        scores = model((context_batch, cand_tensor))
+        scores = scores.cpu().data.numpy()
+
+        preds = np.argmax(scores, axis=1)
+        correct = (np.equal(preds, labels_batch) * mask_batch).sum()
+        mention = mask_batch.sum()
+        total_correct += correct
+        total_mention += mention
+
+    return total_correct, total_mention

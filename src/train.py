@@ -15,7 +15,7 @@ from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada_pershina import YamadaPershina
 from src.evaluation.combined_validator import CombinedValidator
 from src.evaluation.yamada_validator import YamadaValidator
-from src.evaluation.eval_utils import full_validation
+from src.evaluation.eval_utils import full_validation_2
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
 from src.models.combined.combined_context_gram import CombinedContextGram
@@ -260,9 +260,6 @@ elif args.model == 'yamada':
         model = model.cuda(args.device)
 
     logger.info("Starting validation for untrained model.")
-    correct, mentions = validator.validate(model=model)
-    perc = correct / mentions * 100
-    logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 
     trainer = Trainer(loader=train_loader,
                       args=args,
@@ -274,7 +271,9 @@ elif args.model == 'yamada':
     logger.info("Finished Training")
 
     logger.info("Validating on the entire ent matrix.")
-    full_validation(best_model, dev_data, yamada_model['ent_dict'])
+    correct, mentions = full_validation_2(best_model, dev_data, args, yamada_model)
+    perc = correct / mentions * 100
+    logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 
     logger.info("Validation on test set.")
     test_validator = YamadaValidator(loader=test_loader, args=args)
