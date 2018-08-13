@@ -120,7 +120,6 @@ logger.info("Loading Yamada model.")
 yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
 logger.info("Model loaded.")
 
-
 if args.model == 'combined':
     # Gram
     gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type)
@@ -178,7 +177,7 @@ if args.model == 'combined':
                                             num_workers=args.num_workers,
                                             drop_last=True)
     logger.info("Dataset created.")
-    logger.info("There will be {} batches.".format(len(train_loader) // args.batch_size + 1))
+    logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
 
     # Model
     if args.include_word:
@@ -263,7 +262,7 @@ elif args.model == 'yamada':
                                         num_workers=args.num_workers,
                                         drop_last=False)
     logger.info("Dataset created.")
-
+    logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
     validator = YamadaValidator(loader=dev_loader, args=args)
     full_validator = YamadaValidator(loader=full_loader, args=args)
     logger.info("Validator created.")
