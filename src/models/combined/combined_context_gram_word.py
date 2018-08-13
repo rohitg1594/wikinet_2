@@ -7,8 +7,8 @@ from src.models.combined.combined_base import CombinedBase
 
 class ContextGramWordCombined(CombinedBase):
 
-    def __init__(self, yamada_model=None, gram_embs=None, args=None):
-        super().__init__(yamada_model, gram_embs, args)
+    def __init__(self, word_embs=None, ent_embs=None, W=None, b=None, gram_embs=None, args=None):
+        super().__init__(word_embs, ent_embs, W, b, gram_embs, args)
 
     def forward(self, inputs):
         (mention_gram_tokens, mention_word_tokens, context_word_tokens,

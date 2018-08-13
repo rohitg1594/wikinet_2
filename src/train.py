@@ -126,6 +126,12 @@ if args.model == 'combined':
     gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type)
     gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
     gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
+    if args.init_rand:
+        word_embs = normal_initialize(yamada_model['word_emb'].shape[0], yamada_model['word_emb'].shape[1])
+        ent_embs = normal_initialize(yamada_model['ent_emb'].shape[0], yamada_model['ent_emb'].shape[1])
+    else:
+        ent_embs = yamada_model['ent_emb']
+        word_embs = yamada_model['word_emb']
 
     # Training Data
     logger.info("Loading Training data.")
@@ -176,9 +182,15 @@ if args.model == 'combined':
 
     # Model
     if args.include_word:
-        model = ContextGramWordCombined(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
+        model_type = ContextGramWordCombined
     else:
-        model = CombinedContextGram(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
+        model_type = CombinedContextGram
+    model = ContextGramWordCombined(word_embs=word_embs,
+                                    ent_embs=ent_embs,
+                                    W=yamada_model['W'],
+                                    b=yamada_model['b'],
+                                    gram_embs=gram_embs,
+                                    args=args)
     if use_cuda:
         if isinstance(args.device, tuple):
             model = model.cuda(args.device[0])
