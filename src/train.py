@@ -102,7 +102,7 @@ if args.wd > 0:
 if use_cuda:
     devices = args.device.split(",")
     if len(devices) > 1:
-        devices = int(devices[0]), int(devices[1])
+        devices = tuple([int(device) for device in devices])
     else:
         devices = int(devices[0])
     args.__dict__['device'] = devices
