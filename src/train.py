@@ -158,7 +158,7 @@ if args.model == 'combined':
                                   yamada_model=yamada_model,
                                   data=dev_data,
                                   args=args)
-    logger.info("Validators created.")
+    logger.info("Validator created.")
 
     # Dataset
     train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
@@ -270,7 +270,11 @@ elif args.model == 'yamada':
         logger.info("Model YamadaContext created.")
 
     if use_cuda:
-        model = model.cuda(args.device)
+        if isinstance(args.device, tuple):
+            model = model.cuda(args.device[0])
+            model = DataParallel(model, args.device)
+        else:
+            model = model.cuda(args.device)
 
     logger.info("Starting validation for untrained model.")
     correct, mentions = validator.validate(model)

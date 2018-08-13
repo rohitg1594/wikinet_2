@@ -29,7 +29,7 @@ class YamadaPershina(object):
         self.cand_rand = cand_rand
 
         if self.cand_rand:
-            self.number_candidates = 10000
+            self.number_candidates = 10 ** 6
 
     def __getitem__(self, index):
         if isinstance(index, slice):
