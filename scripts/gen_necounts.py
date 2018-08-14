@@ -9,6 +9,7 @@ import argparse
 from collections import Counter
 
 import sys
+sys.path.extend('/home/rogupta/wikinet_2')
 import os
 from os.path import join
 
