@@ -2,7 +2,7 @@ seed:-1
 exp_name:true_everything_dim_300
 debug:False
 data_path:/home/rogupta/wikinet_2/data
-yamada_model:ntee_300_sentence.pickle
+yamada_model:yamada_model.pickle
 num_shards:100
 gram_type:trigram
 gram_vocab:vocab_trigram_266826.tsv
