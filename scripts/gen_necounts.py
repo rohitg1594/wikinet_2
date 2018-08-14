@@ -16,7 +16,15 @@ from os.path import join
 import findspark
 import pyspark
 
-from src.data_utils import pickle_load
+
+def pickle_load(path):
+    assert os.path.exists(path)
+
+    with open(path, 'rb') as f:
+        data = pickle.load(f)
+
+    return data
+
 
 sc = pyspark.SparkContext(appName="wikinetNECOUNTS")
 
