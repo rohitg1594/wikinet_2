@@ -55,7 +55,7 @@ except IOError:
 
 try:
     logging.info("Loading Yamada model.")
-    yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
+    yamada_model = pickle_load(join(args.data_path, 'yamada', 'yamada_model'))
     logging.info("Model loaded.")
     ent_dict = yamada_model['ent_dict']
 except IOError:
