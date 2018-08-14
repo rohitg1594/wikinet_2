@@ -124,7 +124,7 @@ if args.model == 'combined':
     # Gram
     gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type)
     gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
-    gram_embs = normal_initialize(len(gram_vocab) + 1, args.gram_dim)
+    gram_embs = normal_initialize(len(gram_vocab), args.gram_dim)
     if args.init_rand:
         word_embs = normal_initialize(yamada_model['word_emb'].shape[0], yamada_model['word_emb'].shape[1])
         ent_embs = normal_initialize(yamada_model['ent_emb'].shape[0], yamada_model['ent_emb'].shape[1])
