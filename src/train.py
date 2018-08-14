@@ -184,19 +184,19 @@ if args.model == 'combined':
         model_type = ContextGramWordCombined
     else:
         model_type = CombinedContextGram
-    model = ContextGramWordCombined(word_embs=word_embs,
-                                    ent_embs=ent_embs,
-                                    W=yamada_model['W'],
-                                    b=yamada_model['b'],
-                                    gram_embs=gram_embs,
-                                    args=args)
+    model = model_type(word_embs=word_embs,
+                       ent_embs=ent_embs,
+                       W=yamada_model['W'],
+                       b=yamada_model['b'],
+                       gram_embs=gram_embs,
+                       args=args)
     if use_cuda:
         if isinstance(args.device, tuple):
             model = model.cuda(args.device[0])
             model = DataParallel(model, args.device)
         else:
             model = model.cuda(args.device)
-    logger.info('Model created.')
+    logger.info('{} Model created.'.format(str(model_type)))
 
     logger.info("Starting validation for untrained model.")
     top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
