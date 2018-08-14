@@ -111,7 +111,7 @@ if __name__ == "__main__":
     logging.info('{} files to be processed'.format(len(f_names)))
 
     logging.info('creating rdd')
-    ne_counts = sc.textFile(','.join(f_names[:10])) \
+    ne_counts = sc.textFile(','.join(f_names)) \
         .filter(lambda x: len(x) > 1) \
         .map(lambda x: process_line(x)) \
         .flatMap(lambda x: x) \
