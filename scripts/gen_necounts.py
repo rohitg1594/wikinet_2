@@ -16,18 +16,6 @@ from os.path import join
 import findspark
 import pyspark
 
-
-def pickle_load(path):
-    assert os.path.exists(path)
-
-    with open(path, 'rb') as f:
-        data = pickle.load(f)
-
-    return data
-
-
-sc = pyspark.SparkContext(appName="wikinetNECOUNTS")
-
 parser = argparse.ArgumentParser(description='process wikipedia dump to generate enitiy count dictionary',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--wiki_dir', type=str, help='Name of the wikipedia file')
@@ -43,6 +31,18 @@ logging = logging_master.getLogger('count link structure of wikipedia')
 logging.setLevel(logging_master.INFO)
 
 DATA_PATH = args.data_path
+
+
+def pickle_load(path):
+    assert os.path.exists(path)
+
+    with open(path, 'rb') as f:
+        data = pickle.load(f)
+
+    return data
+
+
+sc = pyspark.SparkContext(appName="wikinetNECOUNTS")
 
 try:
     logging.info('loading redirects dict')
