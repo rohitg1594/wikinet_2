@@ -43,6 +43,7 @@ def pickle_load(path):
 
 
 sc = pyspark.SparkContext(appName="wikinetNECOUNTS")
+sc.setLogLevel('ERROR')
 
 try:
     logging.info('loading redirects dict')
@@ -129,5 +130,5 @@ if __name__ == "__main__":
 
     logging.info('Saving to disk.')
     with open(join(args.data_path, 'necounts', 'new_necounts.pickle'), 'wb') as f:
-        pickle.dump(ne_counts, f)
+        pickle.dump(necounts_dict, f)
     logging.info('Saved.')
