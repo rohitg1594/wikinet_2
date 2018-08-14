@@ -92,7 +92,7 @@ def process_line(line):
         if 'Category:' in page_name or page_name not in ent_dict:
             continue
 
-        out.append((wiki_text[begin:end], ent_dict[page_name]))
+        out.append((wiki_text[begin:end], page_name))
     return out
 
 
@@ -107,10 +107,10 @@ if __name__ == "__main__":
     for f_name in glob.glob(args.wiki_dir + '/**', recursive=True):
         if RE_FILE_MATCH.match(f_name):
             f_names.append(f_name)
-            logging.info('adding file {}'.format(f_name))
+    logging.info('{} files to be processed'.format(len(f_names)))
 
     logging.info('creating rdd')
-    counts = sc.textFile(','.join(f_names[:10])) \
+    ne_counts = sc.textFile(','.join(f_names[:10])) \
         .filter(lambda x: len(x) > 1) \
         .map(lambda x: process_line(x)) \
         .flatMap(lambda x: x) \
@@ -118,11 +118,16 @@ if __name__ == "__main__":
         .mapValues(list) \
         .combineByKey(Counter, counter_update, lambda x, y: x + y) \
         .toLocalIterator()
-        # .mapValues(Counter.most_common) \
-        # .mapValues(create_struct) \
-        # .filter(lambda x: len(x) > 1) \
-        # .map(lambda x: '{}\t{}'.format(x[0], x[1])) \
     logging.info('rdd created')
 
-    for i, count in enumerate(counts):
-        print(count)
+    logging.info('Creating necounts dict.')
+    necounts_dict = {}
+    for i, ne_count in enumerate(ne_counts):
+        mention, counter = ne_count
+        necounts_dict[mention] = counter
+    logging.info('Dict created.')
+
+    logging.info('Saving to disk.')
+    with open(join(args.data_path, 'necounts', 'new_necounts.pickle'), 'wb') as f:
+        pickle.dump(ne_counts, f)
+    logging.info('Saved.')
