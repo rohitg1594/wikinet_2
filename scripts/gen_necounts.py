@@ -46,7 +46,7 @@ sc = pyspark.SparkContext(appName="wikinetNECOUNTS")
 
 try:
     logging.info('loading redirects dict')
-    with open(os.path.join(DATA_PATH, "redirects_en_2.pickle"), 'rb') as f:
+    with open(os.path.join(DATA_PATH, "redirects.pickle"), 'rb') as f:
         redirects = pickle.load(f)
     logging.info('redirects dict loaded')
 except IOError:
