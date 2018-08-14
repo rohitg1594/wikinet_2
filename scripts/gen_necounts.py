@@ -93,7 +93,7 @@ def process_line(line):
         if 'Category:' in page_name or page_name not in ent_dict:
             continue
 
-        out.append((wiki_text[begin:end], page_name))
+        out.append((wiki_text[begin:end], ent_dict[page_name]))
     return out
 
 
@@ -122,13 +122,16 @@ if __name__ == "__main__":
     logging.info('rdd created')
 
     logging.info('Creating necounts dict.')
-    necounts_dict = {}
+    current_shard = 0
+    dict_shard = {}
     for i, ne_count in enumerate(ne_counts):
         mention, counter = ne_count
-        necounts_dict[mention] = counter
-    logging.info('Dict created.')
+        dict_shard[mention] = counter
+        if i % 10 ** 5 == 0:
+            logging.info('Saving to disk shard {}.'.format(current_shard))
+            with open(join(args.data_path, 'necounts', 'necounts_{}'.format(str(current_shard))), 'wb') as f:
+                pickle.dump(dict_shard, f)
+            logging.info('Saved.')
+            current_shard += 1
+            dict_shard = {}
 
-    logging.info('Saving to disk.')
-    with open(join(args.data_path, 'necounts', 'new_necounts.pickle'), 'wb') as f:
-        pickle.dump(necounts_dict, f)
-    logging.info('Saved.')
