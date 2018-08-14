@@ -42,6 +42,7 @@ parser.add_argument('--data_path', type=str, help='location of data dir')
 parser.add_argument('--yamada_model', type=str, help='name of yamada model')
 parser.add_argument('--num_shards', type=int, help='number of shards of training file')
 parser.add_argument('--gram_type', type=str, choices=['unigram', 'bigram', 'trigram'], help='type of gram tokenization')
+parser.add_argument('--gram_lower', type=str2bool, help='whether to lowercase gram tokens')
 parser.add_argument('--gram_vocab', type=str, help='name of gram vocab file')
 parser.add_argument('--train_size', type=int, help='number of training abstracts')
 # validation
@@ -122,7 +123,7 @@ logger.info("Model loaded.")
 
 if args.model == 'combined':
     # Gram
-    gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type)
+    gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
     gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
     gram_embs = normal_initialize(len(gram_vocab), args.gram_dim)
     if args.init_rand:
@@ -196,7 +197,7 @@ if args.model == 'combined':
             model = DataParallel(model, args.device)
         else:
             model = model.cuda(args.device)
-    logger.info('{} Model created.'.format(str(model_type)))
+    logger.info('{} Model created.'.format(type(model_type).__name__))
 
     logger.info("Starting validation for untrained model.")
     top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
