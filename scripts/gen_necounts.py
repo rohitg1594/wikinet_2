@@ -120,9 +120,10 @@ if __name__ == "__main__":
         .combineByKey(Counter, counter_update, lambda x, y: x + y)
     logging.info('RDD created.')
 
+    logging.info("Size of RDD : {} MB".format(sys.getsizeof(ne_counts) / 10 ** 6))
     ne_counts_dict = ne_counts.collectAsMap()
     logging.info("Dict created.")
-    logging.info("Size of dictionary : {} MB".format(sys.getsizeof(ne_counts_dict) / 10**6))
+    logging.info("Size of dictionary : {} MB".format(sys.getsizeof(ne_counts_dict) / 10 ** 6))
 
     with open(join(args.data_path, 'necounts', 'new_necounts.pickle'), 'wb') as f:
         pickle.dump(ne_counts_dict, f)
