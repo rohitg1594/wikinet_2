@@ -117,21 +117,28 @@ if __name__ == "__main__":
         .flatMap(lambda x: x) \
         .groupByKey() \
         .mapValues(list) \
-        .combineByKey(Counter, counter_update, lambda x, y: x + y) \
-        .toLocalIterator()
-    logging.info('rdd created')
+        .combineByKey(Counter, counter_update, lambda x, y: x + y)
+    logging.info('RDD created.')
 
-    logging.info('Creating necounts dict.')
-    current_shard = 0
-    dict_shard = {}
-    for i, ne_count in enumerate(ne_counts):
-        mention, counter = ne_count
-        dict_shard[mention] = counter
-        if i % 10 ** 5 == 0:
-            logging.info('Saving to disk shard {}.'.format(current_shard))
-            with open(join(args.data_path, 'necounts', 'necounts_{}'.format(str(current_shard))), 'wb') as f:
-                pickle.dump(dict_shard, f)
-            logging.info('Saved.')
-            current_shard += 1
-            dict_shard = {}
+    ne_counts_dict = ne_counts.collectAsMap()
+    logging.info("Dict created.")
+    logging.info("Size of dictionary : {} MB".format(sys.getsizeof(ne_counts_dict) / 10**6))
+
+    with open(join(args.data_path, 'necounts', 'new_necounts.pickle'), 'wb') as f:
+        pickle.dump(ne_counts_dict, f)
+    logging.info("Done.")
+
+    #logging.info('Creating necounts dict.')
+    #current_shard = 0
+    #dict_shard = {}
+    #for i, ne_count in enumerate(ne_counts):
+    #    mention, counter = ne_count
+    #    dict_shard[mention] = counter
+    #    if i % 10 ** 5 == 0:
+    #        logging.info('Saving to disk shard {}.'.format(current_shard))
+    #        with open(join(args.data_path, 'necounts', 'necounts_{}'.format(str(current_shard))), 'wb') as f:
+    #            pickle.dump(dict_shard, f)
+    #        logging.info('Saved.')
+    #        current_shard += 1
+    #        dict_shard = {}
 
