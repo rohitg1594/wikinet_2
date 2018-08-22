@@ -1,5 +1,6 @@
 # Util functions for evaluation
 import numpy as np
+import random
 
 import torch
 from torch.autograd import Variable
@@ -9,15 +10,24 @@ from collections import OrderedDict, defaultdict
 from src.utils import normalize, relu, equalize_len
 
 
-def check_errors(I, gold, ks):
+def check_errors(I, gold, word_indices, rev_ent, rev_word, ks):
     errors = defaultdict(list)
 
     for j, k in enumerate(ks):
         for i in range(I.shape[0]):
             if gold[i] not in I[i, :k]:
-                errors[k].append((gold[i], I[i]))
+                errors[k].append((i, gold[i], I[i]))
 
-    return errors
+    for k, errors in errors.items():
+        print("Top {} errors:".format(k))
+        mask = random.sample(range(len(errors)), 10)
+        for i in mask:
+            mention_idx, gold_id, predictions_id = errors[i]
+            mention_words = word_indices[mention_idx]
+            predictions = ','.join([rev_ent.get(ent_id, '') for ent_id in predictions_id][:10])
+            mention = ' '.join([rev_word[token] for token in mention_words if token in rev_word])
+            print('{:<20}|{:<20}|{}'.format(mention, rev_ent.get(gold_id, ''), predictions))
+            print()
 
 
 def eval_ranking(I, gold, ks, error=False):

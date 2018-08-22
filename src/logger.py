@@ -12,7 +12,11 @@ def get_logger(args):
     logger = logging.getLogger()
     log_formatter = logging.Formatter(fmt='%(levelname)s:%(asctime)s:%(message)s', datefmt='%I:%M:%S %p')
 
-    log_path = join(args.data_path, 'logs', '{}_{}.log'.format(datetime.now().strftime("%Y_%m_%d"), args.exp_name))
+    log_dir = join(args.data_path, 'logs', '{}'.format(datetime.now().strftime("%Y_%m_%d")))
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    log_path = join(log_dir, args.exp_name)
     if not os.path.exists(log_path):
         with open(log_path, 'w') as f:
             f.write('')

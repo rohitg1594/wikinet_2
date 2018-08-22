@@ -368,21 +368,12 @@ class CombinedValidator:
 
         # Error analysis
         if error:
-            errors_wiki = check_errors(I_wiki, self.wiki_all_gold[self.wiki_mask], [1, 10, 100])
-            errors_conll = check_errors(I_conll, self.conll_all_gold, [1, 10, 100])
-
-            for k, errors in errors_wiki.items():
-                logger.info("Wiki Top {} errors:".format(k))
-                rand_errors = random.sample(errors, 10)
-                for gold_id, predictions_id in rand_errors:
-                    predictions = [self.rev_ent_dict.get(ent_id, '') for ent_id in predictions_id]
-                    print('{:<20}|{}'.format(self.rev_ent_dict.get(gold_id, ''), predictions))
-
-            for k, errors in errors_conll.items():
-                print("Conll Top {} errors:".format(k))
-                rand_errors = random.sample(errors, 10)
-                for gold_id, predictions_id in rand_errors:
-                    predictions = [self.rev_ent_dict.get(ent_id, '') for ent_id in predictions_id]
-                    print('{:<20}|{}'.format(self.rev_ent_dict.get(gold_id, ''), predictions))
+            print('Wiki Errors')
+            check_errors(I_wiki, self.wiki_all_gold[self.wiki_mask], self.wiki_mention_word_indices,
+                         self.rev_ent_dict, self.rev_word_dict, [1, 10])
+            print('\n')
+            print('Conll Errors')
+            check_errors(I_wiki, self.conll_all_gold, self.conll_mention_word_indices,
+                         self.rev_ent_dict, self.rev_word_dict, [1, 10])
 
         return top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll
