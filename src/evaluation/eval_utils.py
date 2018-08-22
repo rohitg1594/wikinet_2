@@ -26,8 +26,7 @@ def check_errors(I, gold, word_indices, rev_ent, rev_word, ks):
             mention_words = word_indices[mention_idx]
             predictions = ','.join([rev_ent.get(ent_id, '') for ent_id in predictions_id][:10])
             mention = ' '.join([rev_word[token] for token in mention_words if token in rev_word])
-            print('{:<20}|{:<20}|{}'.format(mention, rev_ent.get(gold_id, ''), predictions))
-            print()
+            print('{}|{}|{}'.format(mention, rev_ent.get(gold_id, ''), predictions))
 
 
 def eval_ranking(I, gold, ks, error=False):
