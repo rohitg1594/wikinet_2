@@ -16,6 +16,7 @@ max_ent_size:60
 include_word:True
 include_gram:True
 include_context:True
+model:combines
 norm_gram:True
 norm_word:True
 norm_context:True

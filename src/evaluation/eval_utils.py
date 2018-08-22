@@ -4,12 +4,25 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from src.utils import normalize, relu, equalize_len
 
-def eval_ranking(I, gold, ks):
+
+def check_errors(I, gold, ks):
+    errors = defaultdict(list)
+
+    for j, k in enumerate(ks):
+        for i in range(I.shape[0]):
+            if gold[i] not in I[i, :k]:
+                errors[k].append((gold[i], I[i]))
+
+    return errors
+
+
+def eval_ranking(I, gold, ks, error=False):
     topks = np.zeros(len(ks))
+
     for j, k in enumerate(ks):
         for i in range(I.shape[0]):
             if gold[i] in I[i, :k]:
@@ -30,7 +43,10 @@ def eval_ranking(I, gold, ks):
     if not isinstance(mrr, float):
         mrr = mrr[0]
 
-    return topks[0], topks[1], topks[2], mrr
+    if not error:
+        return topks[0], topks[1], topks[2], mrr
+    else:
+        return topks[0], topks[1], topks[2], mrr, errors
 
 
 def full_validation(model, dev_data, ent_dict):

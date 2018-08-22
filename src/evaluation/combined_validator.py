@@ -6,13 +6,13 @@ from os.path import join
 import sys
 
 from collections import OrderedDict
-
+import random
 import re
 
 from logging import getLogger
 
 from src.utils import reverse_dict, equalize_len, normalize
-from src.evaluation.eval_utils import eval_ranking
+from src.evaluation.eval_utils import eval_ranking, check_errors
 from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
 
 logger = getLogger()
@@ -63,8 +63,8 @@ class CombinedValidator:
         self.conll_all_gold = np.array(conll_all_gold).astype(np.int32)
 
         if self.args.debug:
-            wiki_debug_result = self._get_debug_error_string(data='wiki', result=False)
-            conll_debug_result = self._get_debug_error_string(data='conll', result=False)
+            wiki_debug_result = self._get_debug_string(data='wiki', result=False)
+            conll_debug_result = self._get_debug_string(data='conll', result=False)
 
             print("Wikipedia Debug Results")
             print(wiki_debug_result)
@@ -287,7 +287,7 @@ class CombinedValidator:
 
         return mention_combined_embs
 
-    def _get_debug_error_string(self, I=None, data='wiki', result=False):
+    def _get_debug_string(self, I=None, data='wiki', result=False):
 
         if data == 'wiki':
             gram_indices = self.wiki_mention_gram_indices[self.wiki_mask, :]
@@ -321,7 +321,7 @@ class CombinedValidator:
 
         return s
 
-    def validate(self, model=None):
+    def validate(self, model=None, error=True):
         model = model.eval()
 
         params = self._get_model_params(model)
@@ -353,8 +353,8 @@ class CombinedValidator:
             print('Wiki result : {}'.format(I_wiki[:20, :10]))
             print('Conll result : {}'.format(I_conll[:20, :10]))
 
-            wiki_debug_result = self._get_debug_error_string(I=I_wiki, data='wiki', result=True)
-            conll_debug_result = self._get_debug_error_string(I=I_conll, data='conll', result=True)
+            wiki_debug_result = self._get_debug_string(I=I_wiki, data='wiki', result=True)
+            conll_debug_result = self._get_debug_string(I=I_conll, data='conll', result=True)
 
             print("Wikipedia Debug Results")
             print(wiki_debug_result)
@@ -365,5 +365,24 @@ class CombinedValidator:
         # Evaluate rankings
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki = eval_ranking(I_wiki, self.wiki_all_gold[self.wiki_mask], [1, 10, 100])
         top1_conll, top10_conll, top100_conll, mrr_conll = eval_ranking(I_conll, self.conll_all_gold, [1, 10, 100])
+
+        # Error analysis
+        if error:
+            errors_wiki = check_errors(I_wiki, self.wiki_all_gold[self.wiki_mask], [1, 10, 100])
+            errors_conll = check_errors(I_conll, self.conll_all_gold, [1, 10, 100])
+
+            for k, errors in errors_wiki.values():
+                logger.info("Wiki Top {} errors:".format(k))
+                rand_errors = random.sample(errors, 10)
+                for gold_id, predictions_id in rand_errors:
+                    predictions = [self.rev_ent_dict.get(ent_id, '') for ent_id in predictions_id]
+                    print('{:<20}|{}'.format(self.rev_ent_dict.get(gold_id, ''), predictions))
+
+            for k, errors in errors_conll.values():
+                print("Conll Top {} errors:".format(k))
+                rand_errors = random.sample(errors, 10)
+                for gold_id, predictions_id in rand_errors:
+                    predictions = [self.rev_ent_dict.get(ent_id, '') for ent_id in predictions_id]
+                    print('{:<20}|{}'.format(self.rev_ent_dict.get(gold_id, ''), predictions))
 
         return top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll

@@ -38,7 +38,7 @@ class CombinedDataSet(object):
 
         # Candidates
         if not self.args.cand_gen_rand:
-            with open(join(self.args.data_path, 'necounts', 'necounts.pickle'), 'rb') as f:
+            with open(join(self.args.data_path, 'necounts', 'new_necounts.pickle'), 'rb') as f:
                 self.necounts = pickle.load(f)
 
     def _initialize(self):
