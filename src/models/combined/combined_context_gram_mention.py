@@ -21,7 +21,8 @@ class CombinedContextGramMention(CombinedBase):
         self.ent_mention_embs.weight.requires_grad = self.args.train_mention
 
     def forward(self, inputs):
-        mention_gram_tokens, context_word_tokens, mention_word_tokens, candidate_word_tokens, candidate_gram_tokens, candidate_ids = inputs
+        mention_gram_tokens, mention_word_tokens, context_word_tokens, candidate_gram_tokens, candidate_word_tokens,\
+        candidate_ids = inputs
 
         num_abst, num_ent, num_cand, num_gram = candidate_gram_tokens.shape
         num_abst, num_ent, num_context = context_word_tokens.shape

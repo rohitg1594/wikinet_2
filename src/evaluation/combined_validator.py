@@ -391,10 +391,10 @@ class CombinedValidator:
         if error:
             print('Wiki Errors')
             check_errors(I_wiki, self.wiki_all_gold[self.wiki_mask], self.wiki_mention_word_indices[self.wiki_mask, :],
-                         self.rev_ent_dict, self.rev_word_dict, [1, 10])
+                         self.rev_ent_dict, self.rev_word_dict, [1, 10, 100])
             print('\n')
             print('Conll Errors')
             check_errors(I_conll, self.conll_all_gold, self.conll_mention_word_indices,
-                         self.rev_ent_dict, self.rev_word_dict, [1, 10])
+                         self.rev_ent_dict, self.rev_word_dict, [1, 10, 100])
 
         return top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll
