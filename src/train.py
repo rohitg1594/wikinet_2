@@ -205,7 +205,7 @@ if args.model == 'combined':
                                W=yamada_model['W'],
                                b=yamada_model['b'],
                                gram_embs=gram_embs,
-                               args=args)ss
+                               args=args)
         else:
             model_type = CombinedContextGram
             model = model_type(word_embs=word_embs,
