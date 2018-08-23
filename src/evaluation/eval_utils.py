@@ -10,7 +10,7 @@ from collections import OrderedDict, defaultdict
 from src.utils import normalize, relu, equalize_len
 
 
-def check_errors(I, gold, word_indices, rev_ent, rev_word, ks):
+def check_errors(I, gold, gram_indices, rev_ent_dict, rev_gram_dict, ks):
     errors = defaultdict(list)
 
     for j, k in enumerate(ks):
@@ -23,14 +23,15 @@ def check_errors(I, gold, word_indices, rev_ent, rev_word, ks):
         mask = random.sample(range(len(errors)), 10)
         for i in mask:
             mention_idx, gold_id, predictions_id = errors[i]
-            mention_words = word_indices[mention_idx]
-            predictions = ','.join([rev_ent.get(ent_id, '') for ent_id in predictions_id][:10])
-            mention = ' '.join([rev_word[token] for token in mention_words if token in rev_word])
-            print('{}|{}|{}'.format(mention, rev_ent.get(gold_id, ''), predictions))
+            mention_grams = gram_indices[mention_idx]
+            predictions = ','.join([rev_ent_dict.get(ent_id, '') for ent_id in predictions_id][:10])
+            mention = ''.join([rev_gram_dict[token][0] for token in mention_grams if token in rev_gram_dict])
+            mention += rev_gram_dict[mention_grams[-1]][1:]
+            print('{}|{}|{}'.format(mention, rev_ent_dict.get(gold_id, ''), predictions))
         print()
 
 
-def eval_ranking(I, gold, ks, error=False):
+def eval_ranking(I, gold, ks):
     topks = np.zeros(len(ks))
 
     for j, k in enumerate(ks):
@@ -53,10 +54,7 @@ def eval_ranking(I, gold, ks, error=False):
     if not isinstance(mrr, float):
         mrr = mrr[0]
 
-    if not error:
-        return topks[0], topks[1], topks[2], mrr
-    else:
-        return topks[0], topks[1], topks[2], mrr, errors
+    return topks[0], topks[1], topks[2], mrr
 
 
 def full_validation(model, dev_data, ent_dict):

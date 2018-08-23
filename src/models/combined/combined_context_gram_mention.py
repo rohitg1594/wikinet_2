@@ -26,7 +26,7 @@ class CombinedContextGramMention(CombinedBase):
 
         num_abst, num_ent, num_cand, num_gram = candidate_gram_tokens.shape
         num_abst, num_ent, num_context = context_word_tokens.shape
-        num_abst, num_ent, num_word = mention_word_tokens
+        num_abst, num_ent, num_word = mention_word_tokens.shape
 
         # Reshape to two dimensions - needed because nn.Embedding only allows lookup with 2D-Tensors
         mention_gram_tokens = mention_gram_tokens.view(-1, num_gram)

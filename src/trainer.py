@@ -49,8 +49,7 @@ class Trainer(object):
 
         ymask = ymask.view(self.args.batch_size * self.args.max_ent_size)
         ymask = Variable(ymask)
-        labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor),
-                          requires_grad=False)
+        labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor), requires_grad=False)
 
         if self.args.use_cuda:
             if isinstance(self.args.device, int):
