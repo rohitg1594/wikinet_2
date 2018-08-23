@@ -14,7 +14,7 @@ from src.evaluation.combined_validator import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
 from src.models.combined.combined_context_gram import CombinedContextGram
-from src.models.combined.combined_context_gram_word import ContextGramWordCombined
+from src.models.combined.combined_context_gram_word import CombinedContextGramWord
 from src.logger import get_logger
 from src.trainer import Trainer
 
@@ -156,7 +156,7 @@ for lr in [10 ** -i for i in range(2, 5)]:
 
             # Model
             if args.include_word:
-                model = ContextGramWordCombined(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
+                model = CombinedContextGramWord(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
             else:
                 model = CombinedContextGram(yamada_model=yamada_model, gram_embs=gram_embs, args=args)
             if use_cuda:

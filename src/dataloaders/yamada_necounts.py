@@ -28,7 +28,7 @@ class YamadaConllDataset(object):
         self.ent_conditional = ent_conditional
         self.data = data
 
-        self.necounts = pickle_load(join(self.args.data_path, "necounts.pickle"))
+        self.necounts = pickle_load(join(self.args.data_path, "normal_necounts.pickle"))
 
     def __getitem__(self, index):
         if isinstance(index, slice):

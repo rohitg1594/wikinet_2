@@ -155,8 +155,7 @@ class CombinedValidator:
 
         return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
 
-    @staticmethod
-    def _get_model_params(model):
+    def _get_model_params(self, model):
         params = dict()
         new_state_dict = OrderedDict()
         for k, v in model.state_dict().items():
@@ -172,6 +171,10 @@ class CombinedValidator:
         params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy()
         params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()
 
+        if self.args.include_mention:
+            params['mention_embs'] = new_state_dict['word_embs.weight'].cpu().numpy()
+            params['ent_mention_embs'] = new_state_dict['ent_embs.weight'].cpu().numpy()
+
         return params
 
     def _get_ent_combined_embs(self, params=None):
@@ -181,6 +184,12 @@ class CombinedValidator:
         ent_embs = params['ent_embs']
         W = params['W']
         b = params['b']
+
+        if self.args.include_mention:
+            ent_mention_embs = params['ent_mention_embs'][self.ent_word_indices, :].mean(axis=1)
+
+            if self.args.norm_mention:
+                ent_mention_embs = normalize(ent_mention_embs)
 
         if self.args.include_gram:
             ent_gram_embs = gram_embs[self.ent_gram_indices, :].mean(axis=1)
@@ -195,27 +204,30 @@ class CombinedValidator:
             if self.args.norm_word:
                 ent_word_embs = normalize(ent_word_embs)
 
-        # 100
-        if self.args.include_gram and not self.args.include_context and not self.args.include_word:
-            ent_combined_embs = ent_gram_embs
-        # 001
-        elif not self.args.include_gram and not self.args.include_context and self.args.include_word:
-            ent_combined_embs = ent_word_embs
-        # 010
-        elif not self.args.include_gram and self.args.include_context and not self.args.include_word:
-            ent_combined_embs = ent_embs
-        # 110
-        elif self.args.include_gram and self.args.include_context and not self.args.include_word:
-            ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs), axis=1)
-        # 101
-        elif self.args.include_gram and not self.args.include_context and self.args.include_word:
-            ent_combined_embs = np.concatenate((ent_word_embs, ent_gram_embs), axis=1)
-        # 011
-        elif not self.args.include_gram and self.args.include_context and self.args.include_word:
-            ent_combined_embs = np.concatenate((ent_embs, ent_word_embs), axis=1)
-        # 111
+        if self.args.include_mention:
+            ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_mention_embs), axis=1)
         else:
-            ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_word_embs), axis=1)
+            # 100
+            if self.args.include_gram and not self.args.include_context and not self.args.include_word:
+                ent_combined_embs = ent_gram_embs
+            # 001
+            elif not self.args.include_gram and not self.args.include_context and self.args.include_word:
+                ent_combined_embs = ent_word_embs
+            # 010
+            elif not self.args.include_gram and self.args.include_context and not self.args.include_word:
+                ent_combined_embs = ent_embs
+            # 110
+            elif self.args.include_gram and self.args.include_context and not self.args.include_word:
+                ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs), axis=1)
+            # 101
+            elif self.args.include_gram and not self.args.include_context and self.args.include_word:
+                ent_combined_embs = np.concatenate((ent_word_embs, ent_gram_embs), axis=1)
+            # 011
+            elif not self.args.include_gram and self.args.include_context and self.args.include_word:
+                ent_combined_embs = np.concatenate((ent_embs, ent_word_embs), axis=1)
+            # 111
+            else:
+                ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_word_embs), axis=1)
 
         if self.args.norm_final:
             ent_combined_embs = normalize(ent_combined_embs)
@@ -240,6 +252,12 @@ class CombinedValidator:
             logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data))
             sys.exit(1)
 
+        if self.args.include_mention:
+            mention_embs = params['mention_embs'][self.word_indices, :].mean(axis=1)
+
+            if self.args.norm_mention:
+                mention_embs = normalize(mention_embs)
+
         if self.args.include_gram:
             mention_gram_embs = gram_embs[gram_indices, :].mean(axis=1)
 
@@ -260,27 +278,30 @@ class CombinedValidator:
             if self.args.norm_word:
                 mention_context_embs = normalize(mention_context_embs)
 
-        # 100
-        if self.args.include_gram and not self.args.include_context and not self.args.include_word:
-            mention_combined_embs = mention_gram_embs
-        # 001
-        elif not self.args.include_gram and not self.args.include_context and self.args.include_word:
-            mention_combined_embs = mention_word_embs
-        # 010
-        elif not self.args.include_gram and self.args.include_context and not self.args.include_word:
-            mention_combined_embs = mention_context_embs
-        # 110
-        elif self.args.include_gram and self.args.include_context and not self.args.include_word:
-            mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs), axis=1)
-        # 101
-        elif self.args.include_gram and not self.args.include_context and self.args.include_word:
-            mention_combined_embs = np.concatenate((mention_word_embs, mention_gram_embs), axis=1)
-        # 011
-        elif not self.args.include_gram and self.args.include_context and self.args.include_word:
-            mention_combined_embs = np.concatenate((mention_context_embs, mention_word_embs), axis=1)
-        # 111
+        if self.args.include_mention:
+            mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_embs), axis=1)
         else:
-            mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_word_embs), axis=1)
+            # 100
+            if self.args.include_gram and not self.args.include_context and not self.args.include_word:
+                mention_combined_embs = mention_gram_embs
+            # 001
+            elif not self.args.include_gram and not self.args.include_context and self.args.include_word:
+                mention_combined_embs = mention_word_embs
+            # 010
+            elif not self.args.include_gram and self.args.include_context and not self.args.include_word:
+                mention_combined_embs = mention_context_embs
+            # 110
+            elif self.args.include_gram and self.args.include_context and not self.args.include_word:
+                mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs), axis=1)
+            # 101
+            elif self.args.include_gram and not self.args.include_context and self.args.include_word:
+                mention_combined_embs = np.concatenate((mention_word_embs, mention_gram_embs), axis=1)
+            # 011
+            elif not self.args.include_gram and self.args.include_context and self.args.include_word:
+                mention_combined_embs = np.concatenate((mention_context_embs, mention_word_embs), axis=1)
+            # 111
+            else:
+                mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_word_embs), axis=1)
 
         if self.args.norm_final:
             mention_combined_embs = normalize(mention_combined_embs)

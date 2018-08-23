@@ -15,11 +15,11 @@ from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada_pershina import YamadaPershina
 from src.evaluation.combined_validator import CombinedValidator
 from src.evaluation.yamada_validator import YamadaValidator
-from src.evaluation.eval_utils import full_validation_2
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
 from src.models.combined.combined_context_gram import CombinedContextGram
-from src.models.combined.combined_context_gram_word import ContextGramWordCombined
+from src.models.combined.combined_context_gram_word import CombinedContextGramWord
+from src.models.combined.combined_context_gram_mention import CombinedContextGramMention
 from src.models.yamada.yamada_context import YamadaContext
 from src.models.yamada.yamada_context_stats import YamadaContextStats
 from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
@@ -61,7 +61,9 @@ parser.add_argument('--include_stats', type=str2bool, help='whether to include s
 parser.add_argument('--include_word', type=str2bool, help='whether to include word information in combined model')
 parser.add_argument('--include_gram', type=str2bool, help='whether to include gram information in combined model')
 parser.add_argument('--include_context', type=str2bool, help='whether to include context information in combined model')
+parser.add_argument('--include_mention', type=str2bool, help='whether to include separate mention words in combined model')
 parser.add_argument('--norm_gram', type=str2bool, help='whether to normalize gram embs')
+parser.add_argument('--norm_mention', type=str2bool, help='whether to normalize mention word embs')
 parser.add_argument('--norm_word', type=str2bool, help='whether to normalize word embs')
 parser.add_argument('--norm_context', type=str2bool, help='whether to normalize context embs')
 parser.add_argument('--norm_final', type=str2bool, help='whether to normalize final embs')
@@ -75,6 +77,7 @@ parser.add_argument("--patience", type=int, default=5, help="Patience for early 
 parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
 parser.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
 parser.add_argument('--gram_dim', type=int, help='dimension of gram embeddings')
+parser.add_argument('--mention_word_dim', type=int, help='dimension of mention word embeddings')
 parser.add_argument('--loss_func', type=str, default='cross_entropy', choices=['cross_entropy', 'cosine'], help='loss function')
 parser.add_argument('--margin', type=float, help='margin of hinge loss')
 parser.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
@@ -88,6 +91,7 @@ parser.add_argument('--sparse', type=str2bool, help='sparse gradients')
 parser.add_argument('--train_word', type=str2bool, help='whether to train word embeddings')
 parser.add_argument('--train_ent', type=str2bool, help='whether to train entity embeddings')
 parser.add_argument('--train_gram', type=str2bool, help='whether to train gram embeddings')
+parser.add_argument('--train_mention', type=str2bool, help='whether to train mention word embeddings')
 parser.add_argument('--train_linear', type=str2bool, help='whether to train linear layer')
 # cuda
 parser.add_argument("--device", type=str, help="cuda device")
@@ -109,7 +113,7 @@ if use_cuda:
     args.__dict__['device'] = devices
 
 logger.info("Experiment Parameters")
-for arg in vars(args):
+for arg in sorted(vars(args)):
     logger.info('{:<15}\t{}'.format(arg, getattr(args, arg)))
 
 model_dir = join(args.data_path, 'models', args.exp_name)
@@ -182,22 +186,41 @@ if args.model == 'combined':
 
     # Model
     if args.include_word:
-        model_type = ContextGramWordCombined
+        model_type = CombinedContextGramWord
+        model = model_type(word_embs=word_embs,
+                           ent_embs=ent_embs,
+                           W=yamada_model['W'],
+                           b=yamada_model['b'],
+                           gram_embs=gram_embs,
+                           args=args)
     else:
-        model_type = CombinedContextGram
-    model = model_type(word_embs=word_embs,
-                       ent_embs=ent_embs,
-                       W=yamada_model['W'],
-                       b=yamada_model['b'],
-                       gram_embs=gram_embs,
-                       args=args)
+        if args.include_mention:
+            model_type = CombinedContextGramMention
+            mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
+            ent_mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
+            model = model_type(word_embs=word_embs,
+                               ent_embs=ent_embs,
+                               mention_embs=mention_embs,
+                               ent_mention_embs=ent_mention_embs,
+                               W=yamada_model['W'],
+                               b=yamada_model['b'],
+                               gram_embs=gram_embs,
+                               args=args)ss
+        else:
+            model_type = CombinedContextGram
+            model = model_type(word_embs=word_embs,
+                               ent_embs=ent_embs,
+                               W=yamada_model['W'],
+                               b=yamada_model['b'],
+                               gram_embs=gram_embs,
+                               args=args)
     if use_cuda:
         if isinstance(args.device, tuple):
             model = model.cuda(args.device[0])
             model = DataParallel(model, args.device)
         else:
             model = model.cuda(args.device)
-    logger.info('{} Model created.'.format(type(model_type).__name__))
+    logger.info('{} Model created.'.format(model_type.__name__))
 
     logger.info("Starting validation for untrained model.")
     top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)

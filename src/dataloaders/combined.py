@@ -41,14 +41,6 @@ class CombinedDataSet(object):
             with open(join(self.args.data_path, 'necounts', 'normal_necounts.pickle'), 'rb') as f:
                 self.necounts = pickle.load(f)
 
-    def _initialize(self):
-
-        all_candidate_ids = np.zeros((self.args.max_ent_size, self.args.num_candidates)).astype(np.int64)
-        all_candidate_grams = np.zeros(
-            (self.args.max_ent_size, self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
-        all_mention_gram_tokens = np.zeros((self.args.max_ent_size, self.args.max_gram_size)).astype(np.int64)
-
-
     def __getitem__(self, index):
         if isinstance(index, slice):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
@@ -66,7 +58,7 @@ class CombinedDataSet(object):
         all_candidate_grams = np.zeros((self.args.max_ent_size, self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
         all_mention_gram_tokens = np.zeros((self.args.max_ent_size, self.args.max_gram_size)).astype(np.int64)
 
-        if self.args.include_word:
+        if self.args.include_word or self.args.include_mention:
             all_candidate_words = np.zeros(
                 (self.args.max_ent_size, self.args.num_candidates, self.args.max_word_size)).astype(np.int64)
             all_mention_word_tokens = np.zeros((self.args.max_ent_size, self.args.max_word_size)).astype(np.int64)
@@ -147,7 +139,7 @@ class CombinedDataSet(object):
             if self.args.include_word:
                 all_candidate_words[ent_idx] = candidate_word_tokens_matr
 
-        if self.args.include_word:
+        if self.args.include_word or self.args.include_mention:
             return (mask,
                     all_mention_gram_tokens,
                     all_mention_word_tokens,
