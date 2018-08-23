@@ -23,10 +23,21 @@ def check_errors(I, gold, gram_indices, rev_ent_dict, rev_gram_dict, ks):
         mask = random.sample(range(len(errors)), 10)
         for i in mask:
             mention_idx, gold_id, predictions_id = errors[i]
-            mention_grams = gram_indices[mention_idx]
+            mention_tokens = gram_indices[mention_idx]
             predictions = ','.join([rev_ent_dict.get(ent_id, '') for ent_id in predictions_id][:10])
-            mention = ''.join([rev_gram_dict[token][0] for token in mention_grams if token in rev_gram_dict])
-            mention += rev_gram_dict[mention_grams[-1]][1:]
+
+            mention_grams = []
+            for token_idx, token in mention_tokens:
+                if token == 0:
+                    break
+                elif token in rev_gram_dict:
+                    mention_grams.append(rev_gram_dict[token][0])
+            mention = ''.join(mention_grams)
+            if token_idx > 0:
+                last_gram = rev_gram_dict.get(mention_tokens[token_idx-1], '')
+                if len(last_gram) > 1:
+                    mention += last_gram[1:]
+
             print('{}|{}|{}'.format(mention, rev_ent_dict.get(gold_id, ''), predictions))
         print()
 
