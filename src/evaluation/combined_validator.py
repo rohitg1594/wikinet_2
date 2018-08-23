@@ -400,15 +400,14 @@ class CombinedValidator:
             D_conll, I_conll = index.search(conll_mention_combined_embs.astype(np.float32), 100)
 
         else:
-            index_wiki = faiss.IndexFlatIp(wiki_ent_combined_embs.shape[1])
-            index_conll = faiss.IndexFlatIp(conll_ent_combined_embs.shape[1])
+            index_wiki = faiss.IndexFlatIP(wiki_ent_combined_embs.shape[1])
+            index_conll = faiss.IndexFlatIP(conll_ent_combined_embs.shape[1])
 
             index_wiki.add(wiki_ent_combined_embs)
             index_conll.add(conll_ent_combined_embs)
 
             D_wiki, I_wiki = index_wiki.search(wiki_mention_combined_embs.astype(np.float32), 100)
             D_conll, I_conll = index_conll.search(conll_mention_combined_embs.astype(np.float32), 100)
-
 
         if self.args.debug:
             print('Wiki result : {}'.format(I_wiki[:20, :10]))
