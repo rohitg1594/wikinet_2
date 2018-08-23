@@ -12,6 +12,10 @@ RE_WIKI_ENT = re.compile(r'.*wiki\/(.*)')
 RE_WS = re.compile('\s+')
 
 
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+
 def relu(x):
     x_c = x.copy()
     x_c[x_c < 0] = 0
