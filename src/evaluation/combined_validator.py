@@ -389,7 +389,7 @@ class CombinedValidator:
             print(conll_mention_combined_embs[:5, :])
 
         # Create / search in Faiss Index
-        if not self.args.include_mention:
+        if not self.args.weigh_concat:
             if self.args.measure == 'ip':
                 index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
             else:
