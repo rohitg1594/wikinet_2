@@ -17,7 +17,7 @@ include_word:False
 include_gram:True
 gram_lower:True
 include_context:True
-inclue_mention:True
+include_mention:True
 model:combined
 norm_gram:True
 norm_word:True
