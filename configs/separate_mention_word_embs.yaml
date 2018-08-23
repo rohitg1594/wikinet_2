@@ -31,6 +31,7 @@ num_epochs:10
 batch_size:32
 num_workers:8
 gram_dim:64
+mention_word_dim:32
 margin:0.5
 loss_func:cross_entropy
 measure:ip
