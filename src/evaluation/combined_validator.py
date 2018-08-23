@@ -6,12 +6,11 @@ from os.path import join
 import sys
 
 from collections import OrderedDict
-import random
 import re
 
 from logging import getLogger
 
-from src.utils import reverse_dict, equalize_len, normalize
+from src.utils import reverse_dict, equalize_len, normalize, sigmoid
 from src.evaluation.eval_utils import eval_ranking, check_errors
 from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
 
@@ -175,6 +174,10 @@ class CombinedValidator:
             params['mention_embs'] = new_state_dict['word_embs.weight'].cpu().numpy()
             params['ent_mention_embs'] = new_state_dict['ent_embs.weight'].cpu().numpy()
 
+        if self.args.weigh_concat:
+            params['weighing_linear_W'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
+            params['weighing_linear_b'] = new_state_dict['weiging_linear.bias'].cpu().numpy()
+
         return params
 
     def _get_ent_combined_embs(self, params=None):
@@ -199,10 +202,11 @@ class CombinedValidator:
 
         if self.args.include_word:
             ent_word_embs = word_embs[self.ent_word_indices, :].mean(axis=1)
-            ent_word_embs = ent_word_embs @ W + b
+            ent_word_embs = ent_word_embs @ W.T + b
 
             if self.args.norm_word:
                 ent_word_embs = normalize(ent_word_embs)
+
 
         if self.args.include_mention:
             ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_mention_embs), axis=1)
@@ -231,6 +235,7 @@ class CombinedValidator:
 
         if self.args.norm_final:
             ent_combined_embs = normalize(ent_combined_embs)
+
 
         return ent_combined_embs
 
@@ -266,14 +271,14 @@ class CombinedValidator:
 
         if self.args.include_word:
             mention_word_embs = word_embs[word_indices, :].mean(axis=1)
-            mention_word_embs = mention_word_embs @ W + b
+            mention_word_embs = mention_word_embs @ W.T + b
 
             if self.args.norm_word:
                 mention_word_embs = normalize(mention_word_embs)
 
         if self.args.include_context:
             mention_context_embs = word_embs[context_indices, :].mean(axis=1)
-            mention_context_embs = mention_context_embs @ W + b
+            mention_context_embs = mention_context_embs @ W.T + b
 
             if self.args.norm_word:
                 mention_context_embs = normalize(mention_context_embs)
@@ -342,6 +347,9 @@ class CombinedValidator:
 
         return s
 
+    @staticmethod
+    def concat_weighted(w, emb_1, emb_2): return np.concatenate((w * emb_1, (1 - w) * emb_2), axis=1)
+
     def validate(self, model=None, error=True):
         model = model.eval()
 
@@ -349,6 +357,26 @@ class CombinedValidator:
         ent_combined_embs = self._get_ent_combined_embs(params=params)
         wiki_mention_combined_embs = self._get_mention_combined_embs(params=params, data='wiki')
         conll_mention_combined_embs = self._get_mention_combined_embs(params=params, data='conll')
+
+        if self.args.weigh_concat:
+            W = params['weighing_linear_W']
+            b = params['weighing_linear_b']
+
+            scores_wiki = np.diag((ent_combined_embs @ W.T + b) @ wiki_mention_combined_embs)
+            w_wiki = sigmoid(scores_wiki)[:, None]
+
+            scores_conll = np.diag((ent_combined_embs @ W.T + b) @ conll_mention_combined_embs)
+            w_conll = sigmoid(scores_conll)[:, None]
+
+            word_dim = params['word_embs'].shape[1]
+            wiki_ent_combined_embs = self.concat_weighted(w_wiki, ent_combined_embs[:, :word_dim],
+                                                          ent_combined_embs[:, word_dim:])
+            conll_ent_combined_embs = self.concat_weighted(w_conll, ent_combined_embs[:, :word_dim],
+                                                          ent_combined_embs[:, word_dim:])
+            wiki_mention_combined_embs = self.concat_weighted(w_wiki, wiki_mention_combined_embs[:, :word_dim],
+                                                              wiki_mention_combined_embs[:, word_dim:])
+            wiki_mention_combined_embs = self.concat_weighted(w_wiki, wiki_mention_combined_embs[:, :word_dim],
+                                                              wiki_mention_combined_embs[:, word_dim:])
 
         if self.args.debug:
             print('Ent Shape : {}'.format(ent_combined_embs.shape))
@@ -361,14 +389,26 @@ class CombinedValidator:
             print(conll_mention_combined_embs[:5, :])
 
         # Create / search in Faiss Index
-        if self.args.measure == 'ip':
-            index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
-        else:
-            index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
-        index.add(ent_combined_embs)
+        if not self.args.include_mention:
+            if self.args.measure == 'ip':
+                index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
+            else:
+                index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
+            index.add(ent_combined_embs)
 
-        D_wiki, I_wiki = index.search(wiki_mention_combined_embs.astype(np.float32), 100)
-        D_conll, I_conll = index.search(conll_mention_combined_embs.astype(np.float32), 100)
+            D_wiki, I_wiki = index.search(wiki_mention_combined_embs.astype(np.float32), 100)
+            D_conll, I_conll = index.search(conll_mention_combined_embs.astype(np.float32), 100)
+
+        else:
+            index_wiki = faiss.IndexFlatIp(wiki_ent_combined_embs.shape[1])
+            index_conll = faiss.IndexFlatIp(conll_ent_combined_embs.shape[1])
+
+            index_wiki.add(wiki_ent_combined_embs)
+            index_conll.add(conll_ent_combined_embs)
+
+            D_wiki, I_wiki = index_wiki.search(wiki_mention_combined_embs.astype(np.float32), 100)
+            D_conll, I_conll = index_conll.search(conll_mention_combined_embs.astype(np.float32), 100)
+
 
         if self.args.debug:
             print('Wiki result : {}'.format(I_wiki[:20, :10]))
