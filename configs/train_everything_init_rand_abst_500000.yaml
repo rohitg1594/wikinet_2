@@ -18,6 +18,7 @@ include_gram:True
 gram_lower:True
 include_context:True
 model:combined
+init_rand:True
 norm_gram:True
 norm_word:True
 norm_context:True
