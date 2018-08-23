@@ -27,7 +27,7 @@ def check_errors(I, gold, gram_indices, rev_ent_dict, rev_gram_dict, ks):
             predictions = ','.join([rev_ent_dict.get(ent_id, '') for ent_id in predictions_id][:10])
 
             mention_grams = []
-            for token_idx, token in mention_tokens:
+            for token_idx, token in enumerate(mention_tokens):
                 if token == 0:
                     break
                 elif token in rev_gram_dict:
