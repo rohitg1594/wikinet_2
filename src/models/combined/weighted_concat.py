@@ -58,7 +58,7 @@ class CombinedContextGramWeighted(CombinedBase):
 
         # Concatenate word / gram embeddings (weighted)
         combined_ent_w = torch.cat((w_ent * candidate_ent_embs, (1 - w_ent) * candidate_gram_embs), dim=2)
-        combined_mention_w = torch.cat((w_mention * context_word_embs, (1 - w_mention) * mention_gram_embs), dim=2)
+        combined_mention_w = torch.cat((w_mention * context_word_embs, (1 - w_mention) * mention_gram_embs), dim=1)
         combined_mention_w.unsqueeze_(1)
 
         # Dot product over last dimension
