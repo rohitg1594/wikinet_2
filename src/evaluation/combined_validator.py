@@ -168,7 +168,7 @@ class CombinedValidator:
         params['ent_embs'] = new_state_dict['ent_embs.weight'].cpu().numpy()
         params['gram_embs'] = new_state_dict['gram_embs.weight'].cpu().numpy()
         params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy().T  # transpose here!
-        params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()
+        params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()[:, None]
 
         if self.args.include_mention:
             params['mention_embs'] = new_state_dict['mention_embs.weight'].cpu().numpy()
@@ -177,7 +177,7 @@ class CombinedValidator:
         if self.args.weigh_concat:
             params['weighing_linear_W'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
             print('Param Linear Layer Weight Shape : {}'.format(params['weighing_linear_W'].shape))
-            params['weighing_linear_b'] = new_state_dict['weighing_linear.bias'].cpu().numpy()
+            params['weighing_linear_b'] = new_state_dict['weighing_linear.bias'].cpu().numpy()[:, None]
             print('Param Linear Layer Bias Shape : {}'.format(params['weighing_linear_b'].shape))
 
         return params
