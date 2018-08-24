@@ -168,7 +168,7 @@ class CombinedValidator:
         params['ent_embs'] = new_state_dict['ent_embs.weight'].cpu().numpy()
         params['gram_embs'] = new_state_dict['gram_embs.weight'].cpu().numpy()
         params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy().T  # transpose here!
-        params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()[:, None]
+        params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()
 
         if self.args.include_mention:
             params['mention_embs'] = new_state_dict['mention_embs.weight'].cpu().numpy()
