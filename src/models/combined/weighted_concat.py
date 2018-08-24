@@ -11,7 +11,7 @@ class CombinedContextGramWeighted(CombinedBase):
     def __init__(self, word_embs=None, ent_embs=None, W=None, b=None, gram_embs=None, args=None):
         super().__init__(word_embs, ent_embs, W, b, gram_embs, args)
 
-        self.weighing_linear = nn.Linear(1, ent_embs.shape[1] + gram_embs.shape[1])
+        self.weighing_linear = nn.Linear(1, ent_embs.shape[1] + gram_embs.shape[1], bias=False)
         print('Linear Layer Data Shape : {}'.format(self.weighing_linear.weight.data.shape))
         self.sigmoid = nn.Sigmoid()
 

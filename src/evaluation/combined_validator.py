@@ -177,8 +177,6 @@ class CombinedValidator:
         if self.args.weigh_concat:
             params['weighing_linear_W'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
             print('Param Linear Layer Weight Shape : {}'.format(params['weighing_linear_W'].shape))
-            params['weighing_linear_b'] = new_state_dict['weighing_linear.bias'].cpu().numpy()[:, None]
-            print('Param Linear Layer Bias Shape : {}'.format(params['weighing_linear_b'].shape))
 
         return params
 
@@ -361,22 +359,19 @@ class CombinedValidator:
 
         if self.args.weigh_concat:
             W = params['weighing_linear_W']
-            b = params['weighing_linear_b']
-            print(W.shape)
-            print(b.shape)
 
             print('Ent Combined Embs shape : {}'.format(ent_combined_embs.shape))
             print('Wiki mention Combined  shape : {}'.format(wiki_mention_combined_embs.shape))
 
-            scores_ent = ent_combined_embs @ W + b
+            scores_ent = ent_combined_embs @ W
             print('Ent Scores shape : {}'.format(scores_ent.shape))
             w_ent = sigmoid(scores_ent)
             print('w_ent shape : {}'.format(w_ent.shape))
 
-            scores_mention_wiki = wiki_mention_combined_embs @ W + b
+            scores_mention_wiki = wiki_mention_combined_embs @ W
             w_mention_wiki = sigmoid(scores_mention_wiki)
 
-            scores_mention_conll = conll_mention_combined_embs @ W + b
+            scores_mention_conll = conll_mention_combined_embs @ W
             w_mention_conll = sigmoid(scores_mention_conll)
 
             word_dim = params['word_embs'].shape[1]
