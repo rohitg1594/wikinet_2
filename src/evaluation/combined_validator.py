@@ -167,7 +167,7 @@ class CombinedValidator:
         params['word_embs'] = new_state_dict['word_embs.weight'].cpu().numpy()
         params['ent_embs'] = new_state_dict['ent_embs.weight'].cpu().numpy()
         params['gram_embs'] = new_state_dict['gram_embs.weight'].cpu().numpy()
-        params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy()
+        params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy().T  # transpose here!
         params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()
 
         if self.args.include_mention:
@@ -175,7 +175,7 @@ class CombinedValidator:
             params['ent_mention_embs'] = new_state_dict['ent_mention_embs.weight'].cpu().numpy()
 
         if self.args.weigh_concat:
-            params['weighing_linear_W'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
+            params['weighing_linear_W'] = new_state_dict['weighing_linear.weight'].cpu().numpy().T  # transpose here!
             params['weighing_linear_b'] = new_state_dict['weighing_linear.bias'].cpu().numpy()
 
         return params
@@ -202,11 +202,10 @@ class CombinedValidator:
 
         if self.args.include_word:
             ent_word_embs = word_embs[self.ent_word_indices, :].mean(axis=1)
-            ent_word_embs = ent_word_embs @ W.T + b
+            ent_word_embs = ent_word_embs @ W + b
 
             if self.args.norm_word:
                 ent_word_embs = normalize(ent_word_embs)
-
 
         if self.args.include_mention:
             ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_mention_embs), axis=1)
@@ -271,14 +270,14 @@ class CombinedValidator:
 
         if self.args.include_word:
             mention_word_embs = word_embs[word_indices, :].mean(axis=1)
-            mention_word_embs = mention_word_embs @ W.T + b
+            mention_word_embs = mention_word_embs @ W + b
 
             if self.args.norm_word:
                 mention_word_embs = normalize(mention_word_embs)
 
         if self.args.include_context:
             mention_context_embs = word_embs[context_indices, :].mean(axis=1)
-            mention_context_embs = mention_context_embs @ W.T + b
+            mention_context_embs = mention_context_embs @ W + b
 
             if self.args.norm_word:
                 mention_context_embs = normalize(mention_context_embs)
@@ -362,13 +361,13 @@ class CombinedValidator:
             W = params['weighing_linear_W']
             b = params['weighing_linear_b']
 
-            scores_ent = ent_combined_embs @ W.T + b
+            scores_ent = ent_combined_embs @ W + b
             w_ent = sigmoid(scores_ent)[:, None]
 
-            scores_mention_wiki = wiki_mention_combined_embs @ W.T + b
+            scores_mention_wiki = wiki_mention_combined_embs @ W + b
             w_mention_wiki = sigmoid(scores_mention_wiki)[:, None]
 
-            scores_mention_conll = conll_mention_combined_embs @ W.T + b
+            scores_mention_conll = conll_mention_combined_embs @ W + b
             w_mention_conll = sigmoid(scores_mention_conll)[:, None]
 
             word_dim = params['word_embs'].shape[1]

@@ -23,7 +23,7 @@ class CombinedBase(nn.Module):
 
         self.orig_linear = nn.Linear(W.shape[0], W.shape[1])
         if not self.args.init_rand:
-            self.orig_linear.weight.data.copy_(torch.from_numpy(W.T))
+            self.orig_linear.weight.data.copy_(torch.from_numpy(W.T))  # transpose here!
             self.orig_linear.bias.data.copy_(torch.from_numpy(b))
         self.orig_linear.requires_grad = self.args.train_linear
 
