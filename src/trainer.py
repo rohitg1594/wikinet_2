@@ -184,7 +184,7 @@ class Trainer(object):
                 save_checkpoint({
                     'epoch': epoch + 1,
                     'state_dict': self.model.state_dict(),
-                    'optimizer': self.optimizer.state_dict()}, True, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
+                    'optimizer': self.optimizer.state_dict()}, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
 
             if self.args.model == 'combined':
                 valid_metric = self.combined_validate(epoch)
@@ -208,6 +208,6 @@ class Trainer(object):
 
         save_checkpoint({
             'state_dict': best_model.state_dict(),
-            'optimizer': self.optimizer.state_dict()}, True, filename=join(self.model_dir, 'final_model.ckpt'))
+            'optimizer': self.optimizer.state_dict()}, filename=join(self.model_dir, 'best_model.ckpt'))
 
         return best_model

@@ -1,6 +1,7 @@
 # Main training file
 import os
 from os.path import join
+from datetime import datetime
 
 import numpy as np
 
@@ -121,7 +122,10 @@ logger.info("Experiment Parameters")
 for arg in sorted(vars(args)):
     logger.info('{:<15}\t{}'.format(arg, getattr(args, arg)))
 
-model_dir = join(args.data_path, 'models', args.exp_name)
+model_date_dir = join(args.data_path, 'models', '{}'.format(datetime.now().strftime("%Y_%m_%d")))
+if not os.path.exists(model_date_dir):
+    os.makedirs(model_date_dir)
+model_dir = join(model_date_dir, args.exp_name)
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 

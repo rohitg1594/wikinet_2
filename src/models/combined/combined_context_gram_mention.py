@@ -87,7 +87,7 @@ class CombinedContextGramMention(CombinedBase):
                 combined_mention = F.normalize(combined_mention, dim=1)
             except RuntimeError:
                 pass
-            
+
         combined_mention.unsqueeze_(1)
 
         # Dot product over last dimension
