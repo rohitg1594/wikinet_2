@@ -55,26 +55,39 @@ class CombinedContextGramMention(CombinedBase):
         candidate_word_embs = torch.mean(candidate_word_embs, dim=2)
 
         if self.args.norm_gram:
-            mention_gram_embs = F.normalize(mention_gram_embs, dim=1)
-            candidate_gram_embs = F.normalize(candidate_gram_embs, dim=2)
+            try:
+                mention_gram_embs = F.normalize(mention_gram_embs, dim=1)
+                candidate_gram_embs = F.normalize(candidate_gram_embs, dim=2)
+            except RuntimeError:
+                pass
 
         if self.args.norm_mention:
-            mention_word_embs = F.normalize(mention_word_embs, dim=1)
-            candidate_word_embs = F.normalize(candidate_word_embs, dim=2)
+            try:
+                mention_word_embs = F.normalize(mention_word_embs, dim=1)
+                candidate_word_embs = F.normalize(candidate_word_embs, dim=2)
+            except RuntimeError:
+                pass
 
         context_word_embs = torch.mean(context_word_embs, dim=1)
         context_word_embs = self.orig_linear(context_word_embs)
 
         if self.args.norm_context:
-            context_word_embs = F.normalize(context_word_embs, dim=1)
+            try:
+                context_word_embs = F.normalize(context_word_embs, dim=1)
+            except RuntimeError:
+                pass
 
         # Concatenate word / gram embeddings
         combined_ent = torch.cat((candidate_ent_embs, candidate_gram_embs, candidate_word_embs), dim=2)
         combined_mention = torch.cat((context_word_embs, mention_gram_embs, mention_word_embs), dim=1)
 
         if self.args.norm_final:
-            combined_ent = F.normalize(combined_ent, dim=2)
-            combined_mention = F.normalize(combined_mention, dim=1)
+            try:
+                combined_ent = F.normalize(combined_ent, dim=2)
+                combined_mention = F.normalize(combined_mention, dim=1)
+            except RuntimeError:
+                pass
+            
         combined_mention.unsqueeze_(1)
 
         # Dot product over last dimension
