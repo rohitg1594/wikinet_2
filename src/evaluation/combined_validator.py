@@ -363,15 +363,15 @@ class CombinedValidator:
             print('Ent Combined Embs shape : {}'.format(ent_combined_embs.shape))
             print('Wiki mention Combined  shape : {}'.format(wiki_mention_combined_embs.shape))
 
-            scores_ent = ent_combined_embs @ W
+            scores_ent = ent_combined_embs @ W.T
             print('Ent Scores shape : {}'.format(scores_ent.shape))
             w_ent = sigmoid(scores_ent)
             print('w_ent shape : {}'.format(w_ent.shape))
 
-            scores_mention_wiki = wiki_mention_combined_embs @ W
+            scores_mention_wiki = wiki_mention_combined_embs @ W.T
             w_mention_wiki = sigmoid(scores_mention_wiki)
 
-            scores_mention_conll = conll_mention_combined_embs @ W
+            scores_mention_conll = conll_mention_combined_embs @ W.T
             w_mention_conll = sigmoid(scores_mention_conll)
 
             word_dim = params['word_embs'].shape[1]
