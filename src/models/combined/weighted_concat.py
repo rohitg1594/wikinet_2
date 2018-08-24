@@ -11,8 +11,7 @@ class CombinedContextGramWeighted(CombinedBase):
     def __init__(self, word_embs=None, ent_embs=None, W=None, b=None, gram_embs=None, args=None):
         super().__init__(word_embs, ent_embs, W, b, gram_embs, args)
 
-        concat_dim = ent_embs.shape[1] + gram_embs.shape[1]
-        self.weighing_linear = nn.Linear(concat_dim, concat_dim)
+        self.weighing_linear = nn.Linear(1, ent_embs.shape[1] + gram_embs.shape[1])
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, inputs):
@@ -53,11 +52,12 @@ class CombinedContextGramWeighted(CombinedBase):
         combined_mention_unw = torch.cat((context_word_embs, mention_gram_embs), dim=1)
 
         # Calculate weights
-        w = self.sigmoid(torch.diag(self.weighing_linear(combined_ent_unw)@torch.transpose(combined_mention_unw, 0, 1)))[:, None]
+        w_ent = self.sigmoid(self.weighing_linear(combined_ent_unw))[:, None]
+        w_mention = self.sigmoid(self.weighing_linear(combined_mention_unw))[:, None]
 
         # Concatenate word / gram embeddings (weighted)
-        combined_ent_w = torch.cat((w * candidate_ent_embs, (1 - w) * candidate_gram_embs), dim=2)
-        combined_mention_w = torch.cat((w * context_word_embs, (1 - w) * mention_gram_embs), dim=2)
+        combined_ent_w = torch.cat((w_ent * candidate_ent_embs, (1 - w_ent) * candidate_gram_embs), dim=2)
+        combined_mention_w = torch.cat((w_mention * context_word_embs, (1 - w_mention) * mention_gram_embs), dim=2)
         combined_mention_w.unsqueeze_(1)
 
         # Dot product over last dimension
