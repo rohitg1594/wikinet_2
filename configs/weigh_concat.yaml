@@ -17,7 +17,7 @@ include_word:False
 include_gram:True
 gram_lower:True
 include_context:True
-include_mention:True
+include_mention:False
 weigh_concat:True
 model:combined
 norm_gram:True
