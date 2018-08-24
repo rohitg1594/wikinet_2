@@ -20,6 +20,7 @@ from src.tokenization.gram_tokenizer import get_gram_tokenizer
 from src.models.combined.combined_context_gram import CombinedContextGram
 from src.models.combined.combined_context_gram_word import CombinedContextGramWord
 from src.models.combined.combined_context_gram_mention import CombinedContextGramMention
+from src.models.combined.weighted_concat import CombinedContextGramWeighted
 from src.models.yamada.yamada_context import YamadaContext
 from src.models.yamada.yamada_context_stats import YamadaContextStats
 from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
@@ -189,8 +190,11 @@ if args.model == 'combined':
     logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
 
     # Model
-    if args.include_word:
-        model_type = CombinedContextGramWord
+    if args.include_word or args.weigh_concat:
+        if args.include_word:
+            model_type = CombinedContextGramWord
+        else:
+            model_type = CombinedContextGramWeighted
         model = model_type(word_embs=word_embs,
                            ent_embs=ent_embs,
                            W=yamada_model['W'],
