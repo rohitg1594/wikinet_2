@@ -176,7 +176,7 @@ class CombinedValidator:
 
         if self.args.weigh_concat:
             params['weighing_linear_W'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
-            params['weighing_linear_b'] = new_state_dict['weiging_linear.bias'].cpu().numpy()
+            params['weighing_linear_b'] = new_state_dict['weighing_linear.bias'].cpu().numpy()
 
         return params
 
