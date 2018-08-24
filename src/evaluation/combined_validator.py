@@ -176,8 +176,9 @@ class CombinedValidator:
 
         if self.args.weigh_concat:
             params['weighing_linear_W'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
-            print('Param Linear Layer Shape : {}'.format(params['weighing_linear_W'].shape))
+            print('Param Linear Layer Weight Shape : {}'.format(params['weighing_linear_W'].shape))
             params['weighing_linear_b'] = new_state_dict['weighing_linear.bias'].cpu().numpy()
+            print('Param Linear Layer Bias Shape : {}'.format(params['weighing_linear_b'].shape))
 
         return params
 
@@ -361,6 +362,8 @@ class CombinedValidator:
         if self.args.weigh_concat:
             W = params['weighing_linear_W']
             b = params['weighing_linear_b']
+            print(W.shape)
+            print(b.shape)
 
             print('Ent Combined Embs shape : {}'.format(ent_combined_embs.shape))
             print('Wiki mention Combined  shape : {}'.format(wiki_mention_combined_embs.shape))
