@@ -362,8 +362,13 @@ class CombinedValidator:
             W = params['weighing_linear_W']
             b = params['weighing_linear_b']
 
+            print('Ent Combined Embs shape : {}'.format(ent_combined_embs.shape))
+            print('Wiki mention Combined  shape : {}'.format(wiki_mention_combined_embs.shape))
+
             scores_ent = ent_combined_embs @ W + b
+            print('Ent Scores shape : {}'.format(scores_ent.shape))
             w_ent = sigmoid(scores_ent)[:, None]
+            print('w_ent shape : {}'.format(w_ent.shape))
 
             scores_mention_wiki = wiki_mention_combined_embs @ W + b
             w_mention_wiki = sigmoid(scores_mention_wiki)[:, None]
