@@ -362,10 +362,10 @@ class CombinedValidator:
             W = params['weighing_linear_W']
             b = params['weighing_linear_b']
 
-            scores_wiki = np.diag((ent_combined_embs @ W.T + b) @ wiki_mention_combined_embs)
+            scores_wiki = np.diag((ent_combined_embs @ W.T + b) @ wiki_mention_combined_embs.T)
             w_wiki = sigmoid(scores_wiki)[:, None]
 
-            scores_conll = np.diag((ent_combined_embs @ W.T + b) @ conll_mention_combined_embs)
+            scores_conll = np.diag((ent_combined_embs @ W.T + b) @ conll_mention_combined_embs.T)
             w_conll = sigmoid(scores_conll)[:, None]
 
             word_dim = params['word_embs'].shape[1]
