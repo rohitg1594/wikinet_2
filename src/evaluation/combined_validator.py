@@ -175,7 +175,8 @@ class CombinedValidator:
             params['ent_mention_embs'] = new_state_dict['ent_mention_embs.weight'].cpu().numpy()
 
         if self.args.weigh_concat:
-            params['weighing_linear_W'] = new_state_dict['weighing_linear.weight'].cpu().numpy().T  # transpose here!
+            params['weighing_linear_W'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
+            print('Param Linear Layer Shape : {}'.format(params['weighing_linear_W'].shape))
             params['weighing_linear_b'] = new_state_dict['weighing_linear.bias'].cpu().numpy()
 
         return params
