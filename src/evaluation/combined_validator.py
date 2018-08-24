@@ -175,8 +175,8 @@ class CombinedValidator:
             params['ent_mention_embs'] = new_state_dict['ent_mention_embs.weight'].cpu().numpy()
 
         if self.args.weigh_concat:
-            params['weighing_linear_W'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
-            print('Param Linear Layer Weight Shape : {}'.format(params['weighing_linear_W'].shape))
+            params['weighing_linear_ent'] = new_state_dict['weighing_linear_ent.weight'].cpu().numpy()
+            params['weighing_linear_mention'] = new_state_dict['weighing_linear_mention.weight'].cpu().numpy()
 
         return params
 
@@ -358,20 +358,21 @@ class CombinedValidator:
         conll_mention_combined_embs = self._get_mention_combined_embs(params=params, data='conll')
 
         if self.args.weigh_concat:
-            W = params['weighing_linear_W']
+            W_ent = params['weighing_linear_ent']
+            W_mention = params['weighing_linear_mention']
 
             print('Ent Combined Embs shape : {}'.format(ent_combined_embs.shape))
             print('Wiki mention Combined  shape : {}'.format(wiki_mention_combined_embs.shape))
 
-            scores_ent = ent_combined_embs @ W.T
+            scores_ent = ent_combined_embs @ W_ent.T
             print('Ent Scores shape : {}'.format(scores_ent.shape))
             w_ent = sigmoid(scores_ent)
             print('w_ent shape : {}'.format(w_ent.shape))
 
-            scores_mention_wiki = wiki_mention_combined_embs @ W.T
+            scores_mention_wiki = wiki_mention_combined_embs @ W_mention.T
             w_mention_wiki = sigmoid(scores_mention_wiki)
 
-            scores_mention_conll = conll_mention_combined_embs @ W.T
+            scores_mention_conll = conll_mention_combined_embs @ W_mention.T
             w_mention_conll = sigmoid(scores_mention_conll)
 
             word_dim = params['word_embs'].shape[1]
