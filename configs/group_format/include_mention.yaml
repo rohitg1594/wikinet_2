@@ -1,6 +1,6 @@
 # General
 seed:-1
-exp_name:combined_train_conll_train_gram
+exp_name:include_mention
 debug:False
 
 # Data
@@ -17,6 +17,7 @@ gram_type:trigram
 gram_lower:True
 gram_vocab:vocab_trigram_266826.tsv
 gram_dim:64
+mention_word_dim:0
 
 # Max padding
 max_word_size:5
@@ -31,7 +32,7 @@ init_rand:False
 include_word:False
 include_gram:True
 include_context:True
-include_mention:False
+include_mention:True
 weigh_concat:False
 ## Yamada
 include_string:False
@@ -47,7 +48,7 @@ hidden_size:1000
 # Normalization
 norm_gram:True
 norm_word:False
-norm_mention:False
+norm_mention:True
 norm_context:True
 norm_final:False
 
