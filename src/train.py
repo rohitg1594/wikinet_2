@@ -157,20 +157,26 @@ yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
 logger.info("Model loaded.")
 
 if args.model == 'combined':
-    # Gram
+    # Gram Embeddings
     gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
+    logger.info("Using gram tokenizer {}".format(gram_tokenizer.__name__))
     gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
     gram_embs = normal_initialize(len(gram_vocab), args.gram_dim)
+    logger.info("Gram embeddings created of shape: {}".format(gram_embs.shape))
+
+    # Word and Entity Embeddings
     if args.init_rand:
+        logger.info("Initializing word and entity embeddings randomly...")
         word_embs = normal_initialize(yamada_model['word_emb'].shape[0], yamada_model['word_emb'].shape[1])
         ent_embs = normal_initialize(yamada_model['ent_emb'].shape[0], yamada_model['ent_emb'].shape[1])
     else:
+        logger.info("Using pre-trained word and entity embeddings from Yamada.")
         ent_embs = yamada_model['ent_emb']
         word_embs = yamada_model['word_emb']
 
     # Training Data
-    logger.info("Loading Training data.")
     if args.data_type == 'wiki':
+        logger.info("Loading Wikipedia Training data.")
         data = []
         for i in range(args.num_shards):
             data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
@@ -190,16 +196,18 @@ if args.model == 'combined':
 
             else:
                 test_data.append(d)
+
     elif args.data_type == 'conll':
+        logger.info("Loading Pershina Training data.")
         pershina = PershinaExamples(args, yamada_model)
         train_data, dev_data, test_data = pershina.get_training_examples()
         rev_word_dict = reverse_dict(yamada_model['word_dict'])
         train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
                                           conll_to_wiki(dev_data, rev_word_dict), \
                                           conll_to_wiki(test_data, rev_word_dict)
+
     else:
         logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
-
     logger.info("Training data loaded.")
     logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
