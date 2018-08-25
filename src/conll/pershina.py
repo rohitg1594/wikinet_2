@@ -1,11 +1,10 @@
-# This module contains functions to create training examples for original yamada model with PERSHINA candidates
+# This module contains functions to create training examples for original Yamada model with PERSHINA candidates.
 from os.path import join
 import re
 from collections import defaultdict
 
-from src.data_utils import pickle_load
 from src.utils import reverse_dict
-from src.conll.iter_docs import is_training_doc,is_test_doc, is_dev_doc, iter_docs
+from src.conll.iter_docs import is_training_doc, is_test_doc, is_dev_doc, iter_docs
 from src.tokenization.regexp_tokenizer import RegexpTokenizer
 
 RE_DOCID = re.compile('^\d+')

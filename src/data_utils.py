@@ -39,6 +39,16 @@ def save_checkpoint(state, filename='checkpoint.pth.tar'):
     torch.save(state, filename)
 
 
+def conll_to_wiki(data, rev_word_dict):
+    """Converts conll data from pershina examples to wikipedia training files to work in combined dataloader."""
+    res = []
+    for words, conll_examples in data:
+        word_ids = [rev_word_dict.get(word) for word in words if word in rev_word_dict]
+        wiki_examples = [(mention, cands[0]) for mention, cands in conll_examples]
+        res.append((word_ids, wiki_examples))
+    return res
+
+
 def load_yamada(path):
     """Loads yamada model from ntee and returns dictionary of W, word_embs, ent_embs,
     word_dict, end_dict, W and b"""

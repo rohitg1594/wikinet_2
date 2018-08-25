@@ -1,6 +1,7 @@
 # Tokenizer used for words by yamada
 import re
 
+
 class RegexpTokenizer(object):
     __slots__ = ('_rule',)
 

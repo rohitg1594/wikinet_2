@@ -11,7 +11,7 @@ from torch.nn import DataParallel
 import configargparse
 
 from src.utils import str2bool, normal_initialize
-from src.data_utils import load_vocab, pickle_load
+from src.data_utils import load_vocab, pickle_load, conll_to_wiki
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada_pershina import YamadaPershina
 from src.evaluation.combined_validator import CombinedValidator
@@ -41,6 +41,7 @@ parser.add_argument('--exp_name', type=str, default="debug", help="Experiment na
 parser.add_argument("--debug", type=str2bool, default=True, help="whether to debug")
 # data
 parser.add_argument('--data_path', type=str, help='location of data dir')
+parser.add_argument('--data_type', choices=['wiki', 'conll'], type=str, help='dataset to train on.')
 parser.add_argument('--yamada_model', type=str, help='name of yamada model')
 parser.add_argument('--num_shards', type=int, help='number of shards of training file')
 parser.add_argument('--gram_type', type=str, choices=['unigram', 'bigram', 'trigram'], help='type of gram tokenization')
@@ -148,25 +149,30 @@ if args.model == 'combined':
 
     # Training Data
     logger.info("Loading Training data.")
-    data = []
-    for i in range(args.num_shards):
-        data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
+    if args.data_type == 'wiki':
+        data = []
+        for i in range(args.num_shards):
+            data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
 
-    train_data = []
-    dev_data = []
-    test_data = []
-    for d in data:
-        if len(train_data) == args.train_size:
-            break
-        r = np.random.random()
-        if r < 0.8:
-            train_data.append(d)
+        train_data = []
+        dev_data = []
+        test_data = []
+        for d in data:
+            if len(train_data) == args.train_size:
+                break
+            r = np.random.random()
+            if r < 0.8:
+                train_data.append(d)
 
-        elif 0.8 < r < 0.9:
-            dev_data.append(d)
+            elif 0.8 < r < 0.9:
+                dev_data.append(d)
 
-        else:
-            test_data.append(d)
+            else:
+                test_data.append(d)
+    else:
+        pershina = PershinaExamples(args, yamada_model)
+        train_data, dev_data, test_data = pershina.get_training_examples()
+        train_data, dev_data, test_data = conll_to_wiki(train_data), conll_to_wiki(dev_data), conll_to_wiki(test_data)
 
     logger.info("Training data loaded.")
     logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))

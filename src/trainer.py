@@ -126,7 +126,11 @@ class Trainer(object):
 
     def step(self, data):
         data, ymask, labels = self._get_next_batch(data)
-        scores = self.model(data)
+        try:
+            scores = self.model(data)
+        except RuntimeError:
+            return 0
+
         if self.args.loss_func == 'cosine':
             loss = self._cosine_loss(scores, ymask)
         elif self.args.loss_func == 'cross_entropy':
