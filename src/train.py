@@ -10,7 +10,7 @@ from torch.nn import DataParallel
 
 import configargparse
 
-from src.utils import str2bool, normal_initialize
+from src.utils import str2bool, normal_initialize, reverse_dict
 from src.data_utils import load_vocab, pickle_load, conll_to_wiki
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada_pershina import YamadaPershina
@@ -172,7 +172,10 @@ if args.model == 'combined':
     else:
         pershina = PershinaExamples(args, yamada_model)
         train_data, dev_data, test_data = pershina.get_training_examples()
-        train_data, dev_data, test_data = conll_to_wiki(train_data), conll_to_wiki(dev_data), conll_to_wiki(test_data)
+        rev_word_dict = reverse_dict(yamada_model['word_dict'])
+        train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
+                                          conll_to_wiki(dev_data, rev_word_dict), \
+                                          conll_to_wiki(test_data, rev_word_dict)
 
     logger.info("Training data loaded.")
     logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
