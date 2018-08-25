@@ -6,8 +6,8 @@ debug:False
 # Data
 data_path:/home/rogupta/wikinet_2/data
 data_type:conll
-num_shards:300
-train_size:500000
+num_shards:1000
+train_size:5000000
 query_size:5000
 conll_split:dev
 yamada_model:yamada_model.pickle
