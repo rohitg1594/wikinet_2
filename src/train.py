@@ -31,34 +31,41 @@ from src.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
 
-# main
 parser = configargparse.ArgumentParser(description='Training Wikinet 2',
                                        formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
+# General
+general = parser.add_argument_group('General Settings.')
 parser.add_argument('--my-config', required=True, is_config_file=True, help='config file path')
 parser.add_argument('--seed', type=int, default=-1, help="Initialization seed")
 parser.add_argument('--exp_name', type=str, default="debug", help="Experiment name")
-# debug
 parser.add_argument("--debug", type=str2bool, default=True, help="whether to debug")
-# data
-parser.add_argument('--data_path', type=str, help='location of data dir')
-parser.add_argument('--data_type', choices=['wiki', 'conll'], type=str, help='dataset to train on.')
-parser.add_argument('--yamada_model', type=str, help='name of yamada model')
-parser.add_argument('--num_shards', type=int, help='number of shards of training file')
-parser.add_argument('--gram_type', type=str, choices=['unigram', 'bigram', 'trigram'], help='type of gram tokenization')
-parser.add_argument('--gram_lower', type=str2bool, help='whether to lowercase gram tokens')
-parser.add_argument('--gram_vocab', type=str, help='name of gram vocab file')
-parser.add_argument('--train_size', type=int, help='number of training abstracts')
-# validation
-parser.add_argument('--query_size', type=int, help='number of queries during validation')
-parser.add_argument('--conll_split', type=str, choices=['train', 'dev', 'test'],  help='which split of connl data to evaluate on')
-# model max padding sizes
-padding = parser.add_argument_group('padding sizes')
+
+# Data
+data = parser.add_argument_group('Data Settings.')
+data.add_argument('--data_path', type=str, help='location of data dir')
+data.add_argument('--data_type', choices=['wiki', 'conll'], type=str, help='dataset to train on.')
+data.add_argument('--num_shards', type=int, help='number of shards of training file')
+data.add_argument('--train_size', type=int, help='number of training abstracts')
+data.add_argument('--query_size', type=int, help='number of queries during validation')
+data.add_argument('--conll_split', type=str, choices=['train', 'dev', 'test'],  help='which split of connl data to evaluate on')
+data.add_argument('--yamada_model', type=str, help='name of yamada model')
+
+# Gram
+gram = parser.add_argument_group('Gram (uni / bi / tri) Settings.')
+gram.add_argument('--gram_type', type=str, choices=['unigram', 'bigram', 'trigram'], help='type of gram tokenization')
+gram.add_argument('--gram_lower', type=str2bool, help='whether to lowercase gram tokens')
+gram.add_argument('--gram_vocab', type=str, help='name of gram vocab file')
+gram.add_argument('--gram_dim', type=int, help='dimension of gram embeddings')
+
+# Max Padding
+padding = parser.add_argument_group('Max Padding for batch.')
 padding.add_argument('--max_word_size', type=int, help='max number of words')
 padding.add_argument('--max_context_size', type=int, help='max number of context')
 padding.add_argument('--max_gram_size', type=int, help='max number of grams')
 padding.add_argument('--max_ent_size', type=int, help='max number of entities considered in abstract')
-# model type
-model_selection = parser.add_argument_group('model selection')
+
+# Model Type
+model_selection = parser.add_argument_group('Type of model to train.')
 model_selection.add_argument('--model', type=str, choices=['combined', 'yamada'], help='model type')
 model_selection.add_argument('--init_rand', type=str2bool, help='whether to initialize the combined model randomly')
 model_selection.add_argument('--include_string', type=str2bool, help='whether to include string information in yamada model')
@@ -68,38 +75,53 @@ model_selection.add_argument('--include_gram', type=str2bool, help='whether to i
 model_selection.add_argument('--include_context', type=str2bool, help='whether to include context information in combined model')
 model_selection.add_argument('--include_mention', type=str2bool, help='whether to include separate mention words in combined model')
 model_selection.add_argument('--weigh_concat', type=str2bool, help='concatenate embeddings after weighing them')
-model_selection.add_argument('--norm_gram', type=str2bool, help='whether to normalize gram embs')
-model_selection.add_argument('--norm_mention', type=str2bool, help='whether to normalize mention word embs')
-model_selection.add_argument('--norm_word', type=str2bool, help='whether to normalize word embs')
-model_selection.add_argument('--norm_context', type=str2bool, help='whether to normalize context embs')
-model_selection.add_argument('--norm_final', type=str2bool, help='whether to normalize final embs')
-# model hyperparameters
-parser.add_argument('--cand_gen_rand', type=str2bool, help='whether to generate random candidates')
-parser.add_argument("--num_candidates", type=int, default=32, help="Number of candidates")
-parser.add_argument("--num_epochs", type=int, default=5, help="Number of epochs")
-parser.add_argument("--bold_driver", type=str2bool, default=False, help="whether to use bold driver heuristic to adjust lr")
-parser.add_argument("--save_every", type=int, default=5, help="how often to checkpoint")
-parser.add_argument("--patience", type=int, default=5, help="Patience for early stopping")
-parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
-parser.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
-parser.add_argument('--gram_dim', type=int, help='dimension of gram embeddings')
-parser.add_argument('--mention_word_dim', type=int, help='dimension of mention word embeddings')
-parser.add_argument('--loss_func', type=str, default='cross_entropy', choices=['cross_entropy', 'cosine'], help='loss function')
-parser.add_argument('--margin', type=float, help='margin of hinge loss')
-parser.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
-parser.add_argument('--dp', type=float, help='drop out')
-parser.add_argument('--hidden_size', type=int, help='size of hidden layer in yamada model')
-parser.add_argument('--lr', type=float, help='learning rate')
-parser.add_argument('--wd', type=float, help='weight decay')
-parser.add_argument('--optim', type=str, choices=['adagrad', 'adam', 'rmsprop'], help='optimizer')
-parser.add_argument('--sparse', type=str2bool, help='sparse gradients')
-# paramters to train
-train = parser.add_argument_group('train params')
-train.add_argument('--train_word', type=str2bool, help='whether to train word embeddings')
-train.add_argument('--train_ent', type=str2bool, help='whether to train entity embeddings')
-train.add_argument('--train_gram', type=str2bool, help='whether to train gram embeddings')
-train.add_argument('--train_mention', type=str2bool, help='whether to train mention word embeddings')
-train.add_argument('--train_linear', type=str2bool, help='whether to train linear layer')
+
+# Model params
+model_params = parser.add_argument_group("Parameters for chosen model.")
+model_params.add_argument('--mention_word_dim', type=int, help='dimension of mention word embeddings')
+model_params.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
+model_params.add_argument('--dp', type=float, help='drop out')
+model_params.add_argument('--hidden_size', type=int, help='size of hidden layer in yamada model')
+
+# Normalization
+normal = parser.add_argument_group('Which embeddings to normalize?')
+normal.add_argument('--norm_gram', type=str2bool, help='whether to normalize gram embs')
+normal.add_argument('--norm_mention', type=str2bool, help='whether to normalize mention word embs')
+normal.add_argument('--norm_word', type=str2bool, help='whether to normalize word embs')
+normal.add_argument('--norm_context', type=str2bool, help='whether to normalize context embs')
+normal.add_argument('--norm_final', type=str2bool, help='whether to normalize final embs')
+
+# Candidate Generation
+candidate = parser.add_argument_group('Candidate generation.')
+candidate.add_argument('--cand_gen_rand', type=str2bool, help='whether to generate random candidates')
+candidate.add_argument("--num_candidates", type=int, default=32, help="Number of candidates")
+
+# Training
+train = parser.add_argument_group("Training parameters.")
+train.add_argument("--num_epochs", type=int, default=5, help="Number of epochs")
+train.add_argument("--bold_driver", type=str2bool, default=False, help="whether to use bold driver heuristic to adjust lr")
+train.add_argument("--save_every", type=int, default=5, help="how often to checkpoint")
+train.add_argument("--patience", type=int, default=5, help="Patience for early stopping")
+train.add_argument("--batch_size", type=int, default=32, help="Batch size")
+train.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
+train.add_argument('--lr', type=float, help='learning rate')
+train.add_argument('--wd', type=float, help='weight decay')
+train.add_argument('--optim', type=str, choices=['adagrad', 'adam', 'rmsprop'], help='optimizer')
+train.add_argument('--sparse', type=str2bool, help='sparse gradients')
+
+# Loss
+loss = parser.add_argument_group('Type of loss.')
+loss.add_argument('--loss_func', type=str, default='cross_entropy', choices=['cross_entropy', 'cosine'], help='loss function')
+loss.add_argument('--margin', type=float, help='margin of hinge loss')
+
+# Things to Train
+train_selection = parser.add_argument_group('Parameters to train')
+train_selection.add_argument('--train_word', type=str2bool, help='whether to train word embeddings')
+train_selection.add_argument('--train_ent', type=str2bool, help='whether to train entity embeddings')
+train_selection.add_argument('--train_gram', type=str2bool, help='whether to train gram embeddings')
+train_selection.add_argument('--train_mention', type=str2bool, help='whether to train mention word embeddings')
+train_selection.add_argument('--train_linear', type=str2bool, help='whether to train linear layer')
+
 # cuda
 parser.add_argument("--device", type=str, help="cuda device")
 
@@ -169,13 +191,15 @@ if args.model == 'combined':
 
             else:
                 test_data.append(d)
-    else:
+    elif args.data_type == 'conll':
         pershina = PershinaExamples(args, yamada_model)
         train_data, dev_data, test_data = pershina.get_training_examples()
         rev_word_dict = reverse_dict(yamada_model['word_dict'])
         train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
                                           conll_to_wiki(dev_data, rev_word_dict), \
                                           conll_to_wiki(test_data, rev_word_dict)
+    else:
+        logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
 
     logger.info("Training data loaded.")
     logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
