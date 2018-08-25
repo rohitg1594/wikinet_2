@@ -3,6 +3,8 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
+import numpy as np
+
 from src.models.combined.combined_base import CombinedBase
 
 
@@ -12,7 +14,9 @@ class CombinedContextGramWeighted(CombinedBase):
         super().__init__(word_embs, ent_embs, W, b, gram_embs, args)
 
         self.weighing_linear_ent = nn.Linear(ent_embs.shape[1] + gram_embs.shape[1], 1, bias=False)
+        self.weighing_linear_ent.weight.data.copy_(torch.from_numpy(np.ones((ent_embs.shape[1] + gram_embs.shape[1]))))
         self.weighing_linear_mention = nn.Linear(ent_embs.shape[1] + gram_embs.shape[1], 1, bias=False)
+        self.weighing_linear_ent.weight.data.copy_(torch.from_numpy(np.ones((ent_embs.shape[1] + gram_embs.shape[1]))))
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, inputs):
