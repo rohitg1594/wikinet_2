@@ -167,7 +167,7 @@ class CombinedValidator:
         params['word_embs'] = new_state_dict['word_embs.weight'].cpu().numpy()
         params['ent_embs'] = new_state_dict['ent_embs.weight'].cpu().numpy()
         params['gram_embs'] = new_state_dict['gram_embs.weight'].cpu().numpy()
-        params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy().T  # transpose here!
+        params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy()  # .T  # transpose here!
         params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()
 
         if self.args.include_mention:
@@ -234,7 +234,6 @@ class CombinedValidator:
 
         if self.args.norm_final:
             ent_combined_embs = normalize(ent_combined_embs)
-
 
         return ent_combined_embs
 

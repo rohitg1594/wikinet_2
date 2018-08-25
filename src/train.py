@@ -31,8 +31,7 @@ from src.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
 
-parser = configargparse.ArgumentParser(description='Training Wikinet 2',
-                                       formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
+parser = configargparse.ArgumentParser(description='Training Wikinet 2', formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
 # General
 general = parser.add_argument_group('General Settings.')
 parser.add_argument('--my-config', required=True, is_config_file=True, help='config file path')
