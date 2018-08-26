@@ -100,7 +100,10 @@ class Trainer(object):
     def _cosine_loss(self, scores, ymask):
         zeros_2d = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size, self.args.num_candidates - 1))
         if self.args.use_cuda:
-            zeros_2d = zeros_2d.cuda(self.args.device)
+            if isinstance(self.args.device, int):
+                zeros_2d = zeros_2d.cuda(self.args.device)
+            else:
+                zeros_2d = zeros_2d.cuda(self.args.device[0])
         scores_pos = scores[:, 0]
         scores_neg = scores[:, 1:]
 
