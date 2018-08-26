@@ -5,8 +5,8 @@ debug:False
 
 # Data
 data_path:/home/rogupta/wikinet_2/data
-data_type:conll
-num_shards:300
+data_type:wiki
+num_shards:250
 train_size:500000
 query_size:5000
 conll_split:dev
@@ -28,19 +28,23 @@ max_ent_size:60
 # Model types
 model:combined
 init_rand:False
+
 ## Combined
 include_word:False
 include_gram:True
 include_context:True
 include_mention:True
 weigh_concat:False
+
 ## Yamada
 include_string:False
 include_stats:False
 
 # Model Params
+
 ## Combined
 measure:ip
+
 ## Yamada
 dp:0
 hidden_size:1000
@@ -59,7 +63,7 @@ num_candidates:32
 # Training Settings
 patience:2
 num_epochs:10
-batch_size:32
+batch_size:64
 num_workers:8
 lr:1e-03
 wd:1e-04
@@ -74,6 +78,6 @@ loss_func:cross_entropy
 # Things to train
 train_ent:False
 train_word:False
-train_mention:False
+train_mention:True
 train_linear:False
 train_gram:True
