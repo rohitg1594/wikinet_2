@@ -33,8 +33,6 @@ init_rand:False
 include_word:False
 include_gram:True
 include_context:True
-include_mention:False
-weigh_concat:False
 
 ## Yamada
 include_string:False

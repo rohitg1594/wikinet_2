@@ -48,6 +48,10 @@ class CombinedValidator:
         self.wiki_mention_word_indices = np.vstack(wiki_mention_word_indices_l).astype(np.int32)
         self.wiki_mention_context_indices = np.vstack(wiki_mention_context_indices_l).astype(np.int32)
         self.wiki_all_gold = np.array(wiki_all_gold).astype(np.int32)
+
+        assert wiki_all_gold.shape[0] == self.wiki_mention_word_indices.shape[0] == self.wiki_mention_gram_indices.shape[0]
+        assert wiki_all_gold.shape[0] == self.wiki_mention_context_indices.shape[0]
+
         self.wiki_mask = np.random.choice(np.arange(len(self.wiki_mention_gram_indices)),
                                           size=self.args.query_size).astype(np.int32)
 
@@ -60,6 +64,9 @@ class CombinedValidator:
         self.conll_mention_word_indices = np.vstack(conll_mention_word_indices_l).astype(np.int32)
         self.conll_mention_context_indices = np.vstack(conll_mention_context_indices_l).astype(np.int32)
         self.conll_all_gold = np.array(conll_all_gold).astype(np.int32)
+
+        assert self.conll_all_gold.shape[0] == self.conll_mention_word_indices.shape[0] == self.conll_mention_gram_indices.shape[0]
+        assert self.conll_all_gold.shape[0] == self.conll_mention_context_indices.shape[0]
 
         if self.args.debug:
             wiki_debug_result = self._get_debug_string(data='wiki', result=False)
@@ -256,6 +263,9 @@ class CombinedValidator:
             sys.exit(1)
 
         if self.args.include_mention:
+
+            assert 'mention_embs' in params
+
             mention_embs = params['mention_embs'][word_indices, :].mean(axis=1)
 
             if self.args.norm_mention:
@@ -356,6 +366,9 @@ class CombinedValidator:
         wiki_mention_combined_embs = self._get_mention_combined_embs(params=params, data='wiki')
         conll_mention_combined_embs = self._get_mention_combined_embs(params=params, data='conll')
 
+        assert ent_combined_embs.shape[1] == wiki_mention_combined_embs.shape[1]
+        assert ent_combined_embs.shape[1] == wiki_mention_combined_embs.shape[1]
+
         if self.args.weigh_concat:
             W_ent = params['weighing_linear_ent']
             W_mention = params['weighing_linear_mention']
@@ -370,6 +383,9 @@ class CombinedValidator:
             w_mention_conll = sigmoid(scores_mention_conll)
 
             word_dim = params['word_embs'].shape[1]
+
+            assert word_dim < ent_combined_embs.shape[1]
+
             ent_combined_embs = self.concat_weighted(w_ent, ent_combined_embs[:, :word_dim], ent_combined_embs[:, word_dim:])
             wiki_mention_combined_embs = self.concat_weighted(w_mention_wiki, wiki_mention_combined_embs[:, :word_dim],
                                                               wiki_mention_combined_embs[:, word_dim:])
@@ -391,14 +407,15 @@ class CombinedValidator:
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
         else:
             index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
+        logger.info("Using faiss index {}".format(index.__name__))
         index.add(ent_combined_embs)
 
         D_wiki, I_wiki = index.search(wiki_mention_combined_embs.astype(np.float32), 100)
         D_conll, I_conll = index.search(conll_mention_combined_embs.astype(np.float32), 100)
 
         if self.args.debug:
-            print('Wiki result : {}'.format(I_wiki[:20, :10]))
-            print('Conll result : {}'.format(I_conll[:20, :10]))
+            print('Wiki result : \n{}'.format(I_wiki[:20, :10]))
+            print('Conll result : \n{}'.format(I_conll[:20, :10]))
 
             wiki_debug_result = self._get_debug_string(I=I_wiki, data='wiki', result=True)
             conll_debug_result = self._get_debug_string(I=I_conll, data='conll', result=True)

@@ -1,5 +1,6 @@
 # Main training file
 import os
+import sys
 from os.path import join
 from datetime import datetime
 
@@ -193,21 +194,20 @@ if args.model == 'combined':
 
             elif 0.8 < r < 0.9:
                 dev_data.append(d)
-
             else:
                 test_data.append(d)
 
     elif args.data_type == 'conll':
-        logger.info("Loading Pershina Training data.")
-        pershina = PershinaExamples(args, yamada_model)
-        train_data, dev_data, test_data = pershina.get_training_examples()
-        rev_word_dict = reverse_dict(yamada_model['word_dict'])
-        train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
-                                          conll_to_wiki(dev_data, rev_word_dict), \
-                                          conll_to_wiki(test_data, rev_word_dict)
-
+            logger.info("Loading Pershina Training data.")
+            pershina = PershinaExamples(args, yamada_model)
+            train_data, dev_data, test_data = pershina.get_training_examples()
+            rev_word_dict = reverse_dict(yamada_model['word_dict'])
+            train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
+                                              conll_to_wiki(dev_data, rev_word_dict), conll_to_wiki(test_data, rev_word_dict)
     else:
         logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
+        sys.exit(1)
+
     logger.info("Training data loaded.")
     logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
