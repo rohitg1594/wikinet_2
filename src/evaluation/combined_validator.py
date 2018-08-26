@@ -49,8 +49,8 @@ class CombinedValidator:
         self.wiki_mention_context_indices = np.vstack(wiki_mention_context_indices_l).astype(np.int32)
         self.wiki_all_gold = np.array(wiki_all_gold).astype(np.int32)
 
-        assert wiki_all_gold.shape[0] == self.wiki_mention_word_indices.shape[0] == self.wiki_mention_gram_indices.shape[0]
-        assert wiki_all_gold.shape[0] == self.wiki_mention_context_indices.shape[0]
+        assert self.wiki_all_gold.shape[0] == self.wiki_mention_word_indices.shape[0] == self.wiki_mention_gram_indices.shape[0]
+        assert self.wiki_all_gold.shape[0] == self.wiki_mention_context_indices.shape[0]
 
         self.wiki_mask = np.random.choice(np.arange(len(self.wiki_mention_gram_indices)),
                                           size=self.args.query_size).astype(np.int32)
