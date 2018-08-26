@@ -378,11 +378,11 @@ class CombinedValidator:
 
             scores_mention_wiki = wiki_mention_combined_embs @ W_mention.T
             w_mention_wiki = sigmoid(scores_mention_wiki)
-            print("w mention wiki: {}".format(w_mention_wiki))
+            print("w mention wiki: {}".format(w_mention_wiki[:100]))
 
             scores_mention_conll = conll_mention_combined_embs @ W_mention.T
             w_mention_conll = sigmoid(scores_mention_conll)
-            print("w mention conll: {}".format(w_mention_conll))
+            print("w mention conll: {}".format(w_mention_conll[:100]))
 
             word_dim = params['word_embs'].shape[1]
 
