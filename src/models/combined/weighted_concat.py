@@ -19,8 +19,8 @@ class CombinedContextGramWeighted(CombinedBase):
         self.weighing_linear_ent.weight.data.copy_(torch.from_numpy(np.ones((ent_embs.shape[1] + gram_embs.shape[1]))))
         self.sigmoid = nn.Sigmoid()
 
-        print("Weighing linear ent : {}".format(self.weighing_linear_ent))
-        print("Weighing linear mention : {}".format(self.weighing_linear_mention))
+        print("Weighing linear ent : {}".format(self.weighing_linear_ent.weight))
+        print("Weighing linear mention : {}".format(self.weighing_linear_mention.weight))
 
     def forward(self, inputs):
         mention_gram_tokens, context_word_tokens, candidate_gram_tokens, candidate_ids = inputs
