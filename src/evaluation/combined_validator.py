@@ -288,7 +288,7 @@ class CombinedValidator:
             mention_context_embs = word_embs[context_indices, :].mean(axis=1)
             mention_context_embs = mention_context_embs @ W + b
 
-            if self.args.norm_word:
+            if self.args.norm_context:
                 mention_context_embs = normalize(mention_context_embs)
 
         if self.args.include_mention:
