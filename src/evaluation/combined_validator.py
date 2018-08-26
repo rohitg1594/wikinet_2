@@ -405,9 +405,10 @@ class CombinedValidator:
         # Create / search in Faiss Index
         if self.args.measure == 'ip':
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
+            logger.info("Using IndexFlatIP")
         else:
             index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
-        logger.info("Using faiss index {}".format(index.__name__))
+            logger.info("Using IndexFlatL2")
         index.add(ent_combined_embs)
 
         D_wiki, I_wiki = index.search(wiki_mention_combined_embs.astype(np.float32), 100)
