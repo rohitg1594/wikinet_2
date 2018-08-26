@@ -17,7 +17,6 @@ gram_type:trigram
 gram_lower:True
 gram_vocab:vocab_trigram_266826.tsv
 gram_dim:64
-mention_word_dim:32
 
 # Max padding
 max_word_size:5
@@ -27,7 +26,6 @@ max_ent_size:60
 
 # Model types
 model:combined
-init_rand:False
 
 ## Combined
 include_word:False
@@ -35,8 +33,6 @@ include_gram:True
 include_context:True
 
 ## Yamada
-include_string:False
-include_stats:False
 
 # Model Params
 
