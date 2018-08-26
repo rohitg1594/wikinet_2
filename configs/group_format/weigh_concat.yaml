@@ -47,8 +47,8 @@ hidden_size:1000
 
 # Normalization
 norm_gram:True
-norm_word:True
-norm_mention:True
+norm_word:False
+norm_mention:False
 norm_context:True
 norm_final:False
 
