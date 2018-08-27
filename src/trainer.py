@@ -145,7 +145,7 @@ class Trainer(object):
         loss.backward()
         self.optimizer.step()
 
-        return loss
+        return loss.data[0]
 
     def combined_validate(self, epoch):
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.validator.validate(
@@ -184,7 +184,7 @@ class Trainer(object):
                 if batch_no % 1000 == 0:
                     logger.info("Now on batch : {}".format(batch_no))
                 loss = self.step(data)
-                training_losses.append(loss.data[0])
+                training_losses.append(loss)
 
             logger.info('Epoch - {}, Training Loss - {:.4}'.format(epoch, loss.data[0]))
             if epoch % self.args.save_every == 0 and epoch != 0:
