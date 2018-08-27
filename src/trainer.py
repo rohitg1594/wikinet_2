@@ -128,24 +128,24 @@ class Trainer(object):
         return loss
 
     def step(self, data):
-        data, ymask, labels = self._get_next_batch(data)
         try:
+            data, ymask, labels = self._get_next_batch(data)
             scores = self.model(data)
+
+            if self.args.loss_func == 'cosine':
+                loss = self._cosine_loss(scores, ymask)
+            elif self.args.loss_func == 'cross_entropy':
+                loss = self._cross_entropy(scores, ymask, labels)
+            else:
+                logger.error("Loss function {} not recognized, choose one of cosine, cross_entropy")
+                sys.exit(1)
+
+            loss.backward()
+            self.optimizer.step()
+
+            return loss.data[0]
         except RuntimeError:
             return 0
-
-        if self.args.loss_func == 'cosine':
-            loss = self._cosine_loss(scores, ymask)
-        elif self.args.loss_func == 'cross_entropy':
-            loss = self._cross_entropy(scores, ymask, labels)
-        else:
-            logger.error("Loss function {} not recognized, choose one of cosine, cross_entropy")
-            sys.exit(1)
-
-        loss.backward()
-        self.optimizer.step()
-
-        return loss.data[0]
 
     def combined_validate(self, epoch):
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.validator.validate(
@@ -186,7 +186,7 @@ class Trainer(object):
                 loss = self.step(data)
                 training_losses.append(loss)
 
-            logger.info('Epoch - {}, Training Loss - {:.4}'.format(epoch, loss.data[0]))
+            logger.info('Epoch - {}, Training Loss - {:.4}'.format(epoch, loss))
             if epoch % self.args.save_every == 0 and epoch != 0:
                 save_checkpoint({
                     'epoch': epoch + 1,
