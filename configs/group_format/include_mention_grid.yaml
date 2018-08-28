@@ -1,6 +1,6 @@
 # General
 seed:-1
-exp_name:include_mention
+exp_name:include_mention_grid
 debug:False
 
 # Data
