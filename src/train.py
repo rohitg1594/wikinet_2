@@ -44,6 +44,7 @@ parser.add_argument("--debug", type=str2bool, default=True, help="whether to deb
 data = parser.add_argument_group('Data Settings.')
 data.add_argument('--data_path', type=str, help='location of data dir')
 data.add_argument('--data_type', choices=['wiki', 'conll'], type=str, help='dataset to train on.')
+data.add_argument('--proto_data', type=str2bool, help='whether to use prototype data')
 data.add_argument('--num_shards', type=int, help='number of shards of training file')
 data.add_argument('--train_size', type=int, help='number of training abstracts')
 data.add_argument('--query_size', type=int, help='number of queries during validation')
@@ -176,37 +177,41 @@ if args.model == 'combined':
         word_embs = yamada_model['word_emb']
 
     # Training Data
-    if args.data_type == 'wiki':
-        logger.info("Loading Wikipedia Training data.")
-        data = []
-        for i in range(args.num_shards):
-            data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
-
-        train_data = []
-        dev_data = []
+    if args.proto_data:
+        train_data, dev_data = pickle_load(join(args.data_path, 'training_files', 'proto.pickle'))
         test_data = []
-        for d in data:
-            if len(train_data) == args.train_size:
-                break
-            r = np.random.random()
-            if r < 0.8:
-                train_data.append(d)
-
-            elif 0.8 < r < 0.9:
-                dev_data.append(d)
-            else:
-                test_data.append(d)
-
-    elif args.data_type == 'conll':
-            logger.info("Loading Pershina Training data.")
-            pershina = PershinaExamples(args, yamada_model)
-            train_data, dev_data, test_data = pershina.get_training_examples()
-            rev_word_dict = reverse_dict(yamada_model['word_dict'])
-            train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
-                                              conll_to_wiki(dev_data, rev_word_dict), conll_to_wiki(test_data, rev_word_dict)
     else:
-        logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
-        sys.exit(1)
+        if args.data_type == 'wiki':
+            logger.info("Loading Wikipedia Training data.")
+            data = []
+            for i in range(args.num_shards):
+                data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
+
+            train_data = []
+            dev_data = []
+            test_data = []
+            for d in data:
+                if len(train_data) == args.train_size:
+                    break
+                r = np.random.random()
+                if r < 0.8:
+                    train_data.append(d)
+
+                elif 0.8 < r < 0.9:
+                    dev_data.append(d)
+                else:
+                    test_data.append(d)
+
+        elif args.data_type == 'conll':
+                logger.info("Loading Pershina Training data.")
+                pershina = PershinaExamples(args, yamada_model)
+                train_data, dev_data, test_data = pershina.get_training_examples()
+                rev_word_dict = reverse_dict(yamada_model['word_dict'])
+                train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
+                                                  conll_to_wiki(dev_data, rev_word_dict), conll_to_wiki(test_data, rev_word_dict)
+        else:
+            logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
+            sys.exit(1)
 
     logger.info("Training data loaded.")
     logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))

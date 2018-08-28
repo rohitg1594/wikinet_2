@@ -182,8 +182,7 @@ class CombinedValidator:
             params['ent_mention_embs'] = new_state_dict['ent_mention_embs.weight'].cpu().numpy()
 
         if self.args.weigh_concat:
-            params['weighing_linear_ent'] = new_state_dict['weighing_linear_ent.weight'].cpu().numpy()
-            params['weighing_linear_mention'] = new_state_dict['weighing_linear_mention.weight'].cpu().numpy()
+            params['weighing_linear'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
 
         return params
 
@@ -370,17 +369,13 @@ class CombinedValidator:
         assert ent_combined_embs.shape[1] == wiki_mention_combined_embs.shape[1]
 
         if self.args.weigh_concat:
-            W_ent = params['weighing_linear_ent']
-            W_mention = params['weighing_linear_mention']
+            w = params['weighing_linear']
 
-            scores_ent = ent_combined_embs @ W_ent.T
-            w_ent = sigmoid(scores_ent)
-
-            scores_mention_wiki = wiki_mention_combined_embs @ W_mention.T
+            scores_mention_wiki = wiki_mention_combined_embs @ w.T
             w_mention_wiki = sigmoid(scores_mention_wiki)
             print("w mention wiki: {}".format(w_mention_wiki[:100]))
 
-            scores_mention_conll = conll_mention_combined_embs @ W_mention.T
+            scores_mention_conll = conll_mention_combined_embs @ w.T
             w_mention_conll = sigmoid(scores_mention_conll)
             print("w mention conll: {}".format(w_mention_conll[:100]))
 
@@ -388,7 +383,6 @@ class CombinedValidator:
 
             assert word_dim < ent_combined_embs.shape[1]
 
-            ent_combined_embs = self.concat_weighted(w_ent, ent_combined_embs[:, :word_dim], ent_combined_embs[:, word_dim:])
             wiki_mention_combined_embs = self.concat_weighted(w_mention_wiki, wiki_mention_combined_embs[:, :word_dim],
                                                               wiki_mention_combined_embs[:, word_dim:])
             conll_mention_combined_embs = self.concat_weighted(w_mention_conll, conll_mention_combined_embs[:, :word_dim],
