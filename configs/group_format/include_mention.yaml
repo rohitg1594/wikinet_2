@@ -22,7 +22,7 @@ mention_word_dim:32
 # Max padding
 max_word_size:5
 max_gram_size:40
-max_context_size:200
+max_context_size:100
 max_ent_size:60
 
 # Model types
