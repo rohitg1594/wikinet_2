@@ -1,6 +1,6 @@
 # General
 seed:-1
-exp_name:weigh_concat
+exp_name:weigh_concat_grid
 debug:False
 
 # Data
