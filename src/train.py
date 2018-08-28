@@ -11,7 +11,7 @@ from torch.nn import DataParallel
 
 import configargparse
 
-from src.utils import str2bool, normal_initialize, reverse_dict
+from src.utils import str2bool, normal_initialize, reverse_dict, gen_wrapper
 from src.data_utils import load_vocab, pickle_load, conll_to_wiki
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada_pershina import YamadaPershina
@@ -230,6 +230,7 @@ if args.model == 'combined':
                                             shuffle=False,
                                             num_workers=args.num_workers,
                                             drop_last=True)
+    train_loader = gen_wrapper(train_loader)
     logger.info("Dataset created.")
     logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
 

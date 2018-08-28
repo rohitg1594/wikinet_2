@@ -12,6 +12,17 @@ RE_WIKI_ENT = re.compile(r'.*wiki\/(.*)')
 RE_WS = re.compile('\s+')
 
 
+def gen_wrapper(gen):
+    while True:
+        try:
+            yield next(gen)
+        except StopIteration:
+            raise
+        except Exception as e:
+            print(e)
+            pass
+
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
