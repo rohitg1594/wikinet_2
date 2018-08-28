@@ -55,7 +55,7 @@ class CombinedContextGramWeighted(CombinedBase):
         combined_mention_unw = torch.cat((context_word_embs, mention_gram_embs), dim=1)
 
         # Calculate weights
-        w = self.sigmoid(self.weighing_linear_mention(combined_mention_unw))
+        w = self.sigmoid(self.weighing_linear(combined_mention_unw))
 
         # Concatenate word / gram embeddings (weighted)
         combined_mention_w = torch.cat((w * context_word_embs, (1 - w) * mention_gram_embs), dim=1)
