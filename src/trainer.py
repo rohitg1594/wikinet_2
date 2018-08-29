@@ -37,7 +37,7 @@ class Trainer(object):
             logger.error("Optimizer {} not recognized, choose between adam, adagrad, rmsprop".format(args.optim))
             sys.exit(1)
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', verbose=True)
+        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', verbose=True, patience=5)
         self.loader_index = 0
 
     def _combined_get_next_batch(self, data):
@@ -208,7 +208,7 @@ class Trainer(object):
                 best_valid_metric = valid_metric
                 wait = 0
             else:
-                if wait >= self.patience + 5:
+                if wait >= self.patience:
                     logger.info("Network not improving, breaking at epoch {}".format(epoch))
                     break
                 wait += 1

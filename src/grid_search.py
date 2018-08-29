@@ -14,19 +14,13 @@ import configargparse
 from src.utils import str2bool, normal_initialize, reverse_dict, gen_wrapper
 from src.data_utils import load_vocab, pickle_load, conll_to_wiki
 from src.conll.pershina import PershinaExamples
-from src.dataloaders.yamada_pershina import YamadaPershina
 from src.evaluation.combined_validator import CombinedValidator
-from src.evaluation.yamada_validator import YamadaValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
 from src.models.combined.combined_context_gram import CombinedContextGram
 from src.models.combined.combined_context_gram_word import CombinedContextGramWord
 from src.models.combined.combined_context_gram_mention import CombinedContextGramMention
 from src.models.combined.weighted_concat import CombinedContextGramWeighted
-from src.models.yamada.yamada_context import YamadaContext
-from src.models.yamada.yamada_context_stats import YamadaContextStats
-from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
-from src.models.yamada.yamada_context_string import YamadaContextString
 from src.logger import get_logger
 from src.trainer import Trainer
 
@@ -238,8 +232,8 @@ train_loader = train_dataset.get_loader(batch_size=args.batch_size,
 logger.info("Dataset created.")
 logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
 
-for lr in [10 ** -i for i in range(2, 5)]:
-    for wd in [10 ** -i for i in range(1, 6)]:
+for lr in [0.1, 0.01, 0.04, 0.07]:
+    for wd in [0.0001, 0.0003, 0.0007]:
         args.__dict__['lr'] = lr
         args.__dict__['wd'] = wd
         logger.info("GRID SEARCH PARAMS : lr - {}, wd - {}".format(lr, wd))
