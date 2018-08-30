@@ -42,13 +42,13 @@ class CombinedContextGram(CombinedBase):
         # Sum the embeddings over the small and large tokens dimension
         mention_gram_embs = torch.mean(mention_gram_embs, dim=1)
         candidate_gram_embs = torch.mean(candidate_gram_embs, dim=2)
+        context_word_embs = torch.mean(context_word_embs, dim=1)
+        context_word_embs = self.orig_linear(context_word_embs)
 
+        # Normalize
         if self.args.norm_gram:
             mention_gram_embs = F.normalize(mention_gram_embs, dim=1)
             candidate_gram_embs = F.normalize(candidate_gram_embs, dim=2)
-
-        context_word_embs = torch.mean(context_word_embs, dim=1)
-        context_word_embs = self.orig_linear(context_word_embs)
 
         if self.args.norm_context:
             context_word_embs = F.normalize(context_word_embs, dim=1)

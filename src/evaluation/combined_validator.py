@@ -13,8 +13,9 @@ from logging import getLogger
 from src.utils import reverse_dict, equalize_len, normalize, sigmoid
 from src.evaluation.eval_utils import eval_ranking, check_errors
 from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
+from src.tokenization.regexp_tokenizer import RegexpTokenizer
 
-logger = getLogger()
+logger = getLogger(__name__)
 
 RE_DOCID = re.compile('^\d+')
 
@@ -27,7 +28,8 @@ class CombinedValidator:
                  data=None,
                  args=None,):
 
-        self.tokenizer = gram_tokenizer
+        self.gram_tokenizer = gram_tokenizer
+        self.word_tokenizer = RegexpTokenizer()
         self.word_dict = yamada_model['word_dict']
         self.rev_word_dict = reverse_dict(self.word_dict)
         self.ent_dict = yamada_model['ent_dict']
@@ -37,13 +39,16 @@ class CombinedValidator:
         self.data = data
         self.args = args
 
+        # Get entity tokens
         self.ent_gram_indices, self.ent_word_indices = self._get_ent_tokens()
 
+        # Get wiki mention tokens
         (wiki_all_gold,
          wiki_mention_gram_indices_l,
          wiki_mention_word_indices_l,
          wiki_mention_context_indices_l) = self._get_wiki_mention_tokens()
 
+        # Create numpy arrays
         self.wiki_mention_gram_indices = np.vstack(wiki_mention_gram_indices_l).astype(np.int32)
         self.wiki_mention_word_indices = np.vstack(wiki_mention_word_indices_l).astype(np.int32)
         self.wiki_mention_context_indices = np.vstack(wiki_mention_context_indices_l).astype(np.int32)
@@ -52,14 +57,16 @@ class CombinedValidator:
         assert self.wiki_all_gold.shape[0] == self.wiki_mention_word_indices.shape[0] == self.wiki_mention_gram_indices.shape[0]
         assert self.wiki_all_gold.shape[0] == self.wiki_mention_context_indices.shape[0]
 
+        # Mask to select wiki mention queries
         self.wiki_mask = np.random.choice(np.arange(len(self.wiki_mention_gram_indices)),
                                           size=self.args.query_size).astype(np.int32)
-
+        # Get conll mention tokens
         (conll_all_gold,
          conll_mention_gram_indices_l,
          conll_mention_word_indices_l,
          conll_mention_context_indices_l) = self._get_conll_mention_tokens()
 
+        # Create numpy arrays
         self.conll_mention_gram_indices = np.vstack(conll_mention_gram_indices_l).astype(np.int32)
         self.conll_mention_word_indices = np.vstack(conll_mention_word_indices_l).astype(np.int32)
         self.conll_mention_context_indices = np.vstack(conll_mention_context_indices_l).astype(np.int32)
@@ -68,6 +75,7 @@ class CombinedValidator:
         assert self.conll_all_gold.shape[0] == self.conll_mention_word_indices.shape[0] == self.conll_mention_gram_indices.shape[0]
         assert self.conll_all_gold.shape[0] == self.conll_mention_context_indices.shape[0]
 
+        # Debug
         if self.args.debug:
             wiki_debug_result = self._get_debug_string(data='wiki', result=False)
             conll_debug_result = self._get_debug_string(data='conll', result=False)
@@ -79,14 +87,22 @@ class CombinedValidator:
             print(conll_debug_result)
 
     def _get_ent_tokens(self):
+        """Creates numpy arrays containing gram and word token ids for each entity."""
+
+        # Init Tokens
         ent_gram_tokens = np.zeros((len(self.ent_dict) + 1, self.args.max_gram_size)).astype(np.int32)
         ent_word_tokens = np.zeros((len(self.ent_dict) + 1, self.args.max_word_size)).astype(np.int32)
+
+        # For each entity
         for ent_str, ent_id in self.ent_dict.items():
-            gram_tokens = self.tokenizer(ent_str.replace('_', ' '))
+
+            # Gram tokens
+            gram_tokens = self.gram_tokenizer(ent_str.replace('_', ' '))
             gram_indices = [self.gram_dict.get(token, 0) for token in gram_tokens]
             gram_indices = equalize_len(gram_indices, self.args.max_gram_size)
             ent_gram_tokens[ent_id] = gram_indices
 
+            # Word tokens
             word_tokens = ent_str.replace('_', ' ').lower().split()
             word_indices = [self.word_dict.get(token, 0) for token in word_tokens]
             word_indices = equalize_len(word_indices, self.args.max_word_size)
@@ -95,12 +111,22 @@ class CombinedValidator:
         return ent_gram_tokens, ent_word_tokens
 
     def _get_wiki_mention_tokens(self):
+        """Function for wikipedia data. Creates list of numpy arrays containing gram and word token ids
+           for each mention and word tokens for context in abstract. Also output gold entity labels."""
+
+        # Init lists
         all_mention_gram_tokens = []
         all_mention_word_tokens = []
         all_context_word_tokens = []
         all_gold = []
+
+        # For each abstract
         for tokens, mentions in self.data:
+
+            # For each mention
             for mention, ent_str in mentions:
+
+                # Check if entity is relevant
                 if ent_str in self.ent_dict:
                     ent_id = self.ent_dict[ent_str]
                 else:
@@ -110,7 +136,7 @@ class CombinedValidator:
                 all_gold.append(ent_id)
 
                 # Mention Gram Tokens
-                mention_gram_tokens = [self.gram_dict[token] for token in self.tokenizer(mention) if token in self.gram_dict]
+                mention_gram_tokens = [self.gram_dict[token] for token in self.gram_tokenizer(mention) if token in self.gram_dict]
                 mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
                 all_mention_gram_tokens.append(np.array(mention_gram_tokens).astype(np.int64))
 
@@ -127,11 +153,16 @@ class CombinedValidator:
         return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
 
     def _get_conll_mention_tokens(self):
+        """Function for CONLL data. Creates list of numpy arrays containing gram and word token ids
+           for each mention and word tokens for context in abstract. Also output gold entity labels."""
+
+        # Init lists
         all_context_word_tokens = []
         all_mention_word_tokens = []
         all_mention_gram_tokens = []
         all_gold = []
 
+        # train / dev / test split
         if self.args.conll_split == 'train':
             func = is_training_doc
         elif self.args.conll_split == 'dev':
@@ -142,19 +173,26 @@ class CombinedValidator:
             logger.error("Conll split {} not recognized, choose one of train, dev, test".format(self.args.conll_split))
             sys.exit(1)
 
+        # For each doc
         for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
+
+            # Context
             context_word_tokens = [self.word_dict.get(token, 0) for token in text.lower().split()]
             context_word_tokens = equalize_len(context_word_tokens, self.args.max_context_size)
+
+            # For each mention
             for ent_str, (begin, end) in gold_ents:
                 if ent_str in self.ent_dict:
                     mention = text[begin:end]
                     all_gold.append(self.ent_dict[ent_str])
                     all_context_word_tokens.append(context_word_tokens)
 
-                    mention_gram_tokens = [self.gram_dict.get(token, 0) for token in self.tokenizer(mention)]
+                    # Gram
+                    mention_gram_tokens = [self.gram_dict.get(token, 0) for token in self.gram_tokenizer(mention)]
                     mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
                     all_mention_gram_tokens.append(mention_gram_tokens)
 
+                    # Word
                     mention_word_tokens = [self.word_dict.get(token, 0) for token in mention.lower().split()]
                     mention_word_tokens = equalize_len(mention_word_tokens, self.args.max_word_size)
                     all_mention_word_tokens.append(mention_word_tokens)
@@ -162,8 +200,14 @@ class CombinedValidator:
         return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
 
     def _get_model_params(self, model):
+        """Return model's parameters from state_dict in a dictionary format.
+           Keys of return dict change depending on model type in self.args."""
+
+        # Init dict
         params = dict()
         new_state_dict = OrderedDict()
+
+        # Remove 'module' in state_dict's keys
         for k, v in model.state_dict().items():
             if 'module' in k:
                 name = k[7:]
@@ -171,6 +215,7 @@ class CombinedValidator:
                 name = k
             new_state_dict[name] = v
 
+        # Create dict
         params['word_embs'] = new_state_dict['word_embs.weight'].cpu().numpy()
         params['ent_embs'] = new_state_dict['ent_embs.weight'].cpu().numpy()
         params['gram_embs'] = new_state_dict['gram_embs.weight'].cpu().numpy()
