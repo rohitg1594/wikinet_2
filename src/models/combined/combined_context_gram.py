@@ -1,6 +1,7 @@
 # Model that only uses context and gram information
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 
 from src.models.combined.combined_base import CombinedBase
 
@@ -9,6 +10,7 @@ class CombinedContextGram(CombinedBase):
 
     def __init__(self, word_embs=None, ent_embs=None, W=None, b=None, gram_embs=None, args=None):
         super().__init__(word_embs, ent_embs, W, b, gram_embs, args)
+        self.dp = nn.Dropout(0.3)
 
     def forward(self, inputs):
         mention_gram_tokens, context_word_tokens, candidate_gram_tokens, candidate_ids = inputs
@@ -27,6 +29,12 @@ class CombinedContextGram(CombinedBase):
         candidate_gram_embs = self.gram_embs(candidate_gram_tokens)
         context_word_embs = self.word_embs(context_word_tokens)
         candidate_ent_embs = self.ent_embs(candidate_ids)
+
+        # Apply Dropout
+        mention_gram_embs = self.dp(mention_gram_embs)
+        candidate_gram_embs = self.dp(candidate_gram_embs)
+        context_word_embs = self.dp(context_word_embs)
+        candidate_ent_embs = self.dp(candidate_ent_embs)
 
         # Reshape to original shape
         candidate_gram_embs = candidate_gram_embs.view(num_abst * num_ent, num_cand, num_gram, -1)
