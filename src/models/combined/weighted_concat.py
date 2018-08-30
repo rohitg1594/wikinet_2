@@ -16,6 +16,7 @@ class CombinedContextGramWeighted(CombinedBase):
         self.weighing_linear = nn.Linear(ent_embs.shape[1] + gram_embs.shape[1], 1, bias=False)
         self.weighing_linear.weight.data.copy_(torch.from_numpy(np.ones((ent_embs.shape[1] + gram_embs.shape[1]))))
         self.sigmoid = nn.Sigmoid()
+        self.dp = nn.Dropout(0.3)
 
     def forward(self, inputs):
         mention_gram_tokens, context_word_tokens, candidate_gram_tokens, candidate_ids = inputs
@@ -34,6 +35,12 @@ class CombinedContextGramWeighted(CombinedBase):
         candidate_gram_embs = self.gram_embs(candidate_gram_tokens)
         context_word_embs = self.word_embs(context_word_tokens)
         candidate_ent_embs = self.ent_embs(candidate_ids)
+
+        # Apply Dropout
+        mention_gram_embs = self.dp(mention_gram_embs)
+        candidate_gram_embs = self.dp(candidate_gram_embs)
+        context_word_embs = self.dp(context_word_embs)
+        candidate_ent_embs = self.dp(candidate_ent_embs)
 
         # Reshape to original shape
         candidate_gram_embs = candidate_gram_embs.view(num_abst * num_ent, num_cand, num_gram, -1)
@@ -56,6 +63,9 @@ class CombinedContextGramWeighted(CombinedBase):
 
         # Calculate weights
         w = self.sigmoid(self.weighing_linear(combined_mention_unw))
+
+        # Apply dropout
+        w = self.dp(w)
 
         # Concatenate word / gram embeddings (weighted)
         combined_mention_w = torch.cat((w * context_word_embs, (1 - w) * mention_gram_embs), dim=1)
