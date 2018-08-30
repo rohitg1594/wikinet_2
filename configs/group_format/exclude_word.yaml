@@ -1,13 +1,14 @@
 # General
 seed:-1
-exp_name:combined_train_conll_train_gram
+exp_name:exclude_word
 debug:False
 
 # Data
 data_path:/home/rogupta/wikinet_2/data
 data_type:wiki
+proto_data:False
 num_shards:250
-train_size:500000
+train_size:100000
 query_size:5000
 conll_split:dev
 yamada_model:yamada_model.pickle
