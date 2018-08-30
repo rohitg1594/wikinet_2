@@ -235,7 +235,7 @@ if args.model == 'combined':
                                             shuffle=False,
                                             num_workers=args.num_workers,
                                             drop_last=True)
-    train_loader = gen_wrapper(iter(train_loader))
+
     logger.info("Dataset created.")
     logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
 
