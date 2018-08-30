@@ -23,6 +23,7 @@ from src.models.combined.combined_context_gram import CombinedContextGram
 from src.models.combined.combined_context_gram_word import CombinedContextGramWord
 from src.models.combined.combined_context_gram_mention import CombinedContextGramMention
 from src.models.combined.weighted_concat import CombinedContextGramWeighted
+from src.models.combined.only_prior import OnlyPrior
 from src.models.yamada.yamada_context import YamadaContext
 from src.models.yamada.yamada_context_stats import YamadaContextStats
 from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
@@ -76,6 +77,7 @@ model_selection.add_argument('--include_gram', type=str2bool, help='whether to i
 model_selection.add_argument('--include_context', type=str2bool, help='whether to include context information in combined model')
 model_selection.add_argument('--include_mention', type=str2bool, help='whether to include separate mention words in combined model')
 model_selection.add_argument('--weigh_concat', type=str2bool, help='concatenate embeddings after weighing them')
+model_selection.add_argument('--only_prior', type=str2bool, help='learn only prior probabilities')
 
 # Model params
 model_params = parser.add_argument_group("Parameters for chosen model.")
@@ -253,9 +255,12 @@ if args.model == 'combined':
                            args=args)
     else:
         if args.include_mention:
-            model_type = CombinedContextGramMention
             mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
             ent_mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
+            if args.only_prior:
+                model_type = OnlyPrior
+            else:
+                model_type = CombinedContextGramMention
             model = model_type(word_embs=word_embs,
                                ent_embs=ent_embs,
                                mention_embs=mention_embs,

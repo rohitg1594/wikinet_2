@@ -213,7 +213,9 @@ class CombinedValidator:
             if self.args.norm_word:
                 ent_word_embs = normalize(ent_word_embs)
 
-        if self.args.include_mention:
+        if self.args.only_prior:
+            ent_combined_embs = ent_embs
+        elif self.args.include_mention:
             ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_mention_embs), axis=1)
         else:
             # 100
@@ -290,7 +292,9 @@ class CombinedValidator:
             if self.args.norm_context:
                 mention_context_embs = normalize(mention_context_embs)
 
-        if self.args.include_mention:
+        if self.args.only_prior:
+            mention_combined_embs = mention_embs
+        elif self.args.include_mention:
             mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_embs), axis=1)
         else:
             # 100

@@ -1,0 +1,51 @@
+# Model that only tries to learn the prior probability through mention words
+import torch
+import torch.nn.functional as F
+import torch.nn as nn
+
+from src.models.combined.combined_base import CombinedBase
+
+
+class OnlyPrior(CombinedBase):
+
+    def __init__(self, word_embs=None, ent_embs=None, mention_embs=None, ent_mention_embs=None,
+                 W=None, b=None, gram_embs=None, args=None):
+        super().__init__(word_embs, ent_embs, W, b, gram_embs, args)
+
+        self.mention_embs = nn.Embedding(mention_embs.shape[0], mention_embs.shape[1], padding_idx=0, sparse=self.args.sparse)
+        self.mention_embs.weight.data.copy_(torch.from_numpy(mention_embs))
+        self.mention_embs.weight.requires_grad = self.args.train_mention
+
+        self.ent_mention_embs = nn.Embedding(ent_mention_embs.shape[0], ent_mention_embs.shape[1], padding_idx=0, sparse=self.args.sparse)
+        self.ent_mention_embs.weight.data.copy_(torch.from_numpy(ent_mention_embs))
+        self.ent_mention_embs.weight.requires_grad = self.args.train_mention
+
+    def forward(self, inputs):
+        mention_gram_tokens, mention_word_tokens, context_word_tokens, candidate_gram_tokens, candidate_word_tokens,\
+        candidate_ids = inputs
+
+        num_abst, num_ent, num_cand, num_gram = candidate_gram_tokens.shape
+        num_abst, num_ent, num_word = mention_word_tokens.shape
+
+        # Reshape to two dimensions - needed because nn.Embedding only allows lookup with 2D-Tensors
+        mention_word_tokens = mention_word_tokens.view(-1, num_word)
+        candidate_ids = candidate_ids.view(-1, num_cand)
+
+        # Get the embeddings
+        mention_embs = self.mention_embs(mention_word_tokens)
+        candidate_embs = self.ent_embs(candidate_ids)
+
+        # Sum the embeddings over the small and large tokens dimension
+        mention_embs_agg = torch.mean(mention_embs, dim=1)
+
+        # Normalize
+        if self.args.norm_final:
+            candidate_embs = F.normalize(candidate_embs, dim=2)
+            mention_embs_agg = F.normalize(mention_embs_agg, dim=1)
+
+        mention_embs_agg.unsqueeze_(1)
+
+        # Dot product over last dimension
+        scores = (mention_embs_agg * candidate_embs).sum(dim=2)
+
+        return scores
