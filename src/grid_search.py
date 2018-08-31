@@ -62,6 +62,7 @@ model_selection.add_argument('--include_gram', type=str2bool, help='whether to i
 model_selection.add_argument('--include_context', type=str2bool, help='whether to include context information in combined model')
 model_selection.add_argument('--include_mention', type=str2bool, help='whether to include separate mention words in combined model')
 model_selection.add_argument('--weigh_concat', type=str2bool, help='concatenate embeddings after weighing them')
+model_selection.add_argument('--only_prior', type=str2bool, help='learn only prior probabilities')
 
 # Model params
 model_params = parser.add_argument_group("Parameters for chosen model.")
