@@ -1,4 +1,4 @@
-# This module implements a trainer to be used by train.py
+# This module implements a trainer to be used by combined_train.py
 import logging
 
 import sys

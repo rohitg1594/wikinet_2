@@ -3,13 +3,20 @@ import numpy as np
 
 import string
 import re
-
 import sys
+import logging
 
+from src.models.combined.combined_context_gram import CombinedContextGram
+from src.models.combined.combined_context_gram_word import CombinedContextGramWord
+from src.models.combined.combined_context_gram_mention import CombinedContextGramMention
+from src.models.combined.weighted_concat import CombinedContextGramWeighted
+from src.models.combined.only_prior import OnlyPrior
 
 RE_WS_PRE_PUCT = re.compile(u'\s+([^a-zA-Z\d])')
 RE_WIKI_ENT = re.compile(r'.*wiki\/(.*)')
 RE_WS = re.compile('\s+')
+
+logger = logging.get_logger(__name__)
 
 
 def gen_wrapper(gen):
@@ -124,3 +131,47 @@ def str2bool(v):
         return True
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
+
+
+def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=None):
+    """Based on parameters in args, initialize and return appropriate model."""
+
+    if args.include_word or args.weigh_concat:
+        if args.include_word:
+            model_type = CombinedContextGramWord
+        else:
+            model_type = CombinedContextGramWeighted
+        model = model_type(word_embs=word_embs,
+                           ent_embs=ent_embs,
+                           W=yamada_model['W'],
+                           b=yamada_model['b'],
+                           gram_embs=gram_embs,
+                           args=args)
+    else:
+        if args.include_mention:
+            mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
+            ent_mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
+            if args.only_prior:
+                model_type = OnlyPrior
+            else:
+                model_type = CombinedContextGramMention
+            model = model_type(word_embs=word_embs,
+                               ent_embs=ent_embs,
+                               mention_embs=mention_embs,
+                               ent_mention_embs=ent_mention_embs,
+                               W=yamada_model['W'],
+                               b=yamada_model['b'],
+                               gram_embs=gram_embs,
+                               args=args)
+        else:
+            model_type = CombinedContextGram
+            model = model_type(word_embs=word_embs,
+                               ent_embs=ent_embs,
+                               W=yamada_model['W'],
+                               b=yamada_model['b'],
+                               gram_embs=gram_embs,
+                               args=args)
+
+    logger.info('{} Model created.'.format(model_type.__name__))
+
+    return model
