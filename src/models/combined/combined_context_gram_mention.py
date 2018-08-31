@@ -8,14 +8,19 @@ from src.models.combined.combined_base import CombinedBase
 
 class CombinedContextGramMention(CombinedBase):
 
-    def __init__(self, word_embs=None, ent_embs=None, mention_embs=None, ent_mention_embs=None,
-                 W=None, b=None, gram_embs=None, args=None):
-        super().__init__(word_embs, ent_embs, W, b, gram_embs, args)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
+        # Unpack args
+        mention_embs = kwargs['mention_embs']
+        ent_mention_embs = kwargs['ent_mention_embs']
+
+        # Mention embeddings
         self.mention_embs = nn.Embedding(mention_embs.shape[0], mention_embs.shape[1], padding_idx=0, sparse=self.args.sparse)
         self.mention_embs.weight.data.copy_(torch.from_numpy(mention_embs))
         self.mention_embs.weight.requires_grad = self.args.train_mention
 
+        # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(ent_mention_embs.shape[0], ent_mention_embs.shape[1], padding_idx=0, sparse=self.args.sparse)
         self.ent_mention_embs.weight.data.copy_(torch.from_numpy(ent_mention_embs))
         self.ent_mention_embs.weight.requires_grad = self.args.train_mention

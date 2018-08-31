@@ -245,7 +245,8 @@ trainer = Trainer(loader=train_loader,
                   args=args,
                   validator=validator,
                   model=model,
-                  model_dir=model_dir)
+                  model_dir=model_dir,
+                  model_type='combined')
 logger.info("Starting Training")
 trainer.train()
 logger.info("Finished Training")

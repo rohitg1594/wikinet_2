@@ -16,10 +16,11 @@ logger = logging.getLogger()
 
 class Trainer(object):
 
-    def __init__(self, loader=None, args=None, model=None, validator=None, model_dir=None):
+    def __init__(self, loader=None, args=None, model=None, validator=None, model_dir=None, model_type=None):
         self.loader = loader
         self.args = args
         self.model = model
+        self.model_type = model_type
         self.num_epochs = self.args.num_epochs
         self.validator = validator
         self.model_dir = model_dir
@@ -89,9 +90,9 @@ class Trainer(object):
         return tuple(data), ymask, labels
 
     def _get_next_batch(self, data):
-        if self.args.model == 'combined':
+        if self.model_type == 'combined':
             return self._combined_get_next_batch(data)
-        elif self.args.model == 'yamada':
+        elif self.model_type == 'yamada':
             return self._yamada_get_next_batch(data)
         else:
             logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model))

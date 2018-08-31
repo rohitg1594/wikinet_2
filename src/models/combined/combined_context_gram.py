@@ -8,9 +8,9 @@ from src.models.combined.combined_base import CombinedBase
 
 class CombinedContextGram(CombinedBase):
 
-    def __init__(self, word_embs=None, ent_embs=None, W=None, b=None, gram_embs=None, args=None):
-        super().__init__(word_embs, ent_embs, W, b, gram_embs, args)
-        self.dp = nn.Dropout(0.3)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.dp = nn.Dropout(self.args.dp)
 
     def forward(self, inputs):
         mention_gram_tokens, context_word_tokens, candidate_gram_tokens, candidate_ids = inputs

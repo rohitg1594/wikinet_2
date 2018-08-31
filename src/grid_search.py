@@ -242,7 +242,8 @@ for lr in [0.1, 0.01, 0.04, 0.07]:
                           args=args,
                           validator=validator,
                           model=model,
-                          model_dir=model_dir)
+                          model_dir=model_dir,
+                          model_type='combined')
         logger.info("Starting Training")
         trainer.train()
         logger.info("Finished Training")

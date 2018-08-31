@@ -10,13 +10,14 @@ from src.models.combined.combined_base import CombinedBase
 
 class CombinedContextGramWeighted(CombinedBase):
 
-    def __init__(self, word_embs=None, ent_embs=None, W=None, b=None, gram_embs=None, args=None):
-        super().__init__(word_embs, ent_embs, W, b, gram_embs, args)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
-        self.weighing_linear = nn.Linear(ent_embs.shape[1] + gram_embs.shape[1], 1, bias=False)
-        self.weighing_linear.weight.data.copy_(torch.from_numpy(np.ones((ent_embs.shape[1] + gram_embs.shape[1]))))
+        # Weighing linear layer / sigmoid / dropout
+        self.weighing_linear = nn.Linear(self.ent_embs.shape[1] + self.gram_embs.shape[1], 1, bias=False)
+        self.weighing_linear.weight.data.copy_(torch.from_numpy(np.ones((self.ent_embs.shape[1] + self.gram_embs.shape[1]))))
         self.sigmoid = nn.Sigmoid()
-        self.dp = nn.Dropout(0.3)
+        self.dp = nn.Dropout(self.args.dp)
 
     def forward(self, inputs):
         mention_gram_tokens, context_word_tokens, candidate_gram_tokens, candidate_ids = inputs

@@ -128,8 +128,6 @@ def equalize_len(data, max_size):
 def str2bool(v):
     """
     thanks : https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
-    :param v:
-    :return:
     """
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
@@ -139,43 +137,31 @@ def str2bool(v):
 
 def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=None):
     """Based on parameters in args, initialize and return appropriate model."""
+    kwargs = {'yamada_model': yamada_model,
+              'args': args,
+              'gram_embs': gram_embs,
+              'ent_embs': ent_embs,
+              'word_embs': word_embs}
 
     if args.include_word or args.weigh_concat:
         if args.include_word:
             model_type = CombinedContextGramWord
         else:
             model_type = CombinedContextGramWeighted
-        model = model_type(word_embs=word_embs,
-                           ent_embs=ent_embs,
-                           W=yamada_model['W'],
-                           b=yamada_model['b'],
-                           gram_embs=gram_embs,
-                           args=args)
     else:
         if args.include_mention:
             mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
             ent_mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
+            kwargs['mention_embs'] = mention_embs
+            kwargs['ent_mention_embs'] = ent_mention_embs
             if args.only_prior:
                 model_type = OnlyPrior
             else:
                 model_type = CombinedContextGramMention
-            model = model_type(word_embs=word_embs,
-                               ent_embs=ent_embs,
-                               mention_embs=mention_embs,
-                               ent_mention_embs=ent_mention_embs,
-                               W=yamada_model['W'],
-                               b=yamada_model['b'],
-                               gram_embs=gram_embs,
-                               args=args)
         else:
             model_type = CombinedContextGram
-            model = model_type(word_embs=word_embs,
-                               ent_embs=ent_embs,
-                               W=yamada_model['W'],
-                               b=yamada_model['b'],
-                               gram_embs=gram_embs,
-                               args=args)
 
+    model = model_type(**kwargs)
     if use_cuda:
         if isinstance(args.device, tuple):
             model = model.cuda(args.device[0])
