@@ -26,28 +26,17 @@ max_context_size:100
 max_ent_size:60
 
 # Model types
-model:combined
 init_rand:False
-
-## Combined
 include_word:False
 include_gram:True
 include_context:True
 include_mention:True
 weigh_concat:False
 
-## Yamada
-include_string:False
-include_stats:False
 
 # Model Params
-
-## Combined
 measure:ip
-
-## Yamada
 dp:0
-hidden_size:1000
 
 # Normalization
 norm_gram:True
@@ -81,3 +70,7 @@ train_word:False
 train_mention:True
 train_linear:False
 train_gram:True
+
+# Cuda
+use_cuda:True
+device:0

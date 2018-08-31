@@ -110,16 +110,16 @@ train_selection.add_argument('--train_linear', type=str2bool, help='whether to t
 
 # cuda
 parser.add_argument("--device", type=str, help="cuda device")
+parser.add_argument("--use_cuda", type=str2bool, help="whether to use cuda")
+
 
 args = parser.parse_args()
-use_cuda = torch.cuda.is_available()
-args.__dict__['use_cuda'] = use_cuda
 logger = get_logger(args)
 
 if args.wd > 0:
     assert not args.sparse
 
-if use_cuda:
+if args.use_cuda:
     devices = args.device.split(",")
     if len(devices) > 1:
         devices = tuple([int(device) for device in devices])
