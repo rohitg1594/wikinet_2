@@ -194,9 +194,9 @@ class Trainer(object):
                     'state_dict': self.model.state_dict(),
                     'optimizer': self.optimizer.state_dict()}, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
 
-            if self.args.model == 'combined':
+            if self.model_type == 'combined':
                 valid_metric = self.combined_validate(epoch)
-            elif self.args.model == 'yamada':
+            elif self.model_type == 'yamada':
                 valid_metric = self.yamada_validate(epoch)
             else:
                 logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model))

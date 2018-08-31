@@ -7,6 +7,7 @@ import torch
 import torch.utils.data
 
 from src.utils import reverse_dict, equalize_len, get_normalised_forms
+from src.tokenization.regexp_tokenizer import RegexpTokenizer
 
 
 class CombinedDataSet(object):
@@ -31,6 +32,7 @@ class CombinedDataSet(object):
         self.gram_vocab = gram_vocab
         self.word_vocab = word_vocab
         self.gram_tokenizer = gram_tokenizer
+        self.word_tokenizer = RegexpTokenizer()
         self.args = args
 
         self.candidate_generation = self.args.num_candidates // 2
@@ -80,7 +82,8 @@ class CombinedDataSet(object):
 
             # Mention Word Tokens
             if self.args.include_word:
-                mention_word_tokens = [self.gram_vocab.get(token, 0) for token in mention.lower().split()]
+                mention_word_tokens = [self.word_vocab.get(token.text.lower(), 0)
+                                       for token in self.word_tokenizer.tokenize(mention)]
                 mention_word_tokens = equalize_len(mention_word_tokens, self.args.max_word_size)
                 all_mention_word_tokens[ent_idx] = np.array(mention_word_tokens, dtype=np.int64)
 
@@ -130,9 +133,9 @@ class CombinedDataSet(object):
 
                 # Candidate Word Tokens
                 if self.args.include_word:
-                    candidate_word_tokens = [self.word_vocab[token] for token in candidate_str.lower().split()
-                                             if token in self.word_vocab]
-                    candidate_word_tokens = equalize_len(candidate_gram_tokens, self.args.max_word_size)
+                    candidate_word_tokens = [self.word_vocab.get(token.text.lower(), 0)
+                                             for token in self.word_tokenizer.tokenize(candidate_str)]
+                    candidate_word_tokens = equalize_len(candidate_word_tokens, self.args.max_word_size)
                     candidate_word_tokens_matr[cand_idx] = np.array(candidate_word_tokens, dtype=np.int64)
 
             all_candidate_grams[ent_idx] = candidate_gram_tokens_matr
