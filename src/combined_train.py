@@ -112,17 +112,16 @@ train_selection.add_argument('--train_linear', type=str2bool, help='whether to t
 
 # cuda
 parser.add_argument("--device", type=str, help="cuda device")
+parser.add_argument("--use_cuda", type=str, help="use gpu or not")
 
 args = parser.parse_args()
-use_cuda = torch.cuda.is_available()
-args.__dict__['use_cuda'] = use_cuda
 logger = get_logger(args)
 
 # Setup
 if args.wd > 0:
     assert not args.sparse
 
-if use_cuda:
+if args.use_cuda:
     devices = args.device.split(",")
     if len(devices) > 1:
         devices = tuple([int(device) for device in devices])
@@ -229,7 +228,7 @@ logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_
 
 # Model
 model = get_model(args, yamada_model=yamada_model, ent_embs=ent_embs, word_embs=word_embs, gram_embs=gram_embs)
-if use_cuda:
+if args.use_cuda:
     if isinstance(args.device, tuple):
         model = model.cuda(args.device[0])
         model = DataParallel(model, args.device)
