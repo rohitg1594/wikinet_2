@@ -96,14 +96,17 @@ class CombinedValidator:
         # For each entity
         for ent_str, ent_id in self.ent_dict.items():
 
+            # Remove underscore
+            ent_str = ent_str.replace('_', ' ')
+
             # Gram tokens
-            gram_tokens = self.gram_tokenizer(ent_str.replace('_', ' '))
+            gram_tokens = self.gram_tokenizer(ent_str)
             gram_indices = [self.gram_dict.get(token, 0) for token in gram_tokens]
             gram_indices = equalize_len(gram_indices, self.args.max_gram_size)
             ent_gram_tokens[ent_id] = gram_indices
 
             # Word tokens
-            word_tokens = ent_str.replace('_', ' ').lower().split()
+            word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(ent_str)]
             word_indices = [self.word_dict.get(token, 0) for token in word_tokens]
             word_indices = equalize_len(word_indices, self.args.max_word_size)
             ent_word_tokens[ent_id] = word_indices
@@ -115,13 +118,13 @@ class CombinedValidator:
            for each mention and word tokens for context in abstract. Also output gold entity labels."""
 
         # Init lists
-        all_mention_gram_tokens = []
-        all_mention_word_tokens = []
-        all_context_word_tokens = []
+        all_mention_gram_indices = []
+        all_mention_word_indices = []
+        all_context_word_indices = []
         all_gold = []
 
         # For each abstract
-        for tokens, mentions in self.data:
+        for context_word_tokens, mentions in self.data:
 
             # For each mention
             for mention, ent_str in mentions:
@@ -132,34 +135,39 @@ class CombinedValidator:
                 else:
                     continue
 
+                # Remove underscore
+                ent_str = ent_str.replace('_', ' ')
+
                 # Gold
                 all_gold.append(ent_id)
 
-                # Mention Gram Tokens
-                mention_gram_tokens = [self.gram_dict[token] for token in self.gram_tokenizer(mention) if token in self.gram_dict]
-                mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
-                all_mention_gram_tokens.append(np.array(mention_gram_tokens).astype(np.int64))
+                # Mention Gram
+                mention_gram_tokens = [token for token in self.gram_tokenizer(mention)]
+                mention_gram_indices = [self.gram_dict.get(token, 0) for token in mention_gram_tokens]
+                mention_gram_indices = equalize_len(mention_gram_indices, self.args.max_gram_size)
+                all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
 
-                # Mention Word Tokens
-                mention_word_tokens = [self.word_dict[token] for token in mention.lower().split() if token in self.word_dict]
-                mention_word_tokens = equalize_len(mention_word_tokens, self.args.max_word_size)
-                all_mention_word_tokens.append(np.array(mention_word_tokens).astype(np.int64))
+                # Mention Word
+                mention_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(ent_str)]
+                mention_word_indices = [self.word_dict.get(token, 0) for token in mention_word_tokens]
+                mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
+                all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
 
-                # Context Word Tokens
-                context_word_tokens = [self.word_dict[token] for token in tokens if token in self.word_dict]
-                context_word_tokens = equalize_len(context_word_tokens, self.args.max_context_size)
-                all_context_word_tokens.append(np.array(context_word_tokens).astype(np.int64))
+                # Context Word
+                context_word_indices = [self.word_dict.get(token, 0) for token in context_word_tokens]
+                context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
+                all_context_word_indices.append(np.array(context_word_indices).astype(np.int64))
 
-        return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
+        return all_gold, all_mention_gram_indices, all_mention_word_indices, all_context_word_indices
 
     def _get_conll_mention_tokens(self):
         """Function for CONLL data. Creates list of numpy arrays containing gram and word token ids
            for each mention and word tokens for context in abstract. Also output gold entity labels."""
 
         # Init lists
-        all_context_word_tokens = []
-        all_mention_word_tokens = []
-        all_mention_gram_tokens = []
+        all_mention_gram_indices = []
+        all_mention_word_indices = []
+        all_context_word_indices = []
         all_gold = []
 
         # train / dev / test split
@@ -177,27 +185,30 @@ class CombinedValidator:
         for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
 
             # Context
-            context_word_tokens = [self.word_dict.get(token, 0) for token in text.lower().split()]
-            context_word_tokens = equalize_len(context_word_tokens, self.args.max_context_size)
+            context_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(text)]
+            context_word_indices = [self.word_dict.get(token, 0) for token in context_word_tokens]
+            context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
 
             # For each mention
             for ent_str, (begin, end) in gold_ents:
                 if ent_str in self.ent_dict:
                     mention = text[begin:end]
                     all_gold.append(self.ent_dict[ent_str])
-                    all_context_word_tokens.append(context_word_tokens)
+                    all_context_word_indices.append(context_word_indices)
 
-                    # Gram
-                    mention_gram_tokens = [self.gram_dict.get(token, 0) for token in self.gram_tokenizer(mention)]
-                    mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
-                    all_mention_gram_tokens.append(mention_gram_tokens)
+                    # Mention Gram
+                    mention_gram_tokens = [token for token in self.gram_tokenizer(mention)]
+                    mention_gram_indices = [self.gram_dict.get(token, 0) for token in mention_gram_tokens]
+                    mention_gram_indices = equalize_len(mention_gram_indices, self.args.max_gram_size)
+                    all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
 
-                    # Word
-                    mention_word_tokens = [self.word_dict.get(token, 0) for token in mention.lower().split()]
-                    mention_word_tokens = equalize_len(mention_word_tokens, self.args.max_word_size)
-                    all_mention_word_tokens.append(mention_word_tokens)
+                    # Mention Word
+                    mention_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(ent_str)]
+                    mention_word_indices = [self.word_dict.get(token, 0) for token in mention_word_tokens]
+                    mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
+                    all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
 
-        return all_gold, all_mention_gram_tokens, all_mention_word_tokens, all_context_word_tokens
+        return all_gold, all_mention_gram_indices, all_mention_word_indices, all_context_word_indices
 
     def _get_model_params(self, model):
         """Return model's parameters from state_dict in a dictionary format.
@@ -222,7 +233,7 @@ class CombinedValidator:
         params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy()  # .T  # transpose here!
         params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()
 
-        if self.args.include_mention:
+        if self.args.include_mention or self.args.only_prior:
             params['mention_embs'] = new_state_dict['mention_embs.weight'].cpu().numpy()
             params['ent_mention_embs'] = new_state_dict['ent_mention_embs.weight'].cpu().numpy()
 

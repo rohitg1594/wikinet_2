@@ -44,7 +44,7 @@ norm_gram:True
 norm_word:False
 norm_mention:True
 norm_context:True
-norm_final:False
+norm_final:True
 
 # Candidate Generation
 cand_gen_rand:False
