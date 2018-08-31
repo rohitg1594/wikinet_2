@@ -28,11 +28,10 @@ class OnlyPrior(CombinedBase):
         self.ent_mention_embs.weight.requires_grad = self.args.train_mention
 
     def forward(self, inputs):
-        mention_gram_tokens, mention_word_tokens, context_word_tokens, candidate_gram_tokens, candidate_word_tokens,\
-        candidate_ids = inputs
+        mention_word_tokens, candidate_ids = inputs
 
-        num_abst, num_ent, num_cand, num_gram = candidate_gram_tokens.shape
         num_abst, num_ent, num_word = mention_word_tokens.shape
+        num_abst, num_ent, num_cand = candidate_ids.shape
 
         # Reshape to two dimensions - needed because nn.Embedding only allows lookup with 2D-Tensors
         mention_word_tokens = mention_word_tokens.view(-1, num_word)

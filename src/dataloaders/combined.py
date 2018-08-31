@@ -142,7 +142,12 @@ class CombinedDataSet(object):
             if self.args.include_word:
                 all_candidate_words[ent_idx] = candidate_word_tokens_matr
 
-        if self.args.include_word or self.args.include_mention:
+        if self.args.only_prior:
+            return (mask,
+                    all_mention_word_tokens,
+                    all_candidate_ids)
+
+        elif self.args.include_word or self.args.include_mention:
             return (mask,
                     all_mention_gram_tokens,
                     all_mention_word_tokens,
