@@ -6,12 +6,16 @@ import re
 import sys
 import logging
 
+import torch
+from torch.nn import DataParallel
+
 from src.models.combined.combined_context_gram import CombinedContextGram
 from src.models.combined.combined_context_gram_word import CombinedContextGramWord
 from src.models.combined.combined_context_gram_mention import CombinedContextGramMention
 from src.models.combined.weighted_concat import CombinedContextGramWeighted
 from src.models.combined.only_prior import OnlyPrior
 
+use_cuda = torch.cuda.is_available()
 RE_WS_PRE_PUCT = re.compile(u'\s+([^a-zA-Z\d])')
 RE_WIKI_ENT = re.compile(r'.*wiki\/(.*)')
 RE_WS = re.compile('\s+')
@@ -172,6 +176,12 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
                                gram_embs=gram_embs,
                                args=args)
 
+    if use_cuda:
+        if isinstance(args.device, tuple):
+            model = model.cuda(args.device[0])
+            model = DataParallel(model, args.device)
+        else:
+            model = model.cuda(args.device)
     logger.info('{} Model created.'.format(model_type.__name__))
 
     return model

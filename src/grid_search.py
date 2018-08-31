@@ -7,20 +7,15 @@ from datetime import datetime
 import numpy as np
 
 import torch
-from torch.nn import DataParallel
 
 import configargparse
 
-from src.utils import str2bool, normal_initialize, reverse_dict, gen_wrapper
+from src.utils import str2bool, normal_initialize, reverse_dict, get_model
 from src.data_utils import load_vocab, pickle_load, conll_to_wiki
 from src.conll.pershina import PershinaExamples
 from src.evaluation.combined_validator import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
-from src.models.combined.combined_context_gram import CombinedContextGram
-from src.models.combined.combined_context_gram_word import CombinedContextGramWord
-from src.models.combined.combined_context_gram_mention import CombinedContextGramMention
-from src.models.combined.weighted_concat import CombinedContextGramWeighted
 from src.logger import get_logger
 from src.trainer import Trainer
 
@@ -61,10 +56,7 @@ padding.add_argument('--max_ent_size', type=int, help='max number of entities co
 
 # Model Type
 model_selection = parser.add_argument_group('Type of model to train.')
-model_selection.add_argument('--model', type=str, choices=['combined', 'yamada'], help='model type')
 model_selection.add_argument('--init_rand', type=str2bool, help='whether to initialize the combined model randomly')
-model_selection.add_argument('--include_string', type=str2bool, help='whether to include string information in yamada model')
-model_selection.add_argument('--include_stats', type=str2bool, help='whether to include stats information in yamada model')
 model_selection.add_argument('--include_word', type=str2bool, help='whether to include word information in combined model')
 model_selection.add_argument('--include_gram', type=str2bool, help='whether to include gram information in combined model')
 model_selection.add_argument('--include_context', type=str2bool, help='whether to include context information in combined model')
@@ -76,7 +68,6 @@ model_params = parser.add_argument_group("Parameters for chosen model.")
 model_params.add_argument('--mention_word_dim', type=int, help='dimension of mention word embeddings')
 model_params.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
 model_params.add_argument('--dp', type=float, help='drop out')
-model_params.add_argument('--hidden_size', type=int, help='size of hidden layer in yamada model')
 
 # Normalization
 normal = parser.add_argument_group('Which embeddings to normalize?')
@@ -237,46 +228,9 @@ for lr in [0.1, 0.01, 0.04, 0.07]:
         args.__dict__['lr'] = lr
         args.__dict__['wd'] = wd
         logger.info("GRID SEARCH PARAMS : lr - {}, wd - {}".format(lr, wd))
+
         # Model
-        if args.include_word or args.weigh_concat:
-            if args.include_word:
-                model_type = CombinedContextGramWord
-            else:
-                model_type = CombinedContextGramWeighted
-            model = model_type(word_embs=word_embs,
-                               ent_embs=ent_embs,
-                               W=yamada_model['W'],
-                               b=yamada_model['b'],
-                               gram_embs=gram_embs,
-                               args=args)
-        else:
-            if args.include_mention:
-                model_type = CombinedContextGramMention
-                mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
-                ent_mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
-                model = model_type(word_embs=word_embs,
-                                   ent_embs=ent_embs,
-                                   mention_embs=mention_embs,
-                                   ent_mention_embs=ent_mention_embs,
-                                   W=yamada_model['W'],
-                                   b=yamada_model['b'],
-                                   gram_embs=gram_embs,
-                                   args=args)
-            else:
-                model_type = CombinedContextGram
-                model = model_type(word_embs=word_embs,
-                                   ent_embs=ent_embs,
-                                   W=yamada_model['W'],
-                                   b=yamada_model['b'],
-                                   gram_embs=gram_embs,
-                                   args=args)
-        if use_cuda:
-            if isinstance(args.device, tuple):
-                model = model.cuda(args.device[0])
-                model = DataParallel(model, args.device)
-            else:
-                model = model.cuda(args.device)
-        logger.info('{} Model created.'.format(model_type.__name__))
+        model = get_model(args, yamada_model=yamada_model, ent_embs=ent_embs, gram_embs=gram_embs, word_embs=word_embs)
 
         logger.info("Starting validation for untrained model.")
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
@@ -292,5 +246,3 @@ for lr in [0.1, 0.01, 0.04, 0.07]:
         logger.info("Starting Training")
         trainer.train()
         logger.info("Finished Training")
-
-
