@@ -32,7 +32,7 @@ include_gram:True
 include_context:True
 include_mention:True
 weigh_concat:False
-
+only_prior:False
 
 # Model Params
 measure:ip
