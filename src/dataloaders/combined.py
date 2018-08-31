@@ -13,8 +13,8 @@ from src.tokenization.regexp_tokenizer import RegexpTokenizer
 class CombinedDataSet(object):
 
     def __init__(self,
-                 gram_vocab=None,
-                 word_vocab=None,
+                 gram_dict=None,
+                 word_dict=None,
                  gram_tokenizer=None,
                  ent2id=None,
                  data=None,
@@ -29,8 +29,8 @@ class CombinedDataSet(object):
         self.len_ent = len(self.ent2id)
         self.id2ent = reverse_dict(self.ent2id)
 
-        self.gram_vocab = gram_vocab
-        self.word_vocab = word_vocab
+        self.gram_dict = gram_dict
+        self.word_dict = word_dict
         self.gram_tokenizer = gram_tokenizer
         self.word_tokenizer = RegexpTokenizer()
         self.args = args
@@ -49,7 +49,7 @@ class CombinedDataSet(object):
 
         # Context Word Tokens
         context_word_tokens, mentions = self.data[index]
-        context_word_tokens = [self.word_vocab[token] for token in context_word_tokens if token in self.word_vocab]
+        context_word_tokens = [self.word_dict[token] for token in context_word_tokens if token in self.word_dict]
         context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
 
         # TODO - maybe this is too expensive
@@ -76,13 +76,14 @@ class CombinedDataSet(object):
                 continue
 
             # Mention Gram Tokens
-            mention_gram_tokens = [self.gram_vocab.get(token, 0) for token in self.gram_tokenizer(mention)]
-            mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
-            all_mention_gram_tokens[ent_idx] = np.array(mention_gram_tokens, dtype=np.int64)
+            if self.args.include_gram:
+                mention_gram_tokens = [self.gram_dict.get(token, 0) for token in self.gram_tokenizer(mention)]
+                mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
+                all_mention_gram_tokens[ent_idx] = np.array(mention_gram_tokens, dtype=np.int64)
 
             # Mention Word Tokens
             if self.args.include_word:
-                mention_word_tokens = [self.word_vocab.get(token.text.lower(), 0)
+                mention_word_tokens = [self.word_dict.get(token.lower(), 0)
                                        for token in self.word_tokenizer.tokenize(mention)]
                 mention_word_tokens = equalize_len(mention_word_tokens, self.args.max_word_size)
                 all_mention_word_tokens[ent_idx] = np.array(mention_word_tokens, dtype=np.int64)
@@ -126,14 +127,15 @@ class CombinedDataSet(object):
                 candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
 
                 # Candidate Gram Tokens
-                candidate_gram_tokens = [self.gram_vocab[token] for token in self.gram_tokenizer(candidate_str)
-                                         if token in self.gram_vocab]
-                candidate_gram_tokens = equalize_len(candidate_gram_tokens, self.args.max_gram_size)
-                candidate_gram_tokens_matr[cand_idx] = np.array(candidate_gram_tokens, dtype=np.int64)
+                if self.args.include_gram:
+                    candidate_gram_tokens = [self.gram_dict[token] for token in self.gram_tokenizer(candidate_str)
+                                             if token in self.gram_dict]
+                    candidate_gram_tokens = equalize_len(candidate_gram_tokens, self.args.max_gram_size)
+                    candidate_gram_tokens_matr[cand_idx] = np.array(candidate_gram_tokens, dtype=np.int64)
 
                 # Candidate Word Tokens
                 if self.args.include_word:
-                    candidate_word_tokens = [self.word_vocab.get(token.text.lower(), 0)
+                    candidate_word_tokens = [self.word_dict.get(token.lower(), 0)
                                              for token in self.word_tokenizer.tokenize(candidate_str)]
                     candidate_word_tokens = equalize_len(candidate_word_tokens, self.args.max_word_size)
                     candidate_word_tokens_matr[cand_idx] = np.array(candidate_word_tokens, dtype=np.int64)

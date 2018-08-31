@@ -53,11 +53,12 @@ def PCA(x, k=2):
 
 
 def normal_initialize(dim_0=1000, dim_1=16):
+    """Initialize with normal distribution of std = 1 / sqrt(dim_1). Set O index to all zeros."""
     stdv = 1 / np.sqrt(dim_1)
-    gram_embs = np.random.normal(0, scale=stdv, size=(dim_0, dim_1))
-    gram_embs[0] = np.zeros(dim_1)
+    embs = np.random.normal(0, scale=stdv, size=(dim_0, dim_1))
+    embs[0] = np.zeros(dim_1)
 
-    return gram_embs
+    return embs
 
 
 def normalize(v):
@@ -155,6 +156,7 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             ent_mention_embs = normal_initialize(ent_embs.shape[0], args.mention_word_dim)
             kwargs['mention_embs'] = mention_embs
             kwargs['ent_mention_embs'] = ent_mention_embs
+
             if args.only_prior:
                 model_type = OnlyPrior
             else:

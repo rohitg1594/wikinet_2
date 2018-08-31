@@ -210,8 +210,8 @@ logger.info("Validator created.")
 
 # Dataset
 train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
-                                gram_vocab=gram_vocab,
-                                word_vocab=yamada_model['word_dict'],
+                                gram_dict=gram_vocab,
+                                word_dict=yamada_model['word_dict'],
                                 ent2id=yamada_model['ent_dict'],
                                 data=train_data,
                                 args=args)

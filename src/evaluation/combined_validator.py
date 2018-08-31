@@ -106,7 +106,7 @@ class CombinedValidator:
             ent_gram_tokens[ent_id] = gram_indices
 
             # Word tokens
-            word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(ent_str)]
+            word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(ent_str)]
             word_indices = [self.word_dict.get(token, 0) for token in word_tokens]
             word_indices = equalize_len(word_indices, self.args.max_word_size)
             ent_word_tokens[ent_id] = word_indices
@@ -148,7 +148,7 @@ class CombinedValidator:
                 all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
 
                 # Mention Word
-                mention_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(ent_str)]
+                mention_word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(ent_str)]
                 mention_word_indices = [self.word_dict.get(token, 0) for token in mention_word_tokens]
                 mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
                 all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
@@ -185,7 +185,7 @@ class CombinedValidator:
         for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
 
             # Context
-            context_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(text)]
+            context_word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(text)]
             context_word_indices = [self.word_dict.get(token, 0) for token in context_word_tokens]
             context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
 
@@ -203,7 +203,7 @@ class CombinedValidator:
                     all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
 
                     # Mention Word
-                    mention_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(ent_str)]
+                    mention_word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(ent_str)]
                     mention_word_indices = [self.word_dict.get(token, 0) for token in mention_word_tokens]
                     mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
                     all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
@@ -426,7 +426,7 @@ class CombinedValidator:
         conll_mention_combined_embs = self._get_mention_combined_embs(params=params, data='conll')
 
         assert ent_combined_embs.shape[1] == wiki_mention_combined_embs.shape[1]
-        assert ent_combined_embs.shape[1] == wiki_mention_combined_embs.shape[1]
+        assert ent_combined_embs.shape[1] == conll_mention_combined_embs.shape[1]
 
         if self.args.weigh_concat:
             w = params['weighing_linear']
