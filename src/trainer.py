@@ -146,7 +146,6 @@ class Trainer(object):
 
         return loss.data[0]
 
-
     def combined_validate(self, epoch):
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.validator.validate(
             model=self.model)

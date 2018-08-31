@@ -151,8 +151,8 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             model_type = CombinedContextGramWeighted
     else:
         if args.include_mention:
-            mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
-            ent_mention_embs = normal_initialize(yamada_model['word_emb'].shape[0], args.mention_word_dim)
+            mention_embs = normal_initialize(word_embs.shape[0], args.mention_word_dim)
+            ent_mention_embs = normal_initialize(ent_embs.shape[0], args.mention_word_dim)
             kwargs['mention_embs'] = mention_embs
             kwargs['ent_mention_embs'] = ent_mention_embs
             if args.only_prior:
