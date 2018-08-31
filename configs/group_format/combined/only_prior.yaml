@@ -6,9 +6,9 @@ debug:False
 # Data
 data_path:/home/rogupta/wikinet_2/data
 data_type:wiki
-proto_data:True
-num_shards:250
-train_size:500000
+proto_data:False
+num_shards:100
+train_size:100000
 query_size:5000
 conll_split:dev
 yamada_model:yamada_model.pickle
