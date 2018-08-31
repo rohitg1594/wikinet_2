@@ -32,12 +32,12 @@ class OnlyPrior(CombinedBase):
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
 
-        print("------------MENTION WORD TOKENS----------------")
-        print(mention_word_tokens)
-        print('\n\n')
-        print("------------CANDIDATE IDS----------------")
-        print(candidate_ids)
-        sys.exit(1)
+        # print("------------MENTION WORD TOKENS----------------")
+        # print(mention_word_tokens)
+        # print('\n\n')
+        # print("------------CANDIDATE IDS----------------")
+        # print(candidate_ids)
+        # sys.exit(1)
 
         num_abst, num_ent, num_word = mention_word_tokens.shape
         num_abst, num_ent, num_cand = candidate_ids.shape
