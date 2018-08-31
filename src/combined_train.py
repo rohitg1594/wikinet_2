@@ -148,8 +148,8 @@ logger.info("Model loaded.")
 # Gram Embeddings
 gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
 logger.info("Using gram tokenizer {}".format(gram_tokenizer.__name__))
-gram_vocab = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
-gram_embs = normal_initialize(len(gram_vocab), args.gram_dim)
+gram_dict = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
+gram_embs = normal_initialize(len(gram_dict), args.gram_dim)
 logger.info("Gram embeddings created of shape: {}".format(gram_embs.shape))
 
 # Word and Entity Embeddings
@@ -203,7 +203,7 @@ logger.info("Training data loaded.")
 logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
 # Validation
-validator = CombinedValidator(gram_dict=gram_vocab,
+validator = CombinedValidator(gram_dict=gram_dict,
                               gram_tokenizer=gram_tokenizer,
                               yamada_model=yamada_model,
                               data=dev_data,
@@ -212,9 +212,9 @@ logger.info("Validator created.")
 
 # Dataset
 train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
-                                gram_dict=gram_vocab,
+                                gram_dict=gram_dict,
                                 word_dict=yamada_model['word_dict'],
-                                ent2id=yamada_model['ent_dict'],
+                                ent_dict=yamada_model['ent_dict'],
                                 data=train_data,
                                 args=args)
 train_loader = train_dataset.get_loader(batch_size=args.batch_size,

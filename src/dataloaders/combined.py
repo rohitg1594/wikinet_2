@@ -16,7 +16,7 @@ class CombinedDataSet(object):
                  gram_dict=None,
                  word_dict=None,
                  gram_tokenizer=None,
-                 ent2id=None,
+                 ent_dict=None,
                  data=None,
                  args=None):
         """
@@ -25,7 +25,7 @@ class CombinedDataSet(object):
         """
         super().__init__()
 
-        self.ent2id = ent2id
+        self.ent2id = ent_dict
         self.len_ent = len(self.ent2id)
         self.id2ent = reverse_dict(self.ent2id)
 
@@ -49,9 +49,8 @@ class CombinedDataSet(object):
 
         # Context Word Tokens
         context_word_tokens, mentions = self.data[index]
-        context_word_tokens = [self.word_dict[token] for token in context_word_tokens if token in self.word_dict]
+        context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
         context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
-
         # TODO - maybe this is too expensive
         context_word_tokens_array = np.zeros((self.args.max_ent_size, self.args.max_context_size), dtype=np.int64)
         context_word_tokens_array[:len(mentions)] = context_word_tokens
@@ -101,8 +100,7 @@ class CombinedDataSet(object):
 
                 candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates]
 
-                if ent_id in candidate_ids:  # Remove if true entity is part of candidates
-                    candidate_ids.remove(ent_id)
+                if ent_id in candidate_ids: candidate_ids.remove(ent_id)  # Remove if true entity is part of candidates
 
                 if len(candidate_ids) > self.candidate_generation:
                     cand_generation = np.random.choice(np.array(candidate_ids), replace=False,

@@ -213,7 +213,7 @@ logger.info("Validator created.")
 train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
                                 gram_dict=gram_vocab,
                                 word_dict=yamada_model['word_dict'],
-                                ent2id=yamada_model['ent_dict'],
+                                ent_dict=yamada_model['ent_dict'],
                                 data=train_data,
                                 args=args)
 train_loader = train_dataset.get_loader(batch_size=args.batch_size,
