@@ -112,7 +112,7 @@ train_selection.add_argument('--train_linear', type=str2bool, help='whether to t
 
 # cuda
 parser.add_argument("--device", type=str, help="cuda device")
-parser.add_argument("--use_cuda", type=str, help="use gpu or not")
+parser.add_argument("--use_cuda", type=str2bool, help="use gpu or not")
 
 args = parser.parse_args()
 logger = get_logger(args)
