@@ -118,6 +118,7 @@ use_cuda = torch.cuda.is_available()
 args.__dict__['use_cuda'] = use_cuda
 logger = get_logger(args)
 
+# Setup
 if args.wd > 0:
     assert not args.sparse
 
@@ -140,6 +141,7 @@ model_dir = join(model_date_dir, args.exp_name)
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
+# Yamada model
 print()
 logger.info("Loading Yamada model.")
 yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
@@ -241,6 +243,7 @@ logger.info('Dev Validation')
 logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
 logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
 
+# Train
 trainer = Trainer(loader=train_loader,
                   args=args,
                   validator=validator,
@@ -250,8 +253,3 @@ trainer = Trainer(loader=train_loader,
 logger.info("Starting Training")
 trainer.train()
 logger.info("Finished Training")
-
-
-
-
-

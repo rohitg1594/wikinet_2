@@ -137,11 +137,12 @@ def str2bool(v):
 
 def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=None):
     """Based on parameters in args, initialize and return appropriate model."""
-    kwargs = {'yamada_model': yamada_model,
-              'args': args,
+    kwargs = {'args': args,
               'gram_embs': gram_embs,
               'ent_embs': ent_embs,
-              'word_embs': word_embs}
+              'word_embs': word_embs,
+              'W': yamada_model['W'],
+              'b': yamada_model['b']}
 
     if args.include_word or args.weigh_concat:
         if args.include_word:
