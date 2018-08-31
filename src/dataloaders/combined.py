@@ -128,8 +128,8 @@ class CombinedDataSet(object):
 
                 # Candidate Gram Tokens
                 if self.args.include_gram:
-                    candidate_gram_tokens = [self.gram_dict[token] for token in self.gram_tokenizer(candidate_str)
-                                             if token in self.gram_dict]
+                    candidate_gram_tokens = [self.gram_dict.get(token, 0)
+                                             for token in self.gram_tokenizer(candidate_str)]
                     candidate_gram_tokens = equalize_len(candidate_gram_tokens, self.args.max_gram_size)
                     candidate_gram_tokens_matr[cand_idx] = np.array(candidate_gram_tokens, dtype=np.int64)
 
@@ -140,7 +140,8 @@ class CombinedDataSet(object):
                     candidate_word_tokens = equalize_len(candidate_word_tokens, self.args.max_word_size)
                     candidate_word_tokens_matr[cand_idx] = np.array(candidate_word_tokens, dtype=np.int64)
 
-            all_candidate_grams[ent_idx] = candidate_gram_tokens_matr
+            if self.args.include_gram:
+                all_candidate_grams[ent_idx] = candidate_gram_tokens_matr
             if self.args.include_word:
                 all_candidate_words[ent_idx] = candidate_word_tokens_matr
 
