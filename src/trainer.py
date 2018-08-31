@@ -129,24 +129,23 @@ class Trainer(object):
         return loss
 
     def step(self, data):
-        try:
-            data, ymask, labels = self._get_next_batch(data)
-            scores = self.model(data)
 
-            if self.args.loss_func == 'cosine':
-                loss = self._cosine_loss(scores, ymask)
-            elif self.args.loss_func == 'cross_entropy':
-                loss = self._cross_entropy(scores, ymask, labels)
-            else:
-                logger.error("Loss function {} not recognized, choose one of cosine, cross_entropy")
-                sys.exit(1)
+        data, ymask, labels = self._get_next_batch(data)
+        scores = self.model(data)
 
-            loss.backward()
-            self.optimizer.step()
+        if self.args.loss_func == 'cosine':
+            loss = self._cosine_loss(scores, ymask)
+        elif self.args.loss_func == 'cross_entropy':
+            loss = self._cross_entropy(scores, ymask, labels)
+        else:
+            logger.error("Loss function {} not recognized, choose one of cosine, cross_entropy")
+            sys.exit(1)
 
-            return loss.data[0]
-        except RuntimeError:
-            return 0
+        loss.backward()
+        self.optimizer.step()
+
+        return loss.data[0]
+
 
     def combined_validate(self, epoch):
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.validator.validate(
