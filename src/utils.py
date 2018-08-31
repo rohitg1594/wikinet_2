@@ -20,7 +20,7 @@ RE_WS_PRE_PUCT = re.compile(u'\s+([^a-zA-Z\d])')
 RE_WIKI_ENT = re.compile(r'.*wiki\/(.*)')
 RE_WS = re.compile('\s+')
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def gen_wrapper(gen):
