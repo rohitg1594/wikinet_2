@@ -230,7 +230,7 @@ for mwd in [32, 64, 128]:
             args.__dict__['mention_word_dim'] = mwd
             args.__dict__['lr'] = lr
             args.__dict__['wd'] = wd
-            logger.info("GRID SEARCH PARAMS : lr - {}, wd - {}".format(lr, wd))
+            logger.info("GRID SEARCH PARAMS : lr - {}, wd - {}, mwd - {}".format(lr, wd, mwd))
 
             # Model
             model = get_model(args, yamada_model=yamada_model, ent_embs=ent_embs, gram_embs=gram_embs, word_embs=word_embs)
