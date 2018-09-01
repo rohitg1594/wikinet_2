@@ -149,7 +149,8 @@ logger.info("Model loaded.")
 gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
 logger.info("Using gram tokenizer {}".format(gram_tokenizer.__name__))
 gram_dict = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
-gram_embs = normal_initialize(len(gram_dict), args.gram_dim)
+logger.info("Gram dictionary loaded of length: {}".format(len(gram_dict)))
+gram_embs = normal_initialize(len(gram_dict) + 1, args.gram_dim)
 logger.info("Gram embeddings created of shape: {}".format(gram_embs.shape))
 
 # Word and Entity Embeddings
