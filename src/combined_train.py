@@ -181,10 +181,10 @@ else:
             if len(train_data) == args.train_size:
                 break
             r = np.random.random()
-            if r < 0.8:
+            if r < 0.90:
                 train_data.append(d)
 
-            elif 0.8 < r < 0.9:
+            elif 0.9 < r < 0.95:
                 dev_data.append(d)
             else:
                 test_data.append(d)
