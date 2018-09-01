@@ -121,7 +121,7 @@ class CombinedDataSet(object):
             # Gram and word tokens for Candidates
             if not self.args.only_prior:
                 candidate_gram_tokens_matr = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
-                if self.args.include_word:
+                if self.args.include_word or self.args.include_mention:
                     candidate_word_tokens_matr = np.zeros((self.args.num_candidates, self.args.max_word_size)).astype(
                         np.int64)
 
@@ -144,7 +144,7 @@ class CombinedDataSet(object):
 
                 if self.args.include_gram:
                     all_candidate_grams[ent_idx] = candidate_gram_tokens_matr
-                if self.args.include_word:
+                if self.args.include_word or self.args.include_mention:
                     all_candidate_words[ent_idx] = candidate_word_tokens_matr
 
         if self.args.only_prior:
