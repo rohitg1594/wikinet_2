@@ -6,7 +6,7 @@ debug:False
 # Data
 data_path:/home/rogupta/wikinet_2/data
 data_type:wiki
-proto_data:False
+proto_data:True
 num_shards:100
 train_size:100000
 query_size:5000
@@ -18,7 +18,7 @@ gram_type:trigram
 gram_lower:True
 gram_vocab:vocab_trigram_266826.tsv
 gram_dim:64
-mention_word_dim:32
+mention_word_dim:64
 
 # Max padding
 max_word_size:5
@@ -55,7 +55,7 @@ patience:2
 num_epochs:10
 batch_size:64
 num_workers:8
-lr:1e-03
+lr:1e-02
 wd:1e-04
 optim:adagrad
 sparse:False
