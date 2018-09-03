@@ -1,0 +1,78 @@
+# General
+seed:-1
+exp_name:only_prior
+debug:False
+
+# Data
+data_path:/home/rogupta/wikinet_2/data
+data_type:wiki
+proto_data:True
+num_shards:100
+train_size:100000
+query_size:5000
+conll_split:dev
+yamada_model:yamada_model.pickle
+
+# Gram Settings
+gram_type:trigram
+gram_lower:True
+gram_vocab:vocab_trigram_266826.tsv
+gram_dim:64
+mention_word_dim:64
+
+# Max padding
+max_word_size:5
+max_gram_size:40
+max_context_size:100
+max_ent_size:60
+
+# Model types
+init_rand:False
+include_word:False
+include_gram:True
+include_context:True
+include_mention:True
+weigh_concat:False
+only_prior:False
+only_prior_linear:True
+
+# Model Params
+measure:ip
+dp:0
+
+# Normalization
+norm_gram:True
+norm_word:False
+norm_mention:True
+norm_context:True
+norm_final:True
+
+# Candidate Generation
+cand_gen_rand:False
+num_candidates:32
+
+# Training Settings
+patience:2
+num_epochs:10
+batch_size:64
+num_workers:8
+lr:1e-02
+wd:1e-04
+optim:adagrad
+sparse:False
+save_every:5
+
+# Loss
+margin:0.5
+loss_func:cross_entropy
+
+# Things to train
+train_ent:False
+train_word:False
+train_mention:True
+train_linear:False
+train_gram:True
+
+# Cuda
+use_cuda:True
+device:0
