@@ -6,7 +6,7 @@ import torch.nn as nn
 from src.models.combined.combined_base import CombinedBase
 
 
-class OnlyPrior(CombinedBase):
+class OnlyPriorLinear(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -27,6 +27,9 @@ class OnlyPrior(CombinedBase):
         self.ent_mention_embs.weight.data.copy_(torch.from_numpy(ent_mention_embs))
         self.ent_mention_embs.weight.requires_grad = self.args.train_mention
 
+        # Mention linear
+        self.mention_linear = nn.Linear(ent_mention_embs.shape[1], ent_mention_embs.shape[1])
+
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
 
@@ -44,10 +47,13 @@ class OnlyPrior(CombinedBase):
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
 
+        # Transform with linear layer
+        mention_embs_trans = self.mention_linear(mention_embs_agg)
+
         # Normalize
         if self.args.norm_final:
             candidate_embs = F.normalize(candidate_embs, dim=2)
-            mention_embs_agg = F.normalize(mention_embs_agg, dim=1)
+            mention_embs_agg = F.normalize(mention_embs_trans, dim=1)
 
         mention_embs_agg.unsqueeze_(1)
 

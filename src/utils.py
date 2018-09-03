@@ -14,6 +14,7 @@ from src.models.combined.combined_context_gram_word import CombinedContextGramWo
 from src.models.combined.combined_context_gram_mention import CombinedContextGramMention
 from src.models.combined.weighted_concat import CombinedContextGramWeighted
 from src.models.combined.only_prior import OnlyPrior
+from src.models.combined.only_prior_linear import OnlyPriorLinear
 
 use_cuda = torch.cuda.is_available()
 RE_WS_PRE_PUCT = re.compile(u'\s+([^a-zA-Z\d])')
@@ -159,8 +160,11 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
 
             if args.only_prior:
                 model_type = OnlyPrior
+            elif args.only_prior_linear:
+                model_type = OnlyPriorLinear
             else:
                 model_type = CombinedContextGramMention
+
         else:
             model_type = CombinedContextGram
 
