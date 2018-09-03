@@ -230,12 +230,16 @@ class CombinedValidator:
         params['word_embs'] = new_state_dict['word_embs.weight'].cpu().numpy()
         params['ent_embs'] = new_state_dict['ent_embs.weight'].cpu().numpy()
         params['gram_embs'] = new_state_dict['gram_embs.weight'].cpu().numpy()
-        params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy()  # .T  # transpose here!
+        params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy()
         params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()
 
-        if self.args.include_mention or self.args.only_prior:
+        if self.args.include_mention or self.args.only_prior or self.args.only_prior_linear:
             params['mention_embs'] = new_state_dict['mention_embs.weight'].cpu().numpy()
             params['ent_mention_embs'] = new_state_dict['ent_mention_embs.weight'].cpu().numpy()
+
+        if self.args.only_prior_linear:
+            params['mention_linear_W'] = new_state_dict['mention_linear.weight'].cpu().numpy()
+            params['mention_linear_b'] = new_state_dict['mention_linear.bias'].cpu().numpy()
 
         if self.args.weigh_concat:
             params['weighing_linear'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
@@ -269,7 +273,7 @@ class CombinedValidator:
             if self.args.norm_word:
                 ent_word_embs = normalize(ent_word_embs)
 
-        if self.args.only_prior:
+        if self.args.only_prior or self.args.only_prior_linear:
             ent_combined_embs = params['ent_mention_embs']
         elif self.args.include_mention:
             ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_mention_embs), axis=1)
@@ -350,6 +354,8 @@ class CombinedValidator:
 
         if self.args.only_prior:
             mention_combined_embs = mention_embs
+        elif self.args.only_prior_linear:
+            mention_combined_embs = mention_embs @ params['mention_linear_W'] + params['mention_linear_b']
         elif self.args.include_mention:
             mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_embs), axis=1)
         else:
