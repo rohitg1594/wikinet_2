@@ -3,6 +3,8 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
+import sys
+
 from src.models.combined.combined_base import CombinedBase
 
 
@@ -32,6 +34,13 @@ class OnlyPriorLinear(CombinedBase):
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
+
+        print("----MENTION----")
+        print(mention_word_tokens)
+        print('\n\n\n')
+        print("----CANDIDATE------")
+        print(candidate_ids)
+        sys.exit(1)
 
         num_abst, num_ent, num_word = mention_word_tokens.shape
         num_abst, num_ent, num_cand = candidate_ids.shape
