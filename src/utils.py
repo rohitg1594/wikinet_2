@@ -8,6 +8,7 @@ import logging
 
 import torch
 from torch.nn import DataParallel
+import torch.nn as nn
 
 from src.models.combined.combined_context_gram import CombinedContextGram
 from src.models.combined.combined_context_gram_word import CombinedContextGramWord
@@ -137,7 +138,7 @@ def str2bool(v):
         return False
 
 
-def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=None):
+def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=None, init='xavier_normal'):
     """Based on parameters in args, initialize and return appropriate model."""
     kwargs = {'args': args,
               'gram_embs': gram_embs,
@@ -153,8 +154,24 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             model_type = CombinedContextGramWeighted
     else:
         if args.include_mention:
-            mention_embs = normal_initialize(word_embs.shape[0], args.mention_word_dim)
-            ent_mention_embs = normal_initialize(ent_embs.shape[0], args.mention_word_dim)
+            mention_embs = torch.Tensor(word_embs.shape[0], args.mention_word_dim)
+            ent_mention_embs = torch.Tensor(ent_embs.shape[0], args.mention_word_dim)
+            if init == 'normal':
+                nn.init.normal(mention_embs)
+                nn.init.normal(ent_mention_embs)
+            elif init == 'xavier_uniform':
+                nn.init.xavier_uniform(mention_embs)
+                nn.init.xavier_uniform(ent_mention_embs)
+            elif init == 'xavier_normal':
+                nn.init.xavier_normal(mention_embs)
+                nn.init.xavier_normal(ent_mention_embs)
+            elif init == 'kaiming_uniform':
+                nn.init.kaiming_uniform(mention_embs)
+                nn.init.kaiming_uniform(ent_mention_embs)
+            elif init == 'kaiming_normal':
+                nn.init.kaiming_normal(mention_embs)
+                nn.init.kaiming_normal(ent_mention_embs)
+
             kwargs['mention_embs'] = mention_embs
             kwargs['ent_mention_embs'] = ent_mention_embs
 
