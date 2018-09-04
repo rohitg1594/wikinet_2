@@ -235,6 +235,7 @@ class CombinedValidator:
             params['ent_mention_embs'] = new_state_dict['ent_mention_embs.weight'].cpu().numpy()
 
         if self.args.only_prior_linear:
+            logger.info("Extracting mention linear layer from model.")
             params['mention_linear_W'] = new_state_dict['mention_linear.weight'].cpu().numpy()
             params['mention_linear_b'] = new_state_dict['mention_linear.bias'].cpu().numpy()
 

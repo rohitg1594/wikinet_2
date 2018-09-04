@@ -43,7 +43,7 @@ dp:0
 # Normalization
 norm_gram:True
 norm_word:False
-norm_mention:True
+norm_mention:False
 norm_context:True
 norm_final:True
 

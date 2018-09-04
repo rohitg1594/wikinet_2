@@ -21,13 +21,11 @@ class OnlyPriorLinear(CombinedBase):
         self.mention_embs = nn.Embedding(mention_embs.shape[0], mention_embs.shape[1], padding_idx=0,
                                          sparse=self.args.sparse)
         self.mention_embs.weight.data.copy_(mention_embs)
-        self.mention_embs.weight.requires_grad = self.args.train_mention
 
         # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(ent_mention_embs.shape[0], ent_mention_embs.shape[1], padding_idx=0,
                                              sparse=self.args.sparse)
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
-        self.ent_mention_embs.weight.requires_grad = self.args.train_mention
 
         # Mention linear
         self.mention_linear = nn.Linear(ent_mention_embs.shape[1], ent_mention_embs.shape[1])
