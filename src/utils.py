@@ -180,6 +180,16 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             if args.only_prior:
                 model_type = OnlyPrior
             elif args.only_prior_linear:
+
+                # Initialize linear layer with identity matrix
+                mention_linear_W = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1])
+                torch.nn.init.eye(mention_linear_W)
+                mention_linear_b = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1])
+                torch.nn.init.constant(mention_linear_b, 0)
+
+                kwargs['mention_linear_W'] = mention_linear_W
+                kwargs['mention_linear_b'] = mention_linear_b
+
                 model_type = OnlyPriorLinear
             else:
                 model_type = CombinedContextGramMention

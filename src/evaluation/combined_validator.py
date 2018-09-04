@@ -252,7 +252,7 @@ class CombinedValidator:
         b = params['b']
 
         if self.args.include_mention:
-            ent_mention_embs = params['ent_mention_embs'][self.ent_word_indices, :].mean(axis=1)
+            ent_mention_embs = params['ent_mention_embs']
 
             if self.args.norm_mention:
                 ent_mention_embs = normalize(ent_mention_embs)

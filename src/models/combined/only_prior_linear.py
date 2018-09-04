@@ -31,6 +31,8 @@ class OnlyPriorLinear(CombinedBase):
 
         # Mention linear
         self.mention_linear = nn.Linear(ent_mention_embs.shape[1], ent_mention_embs.shape[1])
+        self.ent_mention_embs.weight.data.copy_(kwargs['mention_linear_W'])
+        self.ent_mention_embs.bias.data.copy_(kwargs['mention_linear_b'])
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs

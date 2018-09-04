@@ -31,8 +31,7 @@ class CombinedContextGramMention(CombinedBase):
         self.dp = nn.Dropout(self.args.dp)
 
     def forward(self, inputs):
-        mention_gram_tokens, mention_word_tokens, context_word_tokens, candidate_gram_tokens, candidate_word_tokens,\
-        candidate_ids = inputs
+        mention_gram_tokens, mention_word_tokens, context_word_tokens, candidate_gram_tokens, candidate_ids = inputs
 
         num_abst, num_ent, num_cand, num_gram = candidate_gram_tokens.shape
         num_abst, num_ent, num_context = context_word_tokens.shape
@@ -42,35 +41,37 @@ class CombinedContextGramMention(CombinedBase):
         mention_gram_tokens = mention_gram_tokens.view(-1, num_gram)
         context_word_tokens = context_word_tokens.view(-1, num_context)
         mention_word_tokens = mention_word_tokens.view(-1, num_word)
-        candidate_word_tokens = candidate_word_tokens.view(-1, num_word)
         candidate_gram_tokens = candidate_gram_tokens.view(-1, num_gram)
         candidate_ids = candidate_ids.view(-1, num_cand)
 
         # Get the embeddings
         mention_gram_embs = self.gram_embs(mention_gram_tokens)
         candidate_gram_embs = self.gram_embs(candidate_gram_tokens)
+
         mention_word_embs = self.mention_embs(mention_word_tokens)
-        candidate_word_embs = self.ent_mention_embs(candidate_word_tokens)
         context_word_embs = self.word_embs(context_word_tokens)
+
         candidate_ent_embs = self.ent_embs(candidate_ids)
+        candidate_ent_mention_embs = self.ent_mention_embs(candidate_ids)
 
         # Apply Dropout
         mention_gram_embs = self.dp(mention_gram_embs)
         candidate_gram_embs = self.dp(candidate_gram_embs)
+
         mention_word_embs = self.dp(mention_word_embs)
-        candidate_word_embs = self.dp(candidate_word_embs)
         context_word_embs = self.dp(context_word_embs)
+
         candidate_ent_embs = self.dp(candidate_ent_embs)
+        candidate_ent_mention_embs = self.dp(candidate_ent_mention_embs)
 
         # Reshape to original shape
         candidate_gram_embs = candidate_gram_embs.view(num_abst * num_ent, num_cand, num_gram, -1)
-        candidate_word_embs = candidate_word_embs.view(num_abst * num_ent, num_cand, num_word, -1)
 
         # Sum the embeddings over the small and large tokens dimension
         mention_gram_embs = torch.mean(mention_gram_embs, dim=1)
         mention_word_embs = torch.mean(mention_word_embs, dim=1)
         candidate_gram_embs = torch.mean(candidate_gram_embs, dim=2)
-        candidate_word_embs = torch.mean(candidate_word_embs, dim=2)
+
         context_word_embs = torch.mean(context_word_embs, dim=1)
         context_word_embs = self.orig_linear(context_word_embs)
 
@@ -81,13 +82,13 @@ class CombinedContextGramMention(CombinedBase):
 
         if self.args.norm_mention:
             mention_word_embs = F.normalize(mention_word_embs, dim=1)
-            candidate_word_embs = F.normalize(candidate_word_embs, dim=2)
+            candidate_ent_mention_embs = F.normalize(candidate_ent_mention_embs, dim=2)
 
         if self.args.norm_context:
             context_word_embs = F.normalize(context_word_embs, dim=1)
 
         # Concatenate word / gram embeddings
-        combined_ent = torch.cat((candidate_ent_embs, candidate_gram_embs, candidate_word_embs), dim=2)
+        combined_ent = torch.cat((candidate_ent_embs, candidate_gram_embs, candidate_ent_mention_embs), dim=2)
         combined_mention = torch.cat((context_word_embs, mention_gram_embs, mention_word_embs), dim=1)
 
         # Normalize
