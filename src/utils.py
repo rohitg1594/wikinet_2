@@ -184,7 +184,7 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
                 # Initialize linear layer with identity matrix
                 mention_linear_W = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1])
                 torch.nn.init.eye(mention_linear_W)
-                mention_linear_b = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1])
+                mention_linear_b = torch.Tensor(mention_embs.shape[1])
                 torch.nn.init.constant(mention_linear_b, 0)
 
                 kwargs['mention_linear_W'] = mention_linear_W
