@@ -156,9 +156,11 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
         if args.include_mention:
             mention_embs = torch.Tensor(word_embs.shape[0], args.mention_word_dim)
             ent_mention_embs = torch.Tensor(ent_embs.shape[0], args.mention_word_dim)
+
+            # Initialization
             if init == 'normal':
-                nn.init.normal(mention_embs)
-                nn.init.normal(ent_mention_embs)
+                mention_embs = torch.from_numpy(word_embs.shape[0], args.mention_word_dim)
+                ent_mention_embs = torch.from_numpy(ent_embs.shape[0], args.mention_word_dim)
             elif init == 'xavier_uniform':
                 nn.init.xavier_uniform(mention_embs)
                 nn.init.xavier_uniform(ent_mention_embs)

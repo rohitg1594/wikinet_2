@@ -135,9 +135,6 @@ class CombinedValidator:
                 else:
                     continue
 
-                # Remove underscore
-                ent_str = ent_str.replace('_', ' ')
-
                 # Gold
                 all_gold.append(ent_id)
 
@@ -148,7 +145,7 @@ class CombinedValidator:
                 all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
 
                 # Mention Word
-                mention_word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(ent_str)]
+                mention_word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(mention)]
                 mention_word_indices = [self.word_dict.get(token, 0) for token in mention_word_tokens]
                 mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
                 all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))

@@ -101,7 +101,7 @@ class CombinedDataSet(object):
                     if nf in self.necounts:
                         candidates.extend(self.necounts[nf])
 
-                candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates]
+                candidate_ids = [self.ent2id[candidate] for candidate in candidates if candidate in self.ent2id]
 
                 if ent_id in candidate_ids: candidate_ids.remove(ent_id)  # Remove if true entity is part of candidates
 
