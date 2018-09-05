@@ -255,6 +255,9 @@ class CombinedValidator:
         if self.args.include_mention:
             ent_mention_embs = params['ent_mention_embs']
 
+            print("ENT MENTION EMBS")
+            print(ent_mention_embs[:5])
+
             if self.args.norm_mention:
                 ent_mention_embs = normalize(ent_mention_embs)
 
@@ -326,6 +329,9 @@ class CombinedValidator:
             assert 'mention_embs' in params
 
             mention_embs = params['mention_embs'][word_indices, :].mean(axis=1)
+
+            print("MENTION EMBS:")
+            print(mention_embs[:5])
 
             if self.args.norm_mention:
                 mention_embs = normalize(mention_embs)
