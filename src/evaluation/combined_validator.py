@@ -239,6 +239,11 @@ class CombinedValidator:
             params['mention_linear_W'] = new_state_dict['mention_linear.weight'].cpu().numpy()
             params['mention_linear_b'] = new_state_dict['mention_linear.bias'].cpu().numpy()
 
+            print('MENTION LINEAR W')
+            print(params['mention_linear_W'])
+            print('\n\nMENTION LINEAR b')
+            print(params['mention_linear_b'])
+
         if self.args.weigh_concat:
             params['weighing_linear'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
 
@@ -359,6 +364,7 @@ class CombinedValidator:
         if self.args.only_prior:
             mention_combined_embs = mention_embs
         elif self.args.only_prior_linear:
+            print('TRANSFORMING MENTION EMBS WITH MENTION LINEAR LAYER.')
             mention_combined_embs = mention_embs @ params['mention_linear_W'] + params['mention_linear_b']
         elif self.args.include_mention:
             mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_embs), axis=1)

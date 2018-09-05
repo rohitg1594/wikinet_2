@@ -159,8 +159,8 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
 
             # Initialization
             if init == 'normal':
-                mention_embs = torch.from_numpy(word_embs.shape[0], args.mention_word_dim)
-                ent_mention_embs = torch.from_numpy(ent_embs.shape[0], args.mention_word_dim)
+                mention_embs = torch.from_numpy(normal_initialize(word_embs.shape[0], args.mention_word_dim))
+                ent_mention_embs = torch.from_numpy(normal_initialize(ent_embs.shape[0], args.mention_word_dim))
             elif init == 'xavier_uniform':
                 nn.init.xavier_uniform(mention_embs)
                 nn.init.xavier_uniform(ent_mention_embs)
@@ -174,6 +174,8 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
                 nn.init.kaiming_normal(mention_embs)
                 nn.init.kaiming_normal(ent_mention_embs)
 
+            mention_embs[0] = 0
+            ent_mention_embs[0] = 0
             kwargs['mention_embs'] = mention_embs
             kwargs['ent_mention_embs'] = ent_mention_embs
 
