@@ -86,7 +86,7 @@ class CombinedDataSet(object):
 
         return context_word_tokens, mentions
 
-    def _init_grams(self, flag='gram'):
+    def _init_tokens(self, flag='gram'):
         """Initialize numpy array that will hold all mention gram and candidate gram tokens."""
         if flag == 'gram':
             max_size = self.args.max_gram_size
@@ -118,7 +118,7 @@ class CombinedDataSet(object):
 
     def _getitem_only_prior(self, mask, mentions, all_candidate_ids):
         """ Get item function for only prior and only prior linear models."""
-        all_candidate_words, all_mention_words = self._init_grams(flag='gram')
+        all_candidate_words, all_mention_words = self._init_tokens(flag='word')
 
         for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
@@ -138,10 +138,10 @@ class CombinedDataSet(object):
     def _getitem_include_word(self, mask, mentions, all_candidate_ids, all_context_words):
         """ Get item function for models which include mention and candidate words."""
         # Init Grams
-        all_candidate_grams, all_mention_grams = self._init_grams(flag='gram')
+        all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
 
         # Init Words
-        all_candidate_words, all_mention_words = self._init_grams(flag='gram')
+        all_candidate_words, all_mention_words = self._init_tokens(flag='word')
 
         # For each mention
         for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
@@ -188,7 +188,7 @@ class CombinedDataSet(object):
         """ Get item function for models which do not include mention and candidate words."""
 
         # Init Grams
-        all_candidate_grams, all_mention_grams = self._init_grams(flag='gram')
+        all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
 
         for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
