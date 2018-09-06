@@ -226,7 +226,7 @@ logger.info("Dataset created.")
 logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
 
 for mwd in [32, 64, 128]:
-    for lr in [0.1, 0.01, 0.04, 0.07]:
+    for lr in [0.1, 0.01, 0.001, 0.04, 0.07]:
         for wd in [0.001, 0.0005, 0.0001]:
             args.__dict__['mention_word_dim'] = mwd
             args.__dict__['lr'] = lr
