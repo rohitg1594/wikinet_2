@@ -204,7 +204,7 @@ logger.info("Training data loaded.")
 logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
 # Validation
-validator = CombinedValidator(gram_dict=gram_vocab,
+validator = CombinedValidator(gram_dict=gram_dict,
                               gram_tokenizer=gram_tokenizer,
                               yamada_model=yamada_model,
                               data=dev_data,
@@ -213,7 +213,7 @@ logger.info("Validator created.")
 
 # Dataset
 train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
-                                gram_dict=gram_vocab,
+                                gram_dict=gram_dict,
                                 word_dict=yamada_model['word_dict'],
                                 ent_dict=yamada_model['ent_dict'],
                                 data=train_data,
