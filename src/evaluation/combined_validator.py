@@ -337,7 +337,7 @@ class CombinedValidator:
 
             mention_embs = params['mention_embs'][word_indices, :].mean(axis=1)
 
-            print("MENTION EMBS:")
+            print("{} MENTION EMBS:".format(data.upper()))
             print(mention_embs[:5])
 
             if self.args.norm_mention:

@@ -2,6 +2,7 @@
 from os.path import join
 import pickle
 from logging import getLogger
+import sys
 
 import numpy as np
 import torch
@@ -76,6 +77,7 @@ class CombinedDataSet(object):
 
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
+
         context_word_tokens, mentions = self.data[index]
         context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
         context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
@@ -88,12 +90,14 @@ class CombinedDataSet(object):
 
     def _init_tokens(self, flag='gram'):
         """Initialize numpy array that will hold all mention gram and candidate gram tokens."""
+
         if flag == 'gram':
             max_size = self.args.max_gram_size
         elif flag == 'word':
             max_size = self.args.max_word_size
         else:
             self.logger.error("flag {} not recognized, choose one of (gram, word)".format(flag))
+            sys.exit(1)
 
         cand_tokens = np.zeros((self.args.max_ent_size, self.args.num_candidates, max_size)).astype(np.int64)
         mention_tokens = np.zeros((self.args.max_ent_size, max_size)).astype(np.int64)
@@ -102,6 +106,7 @@ class CombinedDataSet(object):
 
     def _get_tokens(self, mention, flag='gram'):
         """Tokenize mention based on flag and then pad them."""
+
         if flag == 'gram':
             tokenizer = self.gram_tokenizer
             max_size = self.args.max_gram_size
@@ -110,6 +115,7 @@ class CombinedDataSet(object):
             max_size = self.args.max_word_size
         else:
             self.logger.error("flag {} not recognized, choose one of (gram, word)".format(flag))
+            sys.exit(1)
 
         tokens = [self.gram_dict.get(token, 0) for token in tokenizer(mention)]
         pad_tokens = np.array(equalize_len(tokens, max_size), dtype=np.int64)
@@ -118,6 +124,7 @@ class CombinedDataSet(object):
 
     def _getitem_only_prior(self, mask, mentions, all_candidate_ids):
         """ Get item function for only prior and only prior linear models."""
+
         all_candidate_words, all_mention_words = self._init_tokens(flag='word')
 
         for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
@@ -137,6 +144,7 @@ class CombinedDataSet(object):
 
     def _getitem_include_word(self, mask, mentions, all_candidate_ids, all_context_words):
         """ Get item function for models which include mention and candidate words."""
+
         # Init Grams
         all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
 
