@@ -1,6 +1,7 @@
 # Dataloader, based on args.include_word, can include and exclude word information
 from os.path import join
 import pickle
+from logging import getLogger
 
 import numpy as np
 import torch
@@ -37,39 +38,157 @@ class CombinedDataSet(object):
 
         self.candidate_generation = self.args.num_candidates // 2
         self.data = data
+        self.logger = getLogger(__name__)
 
         # Candidates
         if not self.args.cand_gen_rand:
             with open(join(self.args.data_path, 'necounts', 'normal_necounts.pickle'), 'rb') as f:
                 self.necounts = pickle.load(f)
 
-    def __getitem__(self, index):
-        if isinstance(index, slice):
-            return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
+    def _get_candidates(self, ent_id, mention):
+        """Candidate generation step, can be random or based on necounts."""
+        if self.args.cand_gen_rand:
+            candidate_ids = np.concatenate((np.array(ent_id)[None],
+                                            np.random.randint(1, self.len_ent + 1, size=self.args.num_candidates - 1)))
+        else:
+            nfs = get_normalised_forms(mention)
+            candidates = []
+            for nf in nfs:
+                if nf in self.necounts:
+                    candidates.extend(self.necounts[nf])
 
-        # Context Word Tokens
-        if self.args.include_context:
-            context_word_tokens, mentions = self.data[index]
-            context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
-            context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
-            # TODO - maybe this is too expensive
-            context_word_tokens_array = np.zeros((self.args.max_ent_size, self.args.max_context_size), dtype=np.int64)
-            context_word_tokens_array[:len(mentions)] = context_word_tokens
+            candidate_ids = [self.ent2id[candidate] for candidate in candidates if candidate in self.ent2id]
 
-        all_candidate_ids = np.zeros((self.args.max_ent_size, self.args.num_candidates)).astype(np.int64)
+            if ent_id in candidate_ids: candidate_ids.remove(ent_id)  # Remove if true entity is part of candidates
 
-        if self.args.include_gram:
-            all_candidate_grams = np.zeros((self.args.max_ent_size, self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
-            all_mention_gram_tokens = np.zeros((self.args.max_ent_size, self.args.max_gram_size)).astype(np.int64)
+            if len(candidate_ids) > self.candidate_generation:
+                cand_generation = np.random.choice(np.array(candidate_ids), replace=False,
+                                                   size=self.candidate_generation)
+                cand_random = np.random.randint(1, self.len_ent + 1,
+                                                self.args.num_candidates - self.candidate_generation - 1)
+            else:
+                cand_generation = np.array(candidate_ids)
+                cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - len(candidate_ids) - 1)
 
-        if self.args.include_word or self.args.include_mention or self.args.only_prior:
-            all_candidate_words = np.zeros(
-                (self.args.max_ent_size, self.args.num_candidates, self.args.max_word_size)).astype(np.int64)
-            all_mention_word_tokens = np.zeros((self.args.max_ent_size, self.args.max_word_size)).astype(np.int64)
+            candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random))
 
-        # Mask of indices to ignore for final loss
-        mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
-        mask[:len(mentions)] = 1
+        return candidate_ids
+
+    def _init_context(self, index):
+        """Initialize numpy array that will hold all context word tokens. Also return mentions"""
+        context_word_tokens, mentions = self.data[index]
+        context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
+        context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
+
+        # TODO - maybe this is too expensive
+        context_word_tokens_array = np.zeros((self.args.max_ent_size, self.args.max_context_size), dtype=np.int64)
+        context_word_tokens_array[:len(mentions)] = context_word_tokens
+
+        return context_word_tokens, mentions
+
+    def _init_grams(self, flag='gram'):
+        """Initialize numpy array that will hold all mention gram and candidate gram tokens."""
+        if flag == 'gram':
+            max_size = self.args.max_gram_size
+        elif flag == 'word':
+            max_size = self.args.max_word_size
+        else:
+            self.logger.error("flag {} not recognized, choose one of (gram, word)".format(flag))
+
+        cand_tokens = np.zeros((self.args.max_ent_size, self.args.num_candidates, max_size)).astype(np.int64)
+        mention_tokens = np.zeros((self.args.max_ent_size, max_size)).astype(np.int64)
+
+        return cand_tokens, mention_tokens
+
+    def _get_tokens(self, mention, flag='gram'):
+        """Tokenize mention based on flag and then pad them."""
+        if flag == 'gram':
+            tokenizer = self.gram_tokenizer
+            max_size = self.args.max_gram_size
+        elif flag == 'word':
+            tokenizer = self.word_tokenizer.tokenize
+            max_size = self.args.max_word_size
+        else:
+            self.logger.error("flag {} not recognized, choose one of (gram, word)".format(flag))
+
+        tokens = [self.gram_dict.get(token, 0) for token in tokenizer(mention)]
+        pad_tokens = np.array(equalize_len(tokens, max_size), dtype=np.int64)
+
+        return pad_tokens
+
+    def _getitem_only_prior(self, mask, mentions, all_candidate_ids):
+        """ Get item function for only prior and only prior linear models."""
+        all_candidate_words, all_mention_words = self._init_grams(flag='gram')
+
+        for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
+            if ent_str in self.ent2id:
+                ent_id = self.ent2id[ent_str]
+            else:
+                continue
+
+            # Mention Word Tokens
+            all_mention_words[ent_idx] = self._get_tokens(mention, flag='word')
+
+            # Candidate Generation
+            candidate_ids = self._get_candidates(ent_id, mention)
+            all_candidate_ids[ent_idx] = candidate_ids
+
+        return mask, all_mention_words, all_candidate_ids
+
+    def _getitem_include_word(self, mask, mentions, all_candidate_ids, all_context_words):
+        """ Get item function for models which include mention and candidate words."""
+        # Init Grams
+        all_candidate_grams, all_mention_grams = self._init_grams(flag='gram')
+
+        # Init Words
+        all_candidate_words, all_mention_words = self._init_grams(flag='gram')
+
+        # For each mention
+        for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
+            if ent_str in self.ent2id:
+                ent_id = self.ent2id[ent_str]
+            else:
+                continue
+
+            # Mention Gram Tokens
+            all_mention_grams[ent_idx] = self._get_tokens(mention, flag='gram')
+
+            # Mention Word Tokens
+            all_mention_words[ent_idx] = self._get_tokens(mention, flag='word')
+
+            # Candidate Generation
+            candidate_ids = self._get_candidates(ent_id, mention)
+            all_candidate_ids[ent_idx] = candidate_ids
+
+            # Gram and word tokens for Candidates
+            candidate_gram_tokens = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
+            candidate_word_tokens = np.zeros((self.args.num_candidates, self.args.max_word_size)).astype(np.int64)
+
+            for cand_idx, candidate_id in enumerate(candidate_ids):
+                candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
+
+                # Candidate Gram Tokens
+                candidate_gram_tokens[cand_idx] = self._get_tokens(candidate_str, flag='gram')
+
+                # Candidate Word Tokens
+                candidate_word_tokens[cand_idx] = self._get_tokens(candidate_str, flag='word')
+
+            all_candidate_grams[ent_idx] = candidate_gram_tokens
+            all_candidate_words[ent_idx] = candidate_word_tokens
+
+        return (mask,
+                all_mention_grams,
+                all_mention_words,
+                all_context_words,
+                all_candidate_grams,
+                all_candidate_words,
+                all_candidate_ids)
+
+    def _getitem_include_gram(self, mask, mentions, all_candidate_ids, all_context_words):
+        """ Get item function for models which do not include mention and candidate words."""
+
+        # Init Grams
+        all_candidate_grams, all_mention_grams = self._init_grams(flag='gram')
 
         for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
@@ -78,94 +197,46 @@ class CombinedDataSet(object):
                 continue
 
             # Mention Gram Tokens
-            if self.args.include_gram:
-                mention_gram_tokens = [self.gram_dict.get(token, 0) for token in self.gram_tokenizer(mention)]
-                mention_gram_tokens = equalize_len(mention_gram_tokens, self.args.max_gram_size)
-                all_mention_gram_tokens[ent_idx] = np.array(mention_gram_tokens, dtype=np.int64)
-
-            # Mention Word Tokens
-            if self.args.include_word or self.args.only_prior or self.args.include_mention:
-                mention_word_tokens = [self.word_dict.get(token.lower(), 0)
-                                       for token in self.word_tokenizer.tokenize(mention)]
-                mention_word_tokens = equalize_len(mention_word_tokens, self.args.max_word_size)
-                all_mention_word_tokens[ent_idx] = np.array(mention_word_tokens, dtype=np.int64)
+            all_mention_grams[ent_idx] = self._get_tokens(mention, flag='gram')
 
             # Candidate Generation
-            if self.args.cand_gen_rand:
-                candidate_ids = np.concatenate((np.array(ent_id)[None],
-                                                np.random.randint(1, self.len_ent + 1, size=self.args.num_candidates - 1)))
-            else:
-                nfs = get_normalised_forms(mention)
-                candidates = []
-                for nf in nfs:
-                    if nf in self.necounts:
-                        candidates.extend(self.necounts[nf])
-
-                candidate_ids = [self.ent2id[candidate] for candidate in candidates if candidate in self.ent2id]
-
-                if ent_id in candidate_ids: candidate_ids.remove(ent_id)  # Remove if true entity is part of candidates
-
-                if len(candidate_ids) > self.candidate_generation:
-                    cand_generation = np.random.choice(np.array(candidate_ids), replace=False,
-                                                       size=self.candidate_generation)
-                    cand_random = np.random.randint(1, self.len_ent + 1,
-                                                    self.args.num_candidates - self.candidate_generation - 1)
-                else:
-                    cand_generation = np.array(candidate_ids)
-                    cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - len(candidate_ids) - 1)
-
-                candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random))
-
+            candidate_ids = self._get_candidates(ent_id, mention)
             all_candidate_ids[ent_idx] = candidate_ids
 
-            # Gram and word tokens for Candidates
-            if not self.args.only_prior:
-                candidate_gram_tokens_matr = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
-                if self.args.include_word or self.args.include_mention:
-                    candidate_word_tokens_matr = np.zeros((self.args.num_candidates, self.args.max_word_size)).astype(
-                        np.int64)
+            # Candidate Gram tokens
+            if not self.args.only_prior or not self.args.only_prior_linear:
+                candidate_gram_tokens = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
 
                 for cand_idx, candidate_id in enumerate(candidate_ids):
                     candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
+                    candidate_gram_tokens[cand_idx] = self._get_tokens(candidate_str, flag='gram')
 
-                    # Candidate Gram Tokens
-                    if self.args.include_gram:
-                        candidate_gram_tokens = [self.gram_dict.get(token, 0)
-                                                 for token in self.gram_tokenizer(candidate_str)]
-                        candidate_gram_tokens = equalize_len(candidate_gram_tokens, self.args.max_gram_size)
-                        candidate_gram_tokens_matr[cand_idx] = np.array(candidate_gram_tokens, dtype=np.int64)
+                all_candidate_grams[ent_idx] = candidate_gram_tokens
 
-                    # Candidate Word Tokens
-                    if self.args.include_word or self.args.only_prior or self.args.include_mention:
-                        candidate_word_tokens = [self.word_dict.get(token.lower(), 0)
-                                                 for token in self.word_tokenizer.tokenize(candidate_str)]
-                        candidate_word_tokens = equalize_len(candidate_word_tokens, self.args.max_word_size)
-                        candidate_word_tokens_matr[cand_idx] = np.array(candidate_word_tokens, dtype=np.int64)
+        return mask, all_mention_grams, all_context_words, all_candidate_grams, all_candidate_ids
 
-                if self.args.include_gram:
-                    all_candidate_grams[ent_idx] = candidate_gram_tokens_matr
-                if self.args.include_word or self.args.include_mention:
-                    all_candidate_words[ent_idx] = candidate_word_tokens_matr
+    def __getitem__(self, index):
+        """Main get item function, this calls other get items based on model type params in self.args."""
+
+        if isinstance(index, slice):
+            return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
+
+        # Init candidate ids
+        all_candidate_ids = np.zeros((self.args.max_ent_size, self.args.num_candidates)).astype(np.int64)
+
+        # Context Word Tokens
+        all_context_tokens, mentions = self._init_context(index)
+
+        # Mask of indices to ignore for final loss
+        mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
+        mask[:len(mentions)] = 1
 
         if self.args.only_prior or self.args.only_prior_linear:
-            return (mask,
-                    all_mention_word_tokens,
-                    all_candidate_ids)
-
+            return self._getitem_only_prior(mask, mentions, all_candidate_ids)
         elif self.args.include_word or self.args.include_mention:
-            return (mask,
-                    all_mention_gram_tokens,
-                    all_mention_word_tokens,
-                    context_word_tokens_array,
-                    all_candidate_grams,
-                    all_candidate_words,
-                    all_candidate_ids)
+            return self._getitem_include_word(mask, mentions, all_candidate_ids, all_context_tokens)
         else:
-            return (mask,
-                    all_mention_gram_tokens,
-                    context_word_tokens_array,
-                    all_candidate_grams,
-                    all_candidate_ids)
+            return self._getitem_include_gram(mask, mentions, all_candidate_ids, all_context_tokens)
 
     def __len__(self):
         return len(self.data)
