@@ -5,14 +5,12 @@ import re
 class RegexpTokenizer(object):
     __slots__ = ('_rule',)
 
-    def __init__(self, rule=r"[\w\d]+"):
+    def __init__(self, rule=r"[\w\d]+", lower=True):
         self._rule = re.compile(rule, re.UNICODE)
+        self.lower = lower
 
     def tokenize(self, text):
-        all_capitalized = True
-        for c in text:
-            if not c.isupper():
-                all_capitalized = False
-        if all_capitalized:
-            text = text.title()
-        return [text[o.start():o.end()] for o in self._rule.finditer(text)]
+        if self.lower:
+            return [text[o.start():o.end()].lower() for o in self._rule.finditer(text)]
+        else:
+            return [text[o.start():o.end()] for o in self._rule.finditer(text)]

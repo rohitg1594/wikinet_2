@@ -34,8 +34,8 @@ class CombinedDataSet(object):
         self.gram_dict = gram_dict
         self.word_dict = word_dict
         self.gram_tokenizer = gram_tokenizer
-        self.word_tokenizer = RegexpTokenizer()
         self.args = args
+        self.word_tokenizer = RegexpTokenizer(self.args.gram_lower)
 
         self.candidate_generation = self.args.num_candidates // 2
         self.data = data

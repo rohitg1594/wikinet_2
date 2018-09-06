@@ -6,7 +6,7 @@ def get_gram_tokenizer(gram_type=None, lower_case=False):
         if gram_type == 'unigram':
             return unigram_tokenizer
         elif gram_type == 'bigram':
-            return  bigram_tokenizer
+            return bigram_tokenizer
         elif gram_type == 'trigram':
             return trigram_tokenizer
         else:
