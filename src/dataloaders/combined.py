@@ -110,14 +110,16 @@ class CombinedDataSet(object):
         if flag == 'gram':
             tokenizer = self.gram_tokenizer
             max_size = self.args.max_gram_size
+            vocab_dict = self.gram_dict
         elif flag == 'word':
             tokenizer = self.word_tokenizer.tokenize
             max_size = self.args.max_word_size
+            vocab_dict = self.word_dict
         else:
             self.logger.error("flag {} not recognized, choose one of (gram, word)".format(flag))
             sys.exit(1)
 
-        tokens = [self.gram_dict.get(token, 0) for token in tokenizer(mention)]
+        tokens = [vocab_dict.get(token, 0) for token in tokenizer(mention)]
         pad_tokens = np.array(equalize_len(tokens, max_size), dtype=np.int64)
 
         return pad_tokens
