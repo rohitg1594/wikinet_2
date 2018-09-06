@@ -3,7 +3,7 @@ import re
 
 
 class RegexpTokenizer(object):
-    __slots__ = ('_rule',)
+    __slots__ = ('_rule', 'lower')
 
     def __init__(self, rule=r"[\w\d]+", lower=True):
         self._rule = re.compile(rule, re.UNICODE)
