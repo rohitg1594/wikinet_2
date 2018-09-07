@@ -86,7 +86,7 @@ class CombinedDataSet(object):
         context_word_tokens_array = np.zeros((self.args.max_ent_size, self.args.max_context_size), dtype=np.int64)
         context_word_tokens_array[:len(mentions)] = context_word_tokens
 
-        return context_word_tokens, mentions
+        return context_word_tokens_array, mentions
 
     def _init_tokens(self, flag='gram'):
         """Initialize numpy array that will hold all mention gram and candidate gram tokens."""
