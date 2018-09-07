@@ -14,13 +14,13 @@ from src.utils import str2bool
 from src.data_utils import pickle_load
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada_pershina import YamadaPershina
-from src.evaluation.yamada_validator import YamadaValidator
+from src.evaluation.yamada import YamadaValidator
 from src.models.yamada.yamada_context import YamadaContext
 from src.models.yamada.yamada_context_stats import YamadaContextStats
 from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
 from src.models.yamada.yamada_context_string import YamadaContextString
 from src.logger import get_logger
-from src.trainer import Trainer
+from src.train.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
 

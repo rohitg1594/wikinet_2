@@ -6,18 +6,16 @@ from datetime import datetime
 
 import numpy as np
 
-from torch.nn import DataParallel
-
 import configargparse
 
 from src.utils import str2bool, normal_initialize, reverse_dict, get_model
 from src.data_utils import load_vocab, pickle_load, conll_to_wiki
 from src.conll.pershina import PershinaExamples
-from src.evaluation.combined_validator import CombinedValidator
+from src.evaluation.combined import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenization.gram_tokenizer import get_gram_tokenizer
 from src.logger import get_logger
-from src.trainer import Trainer
+from src.train.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
 
@@ -57,8 +55,13 @@ padding.add_argument('--max_ent_size', type=int, help='max number of entities co
 # Model Type
 model_selection = parser.add_argument_group('Type of model to train.')
 model_selection.add_argument('--init_rand', type=str2bool, help='whether to initialize the combined model randomly')
-model_names = ['only_prior', 'only_prior_linear', 'include_word', 'include_gram', 'mention_prior', 'weigh_concat']
-model_selection.add_argument('--model_name', type=str, choices=model_names, help='type of model to train')
+model_selection.add_argument('--include_word', type=str2bool, help='whether to include word information in combined model')
+model_selection.add_argument('--include_gram', type=str2bool, help='whether to include gram information in combined model')
+model_selection.add_argument('--include_context', type=str2bool, help='whether to include context information in combined model')
+model_selection.add_argument('--include_mention', type=str2bool, help='whether to include separate mention words in combined model')
+model_selection.add_argument('--weigh_concat', type=str2bool, help='concatenate embeddings after weighing them')
+model_selection.add_argument('--only_prior', type=str2bool, help='learn only prior probabilities')
+model_selection.add_argument('--only_prior_linear', type=str2bool, help='learn only prior probabilities with linear layer')
 
 # Model params
 model_params = parser.add_argument_group("Parameters for chosen model.")
@@ -107,12 +110,12 @@ train_selection.add_argument('--train_linear', type=str2bool, help='whether to t
 
 # cuda
 parser.add_argument("--device", type=str, help="cuda device")
-parser.add_argument("--use_cuda", type=str2bool, help="use gpu or not")
+parser.add_argument("--use_cuda", type=str2bool, help="whether to use cuda")
+
 
 args = parser.parse_args()
 logger = get_logger(args)
 
-# Setup
 if args.wd > 0:
     assert not args.sparse
 
@@ -135,7 +138,6 @@ model_dir = join(model_date_dir, args.exp_name)
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
 
-# Yamada model
 print()
 logger.info("Loading Yamada model.")
 yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
@@ -177,10 +179,10 @@ else:
             if len(train_data) == args.train_size:
                 break
             r = np.random.random()
-            if r < 0.90:
+            if r < 0.8:
                 train_data.append(d)
 
-            elif 0.9 < r < 0.95:
+            elif 0.8 < r < 0.9:
                 dev_data.append(d)
             else:
                 test_data.append(d)
@@ -218,33 +220,33 @@ train_loader = train_dataset.get_loader(batch_size=args.batch_size,
                                         shuffle=False,
                                         num_workers=args.num_workers,
                                         drop_last=True)
-
+# train_loader = gen_wrapper(iter(train_loader))
 logger.info("Dataset created.")
 logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
 
-# Model
-model = get_model(args, yamada_model=yamada_model, ent_embs=ent_embs, word_embs=word_embs, gram_embs=gram_embs)
-if args.use_cuda:
-    if isinstance(args.device, tuple):
-        model = model.cuda(args.device[0])
-        model = DataParallel(model, args.device)
-    else:
-        model = model.cuda(args.device)
+for mwd in [32, 64, 128]:
+    for lr in [0.1, 0.01, 0.001, 0.04, 0.07]:
+        for wd in [0.001, 0.0005, 0.0001]:
+            args.__dict__['mention_word_dim'] = mwd
+            args.__dict__['lr'] = lr
+            args.__dict__['wd'] = wd
+            logger.info("GRID SEARCH PARAMS : lr - {}, wd - {}, mwd - {}".format(lr, wd, mwd))
 
+            # Model
+            model = get_model(args, yamada_model=yamada_model, ent_embs=ent_embs, gram_embs=gram_embs, word_embs=word_embs)
 
-logger.info("Starting validation for untrained model.")
-top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
-logger.info('Dev Validation')
-logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
+            logger.info("Starting validation for untrained model.")
+            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
+            logger.info('Dev Validation')
+            logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+            logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
 
-# Train
-trainer = Trainer(loader=train_loader,
-                  args=args,
-                  validator=validator,
-                  model=model,
-                  model_dir=model_dir,
-                  model_type='combined')
-logger.info("Starting Training")
-trainer.train()
-logger.info("Finished Training")
+            trainer = Trainer(loader=train_loader,
+                              args=args,
+                              validator=validator,
+                              model=model,
+                              model_dir=model_dir,
+                              model_type='combined')
+            logger.info("Starting Training")
+            trainer.train()
+            logger.info("Finished Training")

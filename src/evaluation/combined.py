@@ -11,7 +11,7 @@ import re
 from logging import getLogger
 
 from src.utils import reverse_dict, equalize_len, normalize, sigmoid
-from src.evaluation.eval_utils import eval_ranking, check_errors
+from src.evaluation.utils import eval_ranking, check_errors
 from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
 from src.tokenization.regexp_tokenizer import RegexpTokenizer
 
@@ -246,7 +246,7 @@ class CombinedValidator:
                 print('\n\nMENTION LINEAR b')
                 print(params['mention_linear_b'])
 
-        if self.args.weigh_concat:
+        if self.model_name == 'weigh_concat':
             params['weighing_linear'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
 
         return params
