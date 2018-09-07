@@ -237,7 +237,7 @@ class CombinedValidator:
 
         if self.model_name == 'only_prior_linear':
             logger.info("Extracting mention linear layer from model.")
-            params['mention_linear_W'] = new_state_dict['mention_linear.weight'].cpu().numpy().T  # Transpose here!
+            params['mention_linear_W'] = new_state_dict['mention_linear.weight'].cpu().numpy().T
             params['mention_linear_b'] = new_state_dict['mention_linear.bias'].cpu().numpy()
 
             if self.args.debug:
@@ -247,7 +247,7 @@ class CombinedValidator:
                 print(params['mention_linear_b'])
 
         if self.model_name == 'weigh_concat':
-            params['weighing_linear'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
+            params['weighing_linear'] = new_state_dict['weighing_linear.weight'].cpu().numpy().T  # Transpose here!
 
         return params
 
@@ -526,14 +526,14 @@ class CombinedValidator:
         assert ent_combined_embs.shape[1] == wiki_mention_combined_embs.shape[1]
         assert ent_combined_embs.shape[1] == conll_mention_combined_embs.shape[1]
 
-        if self.args.weigh_concat:
+        if self.model_name == 'weigh_concat':
             w = params['weighing_linear']
 
-            scores_mention_wiki = wiki_mention_combined_embs @ w.T
+            scores_mention_wiki = wiki_mention_combined_embs @ w
             w_mention_wiki = sigmoid(scores_mention_wiki)
             print("w mention wiki: {}".format(w_mention_wiki[:100]))
 
-            scores_mention_conll = conll_mention_combined_embs @ w.T
+            scores_mention_conll = conll_mention_combined_embs @ w
             w_mention_conll = sigmoid(scores_mention_conll)
             print("w mention conll: {}".format(w_mention_conll[:100]))
 
