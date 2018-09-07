@@ -10,10 +10,10 @@ import torch
 from torch.nn import DataParallel
 import torch.nn as nn
 
-from src.models.combined.combined_context_gram import CombinedContextGram
-from src.models.combined.combined_context_gram_word import CombinedContextGramWord
-from src.models.combined.combined_context_gram_mention import CombinedContextGramMention
-from src.models.combined.weighted_concat import CombinedContextGramWeighted
+from src.models.combined.include_gram import IncludeGram
+from src.models.combined.include_word import IncludeWord
+from src.models.combined.mention_prior import MentionPrior
+from src.models.combined.weigh_concat import WeighConcat
 from src.models.combined.only_prior import OnlyPrior
 from src.models.combined.only_prior_linear import OnlyPriorLinear
 
@@ -146,64 +146,66 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
               'word_embs': word_embs,
               'W': yamada_model['W'],
               'b': yamada_model['b']}
+    model_name = args.model_name
 
-    if args.include_word or args.weigh_concat:
-        if args.include_word:
-            model_type = CombinedContextGramWord
-        else:
-            model_type = CombinedContextGramWeighted
-    else:
-        if args.include_mention:
-            mention_embs = torch.Tensor(word_embs.shape[0], args.mention_word_dim)
-            ent_mention_embs = torch.Tensor(ent_embs.shape[0], args.mention_word_dim)
+    if model_name == 'include_word':
+        model_type = IncludeWord
+    elif model_name == 'weigh_concat':
+        model_type = WeighConcat
+    elif model_name == 'include_gram':
+        model_type = IncludeGram
+    elif model_name in ['only_prior', 'only_prior_linear', 'mention_prior']:
+        mention_embs = torch.Tensor(word_embs.shape[0], args.mention_word_dim)
+        ent_mention_embs = torch.Tensor(ent_embs.shape[0], args.mention_word_dim)
 
-            # Initialization
-            if init == 'normal':
-                mention_embs = torch.from_numpy(normal_initialize(word_embs.shape[0], args.mention_word_dim))
-                ent_mention_embs = torch.from_numpy(normal_initialize(ent_embs.shape[0], args.mention_word_dim))
-            elif init == 'xavier_uniform':
-                nn.init.xavier_uniform(mention_embs)
-                nn.init.xavier_uniform(ent_mention_embs)
-            elif init == 'xavier_normal':
-                nn.init.xavier_normal(mention_embs)
-                nn.init.xavier_normal(ent_mention_embs)
-            elif init == 'kaiming_uniform':
-                nn.init.kaiming_uniform(mention_embs)
-                nn.init.kaiming_uniform(ent_mention_embs)
-            elif init == 'kaiming_normal':
-                nn.init.kaiming_normal(mention_embs)
-                nn.init.kaiming_normal(ent_mention_embs)
+        # Initialization
+        if init == 'normal':
+            mention_embs = torch.from_numpy(normal_initialize(word_embs.shape[0], args.mention_word_dim))
+            ent_mention_embs = torch.from_numpy(normal_initialize(ent_embs.shape[0], args.mention_word_dim))
+        elif init == 'xavier_uniform':
+            nn.init.xavier_uniform(mention_embs)
+            nn.init.xavier_uniform(ent_mention_embs)
+        elif init == 'xavier_normal':
+            nn.init.xavier_normal(mention_embs)
+            nn.init.xavier_normal(ent_mention_embs)
+        elif init == 'kaiming_uniform':
+            nn.init.kaiming_uniform(mention_embs)
+            nn.init.kaiming_uniform(ent_mention_embs)
+        elif init == 'kaiming_normal':
+            nn.init.kaiming_normal(mention_embs)
+            nn.init.kaiming_normal(ent_mention_embs)
 
-            mention_embs[0] = 0
-            ent_mention_embs[0] = 0
-            kwargs['mention_embs'] = mention_embs
-            kwargs['ent_mention_embs'] = ent_mention_embs
+        mention_embs[0] = 0
+        ent_mention_embs[0] = 0
+        kwargs['mention_embs'] = mention_embs
+        kwargs['ent_mention_embs'] = ent_mention_embs
 
-            if args.only_prior:
-                model_type = OnlyPrior
-            elif args.only_prior_linear:
+        if model_name == 'only_prior':
+            model_type = OnlyPrior
+        elif model_name == 'only_prior_linear':
 
-                # Initialize linear layer with identity matrix
-                mention_linear_W = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1])
-                torch.nn.init.eye(mention_linear_W)
-                mention_linear_b = torch.Tensor(mention_embs.shape[1])
-                torch.nn.init.constant(mention_linear_b, 0)
+            # Initialize linear layer with identity matrix
+            mention_linear_W = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1])
+            torch.nn.init.eye(mention_linear_W)
+            mention_linear_b = torch.Tensor(mention_embs.shape[1])
+            torch.nn.init.constant(mention_linear_b, 0)
 
+            if args.debug:
                 print('Mention Linear W:')
                 print(mention_linear_W)
 
                 print('\n\nMention Linear b:')
                 print(mention_linear_b)
 
-                kwargs['mention_linear_W'] = mention_linear_W
-                kwargs['mention_linear_b'] = mention_linear_b
+            kwargs['mention_linear_W'] = mention_linear_W
+            kwargs['mention_linear_b'] = mention_linear_b
 
-                model_type = OnlyPriorLinear
-            else:
-                model_type = CombinedContextGramMention
-
+            model_type = OnlyPriorLinear
         else:
-            model_type = CombinedContextGram
+            model_type = MentionPrior
+    else:
+        logger.error("model name {} not recognized".format(model_name))
+        sys.exit(1)
 
     model = model_type(**kwargs)
     if args.use_cuda:

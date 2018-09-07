@@ -38,6 +38,7 @@ class CombinedValidator:
         self.rev_gram_dict = reverse_dict(self.gram_dict)
         self.data = data
         self.args = args
+        self.model_name = self.args.model_name
 
         # Get entity tokens
         self.ent_gram_indices, self.ent_word_indices = self._get_ent_tokens()
@@ -230,94 +231,197 @@ class CombinedValidator:
         params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy().T  # Transpose here
         params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()
 
-        if self.args.include_mention or self.args.only_prior or self.args.only_prior_linear:
+        if self.model_name in ['mention_prior', 'only_prior', 'only_prior_linear']:
             params['mention_embs'] = new_state_dict['mention_embs.weight'].cpu().numpy()
             params['ent_mention_embs'] = new_state_dict['ent_mention_embs.weight'].cpu().numpy()
 
-        if self.args.only_prior_linear:
+        if self.model_name == 'only_prior_linear':
             logger.info("Extracting mention linear layer from model.")
             params['mention_linear_W'] = new_state_dict['mention_linear.weight'].cpu().numpy().T  # Transpose here!
             params['mention_linear_b'] = new_state_dict['mention_linear.bias'].cpu().numpy()
 
-            print('MENTION LINEAR W')
-            print(params['mention_linear_W'])
-            print('\n\nMENTION LINEAR b')
-            print(params['mention_linear_b'])
+            if self.args.debug:
+                print('MENTION LINEAR W')
+                print(params['mention_linear_W'])
+                print('\n\nMENTION LINEAR b')
+                print(params['mention_linear_b'])
 
         if self.args.weigh_concat:
             params['weighing_linear'] = new_state_dict['weighing_linear.weight'].cpu().numpy()
 
         return params
 
-    def _get_ent_combined_embs(self, params=None):
+    def _get_ent_combined_mention_prior(self, params):
 
         gram_embs = params['gram_embs']
-        word_embs = params['word_embs']
         ent_embs = params['ent_embs']
-        W = params['W']
-        b = params['b']
+        ent_mention_embs = params['ent_mention_embs']
 
-        if self.args.include_mention:
-            ent_mention_embs = params['ent_mention_embs']
-
+        if self.args.debug:
             print("ENT MENTION EMBS")
             print(ent_mention_embs[:5])
 
-            if self.args.norm_mention:
-                ent_mention_embs = normalize(ent_mention_embs)
+        ent_gram_embs = gram_embs[self.ent_gram_indices, :].mean(axis=1)
 
-        if self.args.include_gram:
-            ent_gram_embs = gram_embs[self.ent_gram_indices, :].mean(axis=1)
+        if self.args.norm_gram:
+            ent_gram_embs = normalize(ent_gram_embs)
 
-            if self.args.norm_gram:
-                ent_gram_embs = normalize(ent_gram_embs)
-
-        if self.args.include_word:
-            ent_word_embs = word_embs[self.ent_word_indices, :].mean(axis=1)
-            ent_word_embs = ent_word_embs @ W + b
-
-            if self.args.norm_word:
-                ent_word_embs = normalize(ent_word_embs)
-
-        if self.args.only_prior or self.args.only_prior_linear:
-            ent_combined_embs = params['ent_mention_embs']
-            print('ENT MENTION EMBS OF SIZE : {}'.format(ent_combined_embs.shape))
-
-        elif self.args.include_mention:
-            ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_mention_embs), axis=1)
-        else:
-            # 100
-            if self.args.include_gram and not self.args.include_context and not self.args.include_word:
-                ent_combined_embs = ent_gram_embs
-            # 001
-            elif not self.args.include_gram and not self.args.include_context and self.args.include_word:
-                ent_combined_embs = ent_word_embs
-            # 010
-            elif not self.args.include_gram and self.args.include_context and not self.args.include_word:
-                ent_combined_embs = ent_embs
-            # 110
-            elif self.args.include_gram and self.args.include_context and not self.args.include_word:
-                ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs), axis=1)
-            # 101
-            elif self.args.include_gram and not self.args.include_context and self.args.include_word:
-                ent_combined_embs = np.concatenate((ent_word_embs, ent_gram_embs), axis=1)
-            # 011
-            elif not self.args.include_gram and self.args.include_context and self.args.include_word:
-                ent_combined_embs = np.concatenate((ent_embs, ent_word_embs), axis=1)
-            # 111
-            else:
-                ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_word_embs), axis=1)
-
-        if self.args.norm_final:
-            ent_combined_embs = normalize(ent_combined_embs)
+        ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_mention_embs), axis=1)
 
         return ent_combined_embs
 
-    def _get_mention_combined_embs(self, params=None, data='wiki'):
+    @staticmethod
+    def _get_ent_combined_only_prior(params):
+
+        ent_combined_embs = params['ent_mention_embs']
+
+        return ent_combined_embs
+
+    def _get_ent_combined_include_word(self, params):
+
+        gram_embs = params['gram_embs']
+        ent_embs = params['ent_embs']
+        word_embs = params['word_embs']
+        ent_mention_embs = params['ent_mention_embs']
+        W = params['W']
+        b = params['b']
+
+        if self.args.debug:
+            print("ENT MENTION EMBS")
+            print(ent_mention_embs[:5])
+
+        ent_gram_embs = gram_embs[self.ent_gram_indices, :].mean(axis=1)
+        if self.args.norm_gram:
+            ent_gram_embs = normalize(ent_gram_embs)
+
+        ent_word_embs = word_embs[self.ent_word_indices, :].mean(axis=1)
+        ent_word_embs = ent_word_embs @ W + b
+
+        if self.args.norm_word:
+            ent_word_embs = normalize(ent_word_embs)
+
+        ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_word_embs), axis=1)
+
+        return ent_combined_embs
+
+    def _get_ent_combined_include_gram(self, params):
+
+        gram_embs = params['gram_embs']
+        ent_embs = params['ent_embs']
+
+        ent_gram_embs = gram_embs[self.ent_gram_indices, :].mean(axis=1)
+        if self.args.norm_gram:
+            ent_gram_embs = normalize(ent_gram_embs)
+
+        ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs), axis=1)
+
+        return ent_combined_embs
+
+    def _get_ent_combined_weigh_concat(self, params):
+
+        # TODO : Finish This
+        raise NotImplementedError
+
+    def _get_mention_combined_mention_prior(self, gram_indices, word_indices, context_indices, params):
+
+        gram_embs = params['gram_embs']
+        word_embs = params['word_embs']
+        mention_embs = params['mention_embs']
+        W = params['W']
+        b = params['b']
+
+        mention_gram_embs = gram_embs[gram_indices, :].mean(axis=1)
+        if self.args.norm_gram:
+            mention_gram_embs = normalize(mention_gram_embs)
+
+        mention_word_embs = mention_embs[word_indices, :].mean(axis=1)
+        if self.args.norm_mention:
+            mention_word_embs = normalize(mention_word_embs)
+
+        mention_context_embs = word_embs[context_indices, :].mean(axis=1)
+        mention_context_embs = mention_context_embs @ W + b
+        if self.args.norm_context:
+            mention_context_embs = normalize(mention_context_embs)
+
+        mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_word_embs), axis=1)
+
+        return mention_combined_embs
+
+    def _get_mention_combined_only_prior(self, word_indices, params):
+
+        mention_embs = params['mention_embs']
+
+        mention_word_embs = mention_embs[word_indices, :].mean(axis=1)
+
+        if self.args.norm_word:
+            mention_word_embs = normalize(mention_word_embs)
+
+        mention_combined_embs = mention_word_embs
+
+        return mention_combined_embs
+
+    def _get_mention_combined_only_prior_linear(self, word_indices, params):
+
+        mention_embs = self._get_mention_combined_only_prior(word_indices, params)
+        mention_combined_embs = mention_embs @ params['mention_linear_W'] + params['mention_linear_b']
+
+        return mention_combined_embs
+
+    def _get_mention_combined_include_word(self, gram_indices, word_indices, context_indices, params):
+
         gram_embs = params['gram_embs']
         word_embs = params['word_embs']
         W = params['W']
         b = params['b']
+
+        mention_gram_embs = gram_embs[gram_indices, :].mean(axis=1)
+
+        if self.args.norm_gram:
+            mention_gram_embs = normalize(mention_gram_embs)
+
+        mention_word_embs = word_embs[word_indices, :].mean(axis=1)
+        mention_word_embs = mention_word_embs @ W + b
+
+        if self.args.norm_word:
+            mention_word_embs = normalize(mention_word_embs)
+
+        mention_context_embs = word_embs[context_indices, :].mean(axis=1)
+        mention_context_embs = mention_context_embs @ W + b
+
+        if self.args.norm_context:
+            mention_context_embs = normalize(mention_context_embs)
+
+        mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_word_embs), axis=1)
+
+        return mention_combined_embs
+
+    def _get_mention_combined_include_gram(self, gram_indices, context_indices, params):
+
+        gram_embs = params['gram_embs']
+        word_embs = params['word_embs']
+        W = params['W']
+        b = params['b']
+
+        mention_gram_embs = gram_embs[gram_indices, :].mean(axis=1)
+        if self.args.norm_gram:
+            mention_gram_embs = normalize(mention_gram_embs)
+
+        mention_context_embs = word_embs[context_indices, :].mean(axis=1)
+        mention_context_embs = mention_context_embs @ W + b
+        if self.args.norm_context:
+            mention_context_embs = normalize(mention_context_embs)
+
+        mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs), axis=1)
+
+        return mention_combined_embs
+
+    def _get_mention_combined_weigh_concat(self, params):
+
+        # TODO : Finish This
+        raise NotImplementedError
+
+    def _get_mention_combined_embs(self, params, data):
+        """get mention embeddings for different models."""
 
         if data == 'wiki':
             gram_indices = self.wiki_mention_gram_indices[self.wiki_mask, :]
@@ -331,72 +435,48 @@ class CombinedValidator:
             logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data))
             sys.exit(1)
 
-        if self.args.include_mention:
-
-            assert 'mention_embs' in params
-
-            mention_embs = params['mention_embs'][word_indices, :].mean(axis=1)
-
-            print("{} MENTION EMBS:".format(data.upper()))
-            print(mention_embs[:5])
-
-            if self.args.norm_mention:
-                mention_embs = normalize(mention_embs)
-
-        if self.args.include_gram:
-            mention_gram_embs = gram_embs[gram_indices, :].mean(axis=1)
-
-            if self.args.norm_gram:
-                mention_gram_embs = normalize(mention_gram_embs)
-
-        if self.args.include_word:
-            mention_word_embs = word_embs[word_indices, :].mean(axis=1)
-            mention_word_embs = mention_word_embs @ W + b
-
-            if self.args.norm_word:
-                mention_word_embs = normalize(mention_word_embs)
-
-        if self.args.include_context:
-            mention_context_embs = word_embs[context_indices, :].mean(axis=1)
-            mention_context_embs = mention_context_embs @ W + b
-
-            if self.args.norm_context:
-                mention_context_embs = normalize(mention_context_embs)
-
-        if self.args.only_prior:
-            mention_combined_embs = mention_embs
-        elif self.args.only_prior_linear:
-            print('TRANSFORMING MENTION EMBS WITH MENTION LINEAR LAYER.')
-            mention_combined_embs = mention_embs @ params['mention_linear_W'] + params['mention_linear_b']
-        elif self.args.include_mention:
-            mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_embs), axis=1)
+        if self.model_name == 'only_prior':
+            mention_combined_embs = self._get_mention_combined_only_prior(word_indices, params)
+        elif self.model_name == 'only_prior_linear':
+            mention_combined_embs = self._get_mention_combined_only_prior_linear(word_indices, params)
+        elif self.model_name == 'include_word':
+            mention_combined_embs = self._get_mention_combined_include_word(gram_indices, word_indices, context_indices, params)
+        elif self.model_name == 'include_gram':
+            mention_combined_embs = self._get_mention_combined_include_gram(gram_indices, context_indices, params)
+        elif self.model_name == 'mention_prior':
+            mention_combined_embs = self._get_mention_combined_mention_prior(gram_indices, word_indices, context_indices, params)
+        elif self.model_name == 'weigh_concat':
+            mention_combined_embs = self._get_mention_combined_weigh_concat(params)
         else:
-            # 100
-            if self.args.include_gram and not self.args.include_context and not self.args.include_word:
-                mention_combined_embs = mention_gram_embs
-            # 001
-            elif not self.args.include_gram and not self.args.include_context and self.args.include_word:
-                mention_combined_embs = mention_word_embs
-            # 010
-            elif not self.args.include_gram and self.args.include_context and not self.args.include_word:
-                mention_combined_embs = mention_context_embs
-            # 110
-            elif self.args.include_gram and self.args.include_context and not self.args.include_word:
-                mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs), axis=1)
-            # 101
-            elif self.args.include_gram and not self.args.include_context and self.args.include_word:
-                mention_combined_embs = np.concatenate((mention_word_embs, mention_gram_embs), axis=1)
-            # 011
-            elif not self.args.include_gram and self.args.include_context and self.args.include_word:
-                mention_combined_embs = np.concatenate((mention_context_embs, mention_word_embs), axis=1)
-            # 111
-            else:
-                mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_word_embs), axis=1)
+            logger.error("model type {} not recognized".format(self.model_name))
+            sys.exit(1)
 
         if self.args.norm_final:
             mention_combined_embs = normalize(mention_combined_embs)
 
         return mention_combined_embs
+
+    def _get_ent_combined_embs(self, params):
+        """get entity embeddings for different models."""
+
+        if self.model_name in ['only_prior', 'only_prior_linear']:
+            ent_combined_embs = self._get_ent_combined_only_prior(params)
+        elif self.model_name == 'include_word':
+            ent_combined_embs = self._get_ent_combined_include_word(params)
+        elif self.model_name == 'include_gram':
+            ent_combined_embs = self._get_ent_combined_include_gram(params)
+        elif self.model_name == 'mention_prior':
+            ent_combined_embs = self._get_ent_combined_mention_prior(params)
+        elif self.model_name == 'weigh_concat':
+            ent_combined_embs = self._get_ent_combined_weigh_concat(params)
+        else:
+            logger.error("model type {} not recognized".format(self.model_name))
+            sys.exit(1)
+
+        if self.args.norm_final:
+            ent_combined_embs = normalize(ent_combined_embs)
+
+        return ent_combined_embs
 
     def _get_debug_string(self, I=None, data='wiki', result=False):
 

@@ -5,7 +5,7 @@ import torch.nn as nn
 
 import sys
 
-from src.models.combined.combined_base import CombinedBase
+from src.models.combined.base import CombinedBase
 
 
 class OnlyPrior(CombinedBase):

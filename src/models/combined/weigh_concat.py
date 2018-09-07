@@ -1,15 +1,22 @@
-# Model that only uses context and gram information
+# Model that only uses context and gram information. It concatenates gram and context information by weighing them first.
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from src.models.combined.combined_base import CombinedBase
+import numpy as np
+
+from src.models.combined.base import CombinedBase
 
 
-class CombinedContextGram(CombinedBase):
+class WeighConcat(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        # Weighing linear layer / sigmoid / dropout
+        self.weighing_linear = nn.Linear(self.ent_embs.shape[1] + self.gram_embs.shape[1], 1, bias=False)
+        self.weighing_linear.weight.data.copy_(torch.from_numpy(np.ones((self.ent_embs.shape[1] + self.gram_embs.shape[1]))))
+        self.sigmoid = nn.Sigmoid()
         self.dp = nn.Dropout(self.args.dp)
 
     def forward(self, inputs):
@@ -46,23 +53,25 @@ class CombinedContextGram(CombinedBase):
         context_word_embs = self.orig_linear(context_word_embs)
 
         # Normalize
-        if self.args.norm_gram:
-            mention_gram_embs = F.normalize(mention_gram_embs, dim=1)
-            candidate_gram_embs = F.normalize(candidate_gram_embs, dim=2)
+        mention_gram_embs = F.normalize(mention_gram_embs, dim=1)
+        candidate_gram_embs = F.normalize(candidate_gram_embs, dim=2)
+        context_word_embs = F.normalize(context_word_embs, dim=1)
 
-        if self.args.norm_context:
-            context_word_embs = F.normalize(context_word_embs, dim=1)
-
-        # Concatenate word / gram embeddings
+        # Concatenate word / gram embeddings (unweighted)
         combined_ent = torch.cat((candidate_ent_embs, candidate_gram_embs), dim=2)
-        combined_mention = torch.cat((context_word_embs, mention_gram_embs), dim=1)
+        combined_mention_unw = torch.cat((context_word_embs, mention_gram_embs), dim=1)
 
-        if self.args.norm_final:
-            combined_ent = F.normalize(combined_ent, dim=2)
-            combined_mention = F.normalize(combined_mention, dim=1)
-        combined_mention.unsqueeze_(1)
+        # Calculate weights
+        w = self.sigmoid(self.weighing_linear(combined_mention_unw))
+
+        # Apply dropout
+        w = self.dp(w)
+
+        # Concatenate word / gram embeddings (weighted)
+        combined_mention_w = torch.cat((w * context_word_embs, (1 - w) * mention_gram_embs), dim=1)
+        combined_mention_w.unsqueeze_(1)
 
         # Dot product over last dimension
-        scores = (combined_mention * combined_ent).sum(dim=2)
+        scores = (combined_mention_w * combined_ent).sum(dim=2)
 
         return scores

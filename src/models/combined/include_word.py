@@ -2,10 +2,10 @@
 import torch
 import torch.nn.functional as F
 
-from src.models.combined.combined_base import CombinedBase
+from src.models.combined.base import CombinedBase
 
 
-class CombinedContextGramWord(CombinedBase):
+class IncludeWord(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -36,6 +36,7 @@ class CombinedDataSet(object):
         self.gram_tokenizer = gram_tokenizer
         self.args = args
         self.word_tokenizer = RegexpTokenizer(lower=self.args.gram_lower)
+        self.model_name = self.args.model_name
 
         self.candidate_generation = self.args.num_candidates // 2
         self.data = data
@@ -48,6 +49,7 @@ class CombinedDataSet(object):
 
     def _get_candidates(self, ent_id, mention):
         """Candidate generation step, can be random or based on necounts."""
+
         if self.args.cand_gen_rand:
             candidate_ids = np.concatenate((np.array(ent_id)[None],
                                             np.random.randint(1, self.len_ent + 1, size=self.args.num_candidates - 1)))
@@ -63,10 +65,8 @@ class CombinedDataSet(object):
             if ent_id in candidate_ids: candidate_ids.remove(ent_id)  # Remove if true entity is part of candidates
 
             if len(candidate_ids) > self.candidate_generation:
-                cand_generation = np.random.choice(np.array(candidate_ids), replace=False,
-                                                   size=self.candidate_generation)
-                cand_random = np.random.randint(1, self.len_ent + 1,
-                                                self.args.num_candidates - self.candidate_generation - 1)
+                cand_generation = np.random.choice(np.array(candidate_ids), replace=False, size=self.candidate_generation)
+                cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - self.candidate_generation - 1)
             else:
                 cand_generation = np.array(candidate_ids)
                 cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - len(candidate_ids) - 1)
@@ -125,7 +125,7 @@ class CombinedDataSet(object):
         return pad_tokens
 
     def _getitem_only_prior(self, mask, mentions, all_candidate_ids):
-        """ Get item function for only prior and only prior linear models."""
+        """getitem for only prior and only prior linear models."""
 
         all_candidate_words, all_mention_words = self._init_tokens(flag='word')
 
@@ -145,7 +145,7 @@ class CombinedDataSet(object):
         return mask, all_mention_words, all_candidate_ids
 
     def _getitem_include_word(self, mask, mentions, all_candidate_ids, all_context_words):
-        """ Get item function for models which include mention and candidate words."""
+        """getitem for model which include mention and candidate words."""
 
         # Init Grams
         all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
@@ -194,8 +194,52 @@ class CombinedDataSet(object):
                 all_candidate_words,
                 all_candidate_ids)
 
+    def _getitem_mention_prior(self, mask, mentions, all_candidate_ids, all_context_words):
+        """getitem for mention prior model."""
+
+        # Init Grams
+        all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
+
+        # Init Words
+        all_candidate_words, all_mention_words = self._init_tokens(flag='word')
+
+        # For each mention
+        for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
+            if ent_str in self.ent2id:
+                ent_id = self.ent2id[ent_str]
+            else:
+                continue
+
+            # Mention Gram Tokens
+            all_mention_grams[ent_idx] = self._get_tokens(mention, flag='gram')
+
+            # Mention Word Tokens
+            all_mention_words[ent_idx] = self._get_tokens(mention, flag='word')
+
+            # Candidate Generation
+            candidate_ids = self._get_candidates(ent_id, mention)
+            all_candidate_ids[ent_idx] = candidate_ids
+
+            # Gram and word tokens for Candidates
+            candidate_gram_tokens = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
+
+            for cand_idx, candidate_id in enumerate(candidate_ids):
+                candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
+
+                # Candidate Gram Tokens
+                candidate_gram_tokens[cand_idx] = self._get_tokens(candidate_str, flag='gram')
+
+            all_candidate_grams[ent_idx] = candidate_gram_tokens
+
+        return (mask,
+                all_mention_grams,
+                all_mention_words,
+                all_context_words,
+                all_candidate_grams,
+                all_candidate_ids)
+
     def _getitem_include_gram(self, mask, mentions, all_candidate_ids, all_context_words):
-        """ Get item function for models which do not include mention and candidate words."""
+        """getitem for models which do not include mention and candidate words."""
 
         # Init Grams
         all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
@@ -226,7 +270,7 @@ class CombinedDataSet(object):
         return mask, all_mention_grams, all_context_words, all_candidate_grams, all_candidate_ids
 
     def __getitem__(self, index):
-        """Main get item function, this calls other get items based on model type params in self.args."""
+        """Main getitem function, this calls other getitems based on model type params in self.args."""
 
         if isinstance(index, slice):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
@@ -241,12 +285,16 @@ class CombinedDataSet(object):
         mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
         mask[:len(mentions)] = 1
 
-        if self.args.only_prior or self.args.only_prior_linear:
+        if self.model_name == 'only_prior' or self.model_name == 'only_prior_linear':
             return self._getitem_only_prior(mask, mentions, all_candidate_ids)
-        elif self.args.include_word or self.args.include_mention:
+        elif self.model_name == 'include_word':
             return self._getitem_include_word(mask, mentions, all_candidate_ids, all_context_tokens)
-        else:
+        elif self.model_name == 'mention_prior':
+            return self._getitem_mention_prior(mask, mentions, all_candidate_ids, all_context_tokens)
+        elif self.model_name == 'include_gram':
             return self._getitem_include_gram(mask, mentions, all_candidate_ids, all_context_tokens)
+        else:
+            self.logger.info('model name {} dataloader not implemented'.format(self.model_name))
 
     def __len__(self):
         return len(self.data)

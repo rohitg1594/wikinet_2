@@ -3,10 +3,10 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-from src.models.combined.combined_base import CombinedBase
+from src.models.combined.base import CombinedBase
 
 
-class CombinedContextGramMention(CombinedBase):
+class MentionPrior(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
