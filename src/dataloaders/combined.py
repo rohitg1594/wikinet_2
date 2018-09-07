@@ -195,7 +195,6 @@ class CombinedDataSet(object):
                 all_candidate_ids)
 
     def _getitem_mention_prior(self, mask, mentions, all_candidate_ids, all_context_words):
-        """getitem for mention prior model."""
 
         # Init Grams
         all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
@@ -231,6 +230,9 @@ class CombinedDataSet(object):
 
             all_candidate_grams[ent_idx] = candidate_gram_tokens
 
+        print('mention gram {}, mention word {}, context word {}, candidate gram {}, cand_id {}'
+              .format(all_mention_grams.shape, all_mention_words.shape, all_context_words.shape, all_candidate_grams.shape, all_candidate_ids.shape))
+
         return (mask,
                 all_mention_grams,
                 all_mention_words,
@@ -239,7 +241,6 @@ class CombinedDataSet(object):
                 all_candidate_ids)
 
     def _getitem_include_gram(self, mask, mentions, all_candidate_ids, all_context_words):
-        """getitem for models which do not include mention and candidate words."""
 
         # Init Grams
         all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
