@@ -58,7 +58,7 @@ padding.add_argument('--max_ent_size', type=int, help='max number of entities co
 model_selection = parser.add_argument_group('Type of model to train.')
 model_selection.add_argument('--init_rand', type=str2bool, help='whether to initialize the combined model randomly')
 model_names = ['only_prior', 'only_prior_linear', 'include_word', 'include_gram', 'mention_prior', 'weigh_concat']
-model_selection.add_argument('--model_name', type=str, choices='model_names', help='type of model to train')
+model_selection.add_argument('--model_name', type=str, choices=model_names, help='type of model to train')
 
 # Model params
 model_params = parser.add_argument_group("Parameters for chosen model.")
