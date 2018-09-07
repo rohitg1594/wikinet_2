@@ -11,7 +11,7 @@ class MentionPrior(CombinedBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # Unpack args
+        # Unpack argsf
         mention_embs = kwargs['mention_embs']
         ent_mention_embs = kwargs['ent_mention_embs']
 

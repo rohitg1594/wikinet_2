@@ -55,13 +55,8 @@ padding.add_argument('--max_ent_size', type=int, help='max number of entities co
 # Model Type
 model_selection = parser.add_argument_group('Type of model to train.')
 model_selection.add_argument('--init_rand', type=str2bool, help='whether to initialize the combined model randomly')
-model_selection.add_argument('--include_word', type=str2bool, help='whether to include word information in combined model')
-model_selection.add_argument('--include_gram', type=str2bool, help='whether to include gram information in combined model')
-model_selection.add_argument('--include_context', type=str2bool, help='whether to include context information in combined model')
-model_selection.add_argument('--include_mention', type=str2bool, help='whether to include separate mention words in combined model')
-model_selection.add_argument('--weigh_concat', type=str2bool, help='concatenate embeddings after weighing them')
-model_selection.add_argument('--only_prior', type=str2bool, help='learn only prior probabilities')
-model_selection.add_argument('--only_prior_linear', type=str2bool, help='learn only prior probabilities with linear layer')
+model_names = ['only_prior', 'only_prior_linear', 'include_word', 'include_gram', 'mention_prior', 'weigh_concat']
+model_selection.add_argument('--model_name', type=str, choices=model_names, help='type of model to train')
 
 # Model params
 model_params = parser.add_argument_group("Parameters for chosen model.")
