@@ -141,6 +141,8 @@ class Trainer(object):
             logger.error("Loss function {} not recognized, choose one of cosine, cross_entropy")
             sys.exit(1)
 
+        self.optimizer.zero_grad()
+
         loss.backward()
         self.optimizer.step()
 
