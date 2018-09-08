@@ -256,14 +256,13 @@ class CombinedDataSet(object):
             all_candidate_ids[ent_idx] = candidate_ids
 
             # Candidate Gram tokens
-            if not self.args.only_prior or not self.args.only_prior_linear:
-                candidate_gram_tokens = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
+            candidate_gram_tokens = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
 
-                for cand_idx, candidate_id in enumerate(candidate_ids):
-                    candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
-                    candidate_gram_tokens[cand_idx] = self._get_tokens(candidate_str, flag='gram')
+            for cand_idx, candidate_id in enumerate(candidate_ids):
+                candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
+                candidate_gram_tokens[cand_idx] = self._get_tokens(candidate_str, flag='gram')
 
-                all_candidate_grams[ent_idx] = candidate_gram_tokens
+            all_candidate_grams[ent_idx] = candidate_gram_tokens
 
         return mask, all_mention_grams, all_context_words, all_candidate_grams, all_candidate_ids
 
