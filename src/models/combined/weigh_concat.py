@@ -38,11 +38,11 @@ class WeighConcat(CombinedBase):
         context_word_embs = self.word_embs(context_word_tokens)
         candidate_ent_embs = self.ent_embs(candidate_ids)
 
-        # # Apply Dropout
-        # mention_gram_embs = self.dp(mention_gram_embs)
-        # candidate_gram_embs = self.dp(candidate_gram_embs)
-        # context_word_embs = self.dp(context_word_embs)
-        # candidate_ent_embs = self.dp(candidate_ent_embs)
+        # Apply Dropout
+        mention_gram_embs = self.dp(mention_gram_embs)
+        candidate_gram_embs = self.dp(candidate_gram_embs)
+        context_word_embs = self.dp(context_word_embs)
+        candidate_ent_embs = self.dp(candidate_ent_embs)
 
         # Reshape to original shape
         candidate_gram_embs = candidate_gram_embs.view(num_abst * num_ent, num_cand, num_gram, -1)
@@ -54,9 +54,9 @@ class WeighConcat(CombinedBase):
         context_word_embs = self.orig_linear(context_word_embs)
 
         # Normalize
-        # mention_gram_embs = F.normalize(mention_gram_embs, dim=1)
-        # candidate_gram_embs = F.normalize(candidate_gram_embs, dim=2)
-        # context_word_embs = F.normalize(context_word_embs, dim=1)
+        mention_gram_embs = F.normalize(mention_gram_embs, dim=1)
+        candidate_gram_embs = F.normalize(candidate_gram_embs, dim=2)
+        context_word_embs = F.normalize(context_word_embs, dim=1)
 
         # Concatenate word / gram embeddings (unweighted)
         combined_ent = torch.cat((candidate_ent_embs, candidate_gram_embs), dim=2)
@@ -66,7 +66,7 @@ class WeighConcat(CombinedBase):
         w = self.sigmoid(self.weighing_linear(combined_mention_unw))
 
         # Apply dropout
-        # w = self.dp(w)
+        w = self.dp(w)
 
         # Concatenate word / gram embeddings (weighted)
         combined_mention_w = torch.cat((w * context_word_embs, (1 - w) * mention_gram_embs), dim=1)
