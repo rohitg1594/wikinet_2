@@ -28,12 +28,7 @@ max_ent_size:60
 
 # Model types
 init_rand:False
-include_word:False
-include_gram:True
-include_context:True
-include_mention:True
-weigh_concat:False
-only_prior:True
+model_name:only_prior
 
 # Model Params
 measure:ip
