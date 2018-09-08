@@ -14,8 +14,9 @@ class WeighConcat(CombinedBase):
         super().__init__(**kwargs)
 
         # Weighing linear layer / sigmoid / dropout
-        self.weighing_linear = nn.Linear(self.ent_embs.weight.shape[1] + self.gram_embs.weight.shape[1], 1, bias=False)
-        self.weighing_linear.weight.data.copy_(torch.from_numpy(np.ones((self.ent_embs.shape[1] + self.gram_embs.shape[1]))))
+        weighing_linear = kwargs['weighing_linear']
+        self.weighing_linear = nn.Linear(*weighing_linear.shape, bias=False)
+        self.weighing_linear.weight.data.copy_(weighing_linear)
         self.sigmoid = nn.Sigmoid()
         self.dp = nn.Dropout(self.args.dp)
 

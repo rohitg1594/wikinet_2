@@ -151,6 +151,9 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
     if model_name == 'include_word':
         model_type = IncludeWord
     elif model_name == 'weigh_concat':
+        weighing_linear = torch.Tensor(ent_embs.shape[1] + gram_embs.shape[1], 1)
+        torch.nn.init.eye(weighing_linear)
+        kwargs['weighing_linear'] = weighing_linear
         model_type = WeighConcat
     elif model_name == 'include_gram':
         model_type = IncludeGram
