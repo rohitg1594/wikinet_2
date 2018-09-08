@@ -289,7 +289,7 @@ class CombinedDataSet(object):
             return self._getitem_include_word(mask, mentions, all_candidate_ids, all_context_tokens)
         elif self.model_name == 'mention_prior':
             return self._getitem_mention_prior(mask, mentions, all_candidate_ids, all_context_tokens)
-        elif self.model_name == 'include_gram':
+        elif self.model_name in ['include_gram', 'weigh_concat']:
             return self._getitem_include_gram(mask, mentions, all_candidate_ids, all_context_tokens)
         else:
             self.logger.info('model name {} dataloader not implemented'.format(self.model_name))

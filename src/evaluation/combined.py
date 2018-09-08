@@ -317,11 +317,6 @@ class CombinedValidator:
 
         return ent_combined_embs
 
-    def _get_ent_combined_weigh_concat(self, params):
-
-        # TODO : Finish This
-        raise NotImplementedError
-
     def _get_mention_combined_mention_prior(self, gram_indices, word_indices, context_indices, params):
 
         gram_embs = params['gram_embs']
@@ -415,11 +410,6 @@ class CombinedValidator:
 
         return mention_combined_embs
 
-    def _get_mention_combined_weigh_concat(self, params):
-
-        # TODO : Finish This
-        raise NotImplementedError
-
     def _get_mention_combined_embs(self, params, data):
         """get mention embeddings for different models."""
 
@@ -441,12 +431,10 @@ class CombinedValidator:
             mention_combined_embs = self._get_mention_combined_only_prior_linear(word_indices, params)
         elif self.model_name == 'include_word':
             mention_combined_embs = self._get_mention_combined_include_word(gram_indices, word_indices, context_indices, params)
-        elif self.model_name == 'include_gram':
+        elif self.model_name in ['include_gram', 'weigh_concat']:
             mention_combined_embs = self._get_mention_combined_include_gram(gram_indices, context_indices, params)
         elif self.model_name == 'mention_prior':
             mention_combined_embs = self._get_mention_combined_mention_prior(gram_indices, word_indices, context_indices, params)
-        elif self.model_name == 'weigh_concat':
-            mention_combined_embs = self._get_mention_combined_weigh_concat(params)
         else:
             logger.error("model type {} not recognized".format(self.model_name))
             sys.exit(1)
@@ -463,12 +451,10 @@ class CombinedValidator:
             ent_combined_embs = self._get_ent_combined_only_prior(params)
         elif self.model_name == 'include_word':
             ent_combined_embs = self._get_ent_combined_include_word(params)
-        elif self.model_name == 'include_gram':
+        elif self.model_name in ['include_gram', 'weigh_concat']:
             ent_combined_embs = self._get_ent_combined_include_gram(params)
         elif self.model_name == 'mention_prior':
             ent_combined_embs = self._get_ent_combined_mention_prior(params)
-        elif self.model_name == 'weigh_concat':
-            ent_combined_embs = self._get_ent_combined_weigh_concat(params)
         else:
             logger.error("model type {} not recognized".format(self.model_name))
             sys.exit(1)
