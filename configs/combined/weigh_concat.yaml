@@ -22,7 +22,7 @@ mention_word_dim:32
 # Max padding
 max_word_size:5
 max_gram_size:40
-max_context_size:200
+max_context_size:100
 max_ent_size:60
 
 # Model types
@@ -42,7 +42,7 @@ norm_final:False
 
 # Candidate Generation
 cand_gen_rand:False
-num_candidates:60
+num_candidates:32
 
 # Training Settings
 patience:2
@@ -65,3 +65,7 @@ train_word:False
 train_mention:False
 train_linear:False
 train_gram:True
+
+# Cuda
+use_cuda:True
+device:0
