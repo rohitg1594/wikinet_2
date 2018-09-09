@@ -9,7 +9,7 @@ import logging
 
 import pickle
 
-from src.utils import normalize, reverse_dict
+from src.utils.utils import normalize, reverse_dict
 from src.conll.pershina import PershinaExamples
 
 logger = logging.getLogger(__name__)
