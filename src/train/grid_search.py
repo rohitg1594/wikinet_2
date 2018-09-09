@@ -186,30 +186,32 @@ logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_
 
 for lr in [0.001, 0.0001, 0.005]:
     for wd in [0.001, 0.0001, 0.005]:
-        args.__dict__['lr'] = lr
-        args.__dict__['wd'] = wd
-        logger.info("GRID SEARCH PARAMS : wd - {}, lr - {}".format(wd, lr))
+        for dp in [0, 0.1, 0.2]:
+            args.__dict__['lr'] = lr
+            args.__dict__['wd'] = wd
+            args.__dict__['dp'] = dp
+            logger.info("GRID SEARCH PARAMS : wd - {}, lr - {}, dp - {}".format(wd, lr, dp))
 
-        # Model
-        model = get_model(args,
-                          yamada_model=yamada_model,
-                          ent_embs=ent_embs,
-                          word_embs=word_embs,
-                          gram_embs=gram_embs,
-                          init=args.init_mention)
+            # Model
+            model = get_model(args,
+                              yamada_model=yamada_model,
+                              ent_embs=ent_embs,
+                              word_embs=word_embs,
+                              gram_embs=gram_embs,
+                              init=args.init_mention)
 
-        logger.info("Starting validation for untrained model.")
-        top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
-        logger.info('Dev Validation')
-        logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-        logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
+            logger.info("Starting validation for untrained model.")
+            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
+            logger.info('Dev Validation')
+            logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+            logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
 
-        trainer = Trainer(loader=train_loader,
-                          args=args,
-                          validator=validator,
-                          model=model,
-                          model_dir=model_dir,
-                          model_type='combined')
-        logger.info("Starting Training")
-        trainer.train()
-        logger.info("Finished Training")
+            trainer = Trainer(loader=train_loader,
+                              args=args,
+                              validator=validator,
+                              model=model,
+                              model_dir=model_dir,
+                              model_type='combined')
+            logger.info("Starting Training")
+            trainer.train()
+            logger.info("Finished Training")
