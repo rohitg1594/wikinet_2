@@ -26,8 +26,10 @@ max_context_size:100
 max_ent_size:60
 
 # Model types
-init_rand:False
+init_yamada:True
 model_name:mention_prior
+init_mention:pre_trained
+init_mention_model:/home/rogupta/wikinet_2/data/models/2018_09_08/only_prior/best_model.ckpt
 
 # Model Params
 measure:ip

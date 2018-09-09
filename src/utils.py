@@ -158,28 +158,37 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
     elif model_name == 'include_gram':
         model_type = IncludeGram
     elif model_name in ['only_prior', 'only_prior_linear', 'mention_prior']:
-        mention_embs = torch.Tensor(word_embs.shape[0], args.mention_word_dim)
-        ent_mention_embs = torch.Tensor(ent_embs.shape[0], args.mention_word_dim)
 
-        # Initialization
-        if init == 'normal':
-            mention_embs = torch.from_numpy(normal_initialize(word_embs.shape[0], args.mention_word_dim))
-            ent_mention_embs = torch.from_numpy(normal_initialize(ent_embs.shape[0], args.mention_word_dim))
-        elif init == 'xavier_uniform':
-            nn.init.xavier_uniform(mention_embs)
-            nn.init.xavier_uniform(ent_mention_embs)
-        elif init == 'xavier_normal':
-            nn.init.xavier_normal(mention_embs)
-            nn.init.xavier_normal(ent_mention_embs)
-        elif init == 'kaiming_uniform':
-            nn.init.kaiming_uniform(mention_embs)
-            nn.init.kaiming_uniform(ent_mention_embs)
-        elif init == 'kaiming_normal':
-            nn.init.kaiming_normal(mention_embs)
-            nn.init.kaiming_normal(ent_mention_embs)
+        if init == 'pre_trained':
+            with open(args.init_mention_model, 'rb') as f:
+                ckpt = torch.load(f, map_location='cpu')
+            mention_embs = ckpt['state_dict']['mention_embs.weight']
+            ent_mention_embs = ckpt['state_dict']['ent_mention_embs.weight']
 
-        mention_embs[0] = 0
-        ent_mention_embs[0] = 0
+        else:
+            mention_embs = torch.Tensor(word_embs.shape[0], args.mention_word_dim)
+            ent_mention_embs = torch.Tensor(ent_embs.shape[0], args.mention_word_dim)
+
+            # Initialization
+            if init == 'normal':
+                mention_embs = torch.from_numpy(normal_initialize(word_embs.shape[0], args.mention_word_dim))
+                ent_mention_embs = torch.from_numpy(normal_initialize(ent_embs.shape[0], args.mention_word_dim))
+            elif init == 'xavier_uniform':
+                nn.init.xavier_uniform(mention_embs)
+                nn.init.xavier_uniform(ent_mention_embs)
+            elif init == 'xavier_normal':
+                nn.init.xavier_normal(mention_embs)
+                nn.init.xavier_normal(ent_mention_embs)
+            elif init == 'kaiming_uniform':
+                nn.init.kaiming_uniform(mention_embs)
+                nn.init.kaiming_uniform(ent_mention_embs)
+            elif init == 'kaiming_normal':
+                nn.init.kaiming_normal(mention_embs)
+                nn.init.kaiming_normal(ent_mention_embs)
+
+            mention_embs[0] = 0
+            ent_mention_embs[0] = 0
+
         kwargs['mention_embs'] = mention_embs
         kwargs['ent_mention_embs'] = ent_mention_embs
 

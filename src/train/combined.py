@@ -56,9 +56,11 @@ padding.add_argument('--max_ent_size', type=int, help='max number of entities co
 
 # Model Type
 model_selection = parser.add_argument_group('Type of model to train.')
-model_selection.add_argument('--init_rand', type=str2bool, help='whether to initialize the combined model randomly')
+model_selection.add_argument('--init_yamada', type=str2bool, help='whether to initialize the combined model randomly')
 model_names = ['only_prior', 'only_prior_linear', 'include_word', 'include_gram', 'mention_prior', 'weigh_concat']
 model_selection.add_argument('--model_name', type=str, choices=model_names, help='type of model to train')
+model_selection.add_argument('--init_mention', type=str, help='how to initialize mention and ent mention embs')
+model_selection.add_argument('--init_mention_model', type=str, help='ckpt file to initialize mention and ent mention embs')
 
 # Model params
 model_params = parser.add_argument_group("Parameters for chosen model.")
@@ -150,7 +152,7 @@ gram_embs = normal_initialize(len(gram_dict) + 1, args.gram_dim)
 logger.info("Gram embeddings created of shape: {}".format(gram_embs.shape))
 
 # Word and Entity Embeddings
-if args.init_rand:
+if not args.init_yamada:
     logger.info("Initializing word and entity embeddings randomly...")
     word_embs = normal_initialize(yamada_model['word_emb'].shape[0], yamada_model['word_emb'].shape[1])
     ent_embs = normal_initialize(yamada_model['ent_emb'].shape[0], yamada_model['ent_emb'].shape[1])
@@ -223,7 +225,12 @@ logger.info("Dataset created.")
 logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
 
 # Model
-model = get_model(args, yamada_model=yamada_model, ent_embs=ent_embs, word_embs=word_embs, gram_embs=gram_embs)
+model = get_model(args,
+                  yamada_model=yamada_model,
+                  ent_embs=ent_embs,
+                  word_embs=word_embs,
+                  gram_embs=gram_embs,
+                  init=args.init_mention)
 if args.use_cuda:
     if isinstance(args.device, tuple):
         model = model.cuda(args.device[0])

@@ -26,7 +26,7 @@ max_context_size:100
 max_ent_size:60
 
 # Model types
-init_rand:False
+init_yamada:True
 model_name:weigh_concat
 
 # Model Params
