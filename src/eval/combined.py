@@ -10,10 +10,10 @@ import re
 
 from logging import getLogger
 
-from src.utils import reverse_dict, equalize_len, normalize, sigmoid
-from src.evaluation.utils import eval_ranking, check_errors
+from src.utils.utils import reverse_dict, equalize_len, normalize, sigmoid
+from src.eval.utils import eval_ranking, check_errors
 from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
-from src.tokenization.regexp_tokenizer import RegexpTokenizer
+from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
 logger = getLogger(__name__)
 

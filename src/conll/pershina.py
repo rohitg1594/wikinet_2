@@ -3,9 +3,9 @@ from os.path import join
 import re
 from collections import defaultdict
 
-from src.utils import reverse_dict
+from src.utils.utils import reverse_dict
 from src.conll.iter_docs import is_training_doc, is_test_doc, is_dev_doc, iter_docs
-from src.tokenization.regexp_tokenizer import RegexpTokenizer
+from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
 RE_DOCID = re.compile('^\d+')
 RE_WIKI_ENT = re.compile(r'.*wiki\/(.*)')

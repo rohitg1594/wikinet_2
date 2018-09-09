@@ -5,11 +5,14 @@ import numpy as np
 import os
 from os.path import join
 import sys
-import shutil
+import logging
 
 import pickle
 
 from src.utils import normalize, reverse_dict
+from src.conll.pershina import PershinaExamples
+
+logger = logging.getLogger(__name__)
 
 
 def load_vocab(vocab_path, max_vocab=-1, plus_one=False):
@@ -124,6 +127,43 @@ def load_stats(args, yamada_model):
     return priors, conditionals
 
 
-def load_normal_data(data):
-    pass
+def load_data(args, yamada_model):
+    if args.proto_data:
+        train_data, dev_data = pickle_load(join(args.data_path, 'training_files', 'proto.pickle'))
+        test_data = []
+    else:
+        if args.data_type == 'wiki':
+            logger.info("Loading Wikipedia Training data.")
+            data = []
+            for i in range(args.num_shards):
+                data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
+
+            train_data = []
+            dev_data = []
+            test_data = []
+            for d in data:
+                if len(train_data) == args.train_size:
+                    break
+                r = np.random.random()
+                if r < 0.90:
+                    train_data.append(d)
+
+                elif 0.9 < r < 0.95:
+                    dev_data.append(d)
+                else:
+                    test_data.append(d)
+
+        elif args.data_type == 'conll':
+            logger.info("Loading Pershina Training data.")
+            pershina = PershinaExamples(args, yamada_model)
+            train_data, dev_data, test_data = pershina.get_training_examples()
+            rev_word_dict = reverse_dict(yamada_model['word_dict'])
+            train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
+                                              conll_to_wiki(dev_data, rev_word_dict), conll_to_wiki(test_data,
+                                                                                                    rev_word_dict)
+        else:
+            logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
+            sys.exit(1)
+
+    return train_data, dev_data, test_data
 

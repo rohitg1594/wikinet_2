@@ -1,6 +1,5 @@
 # Main training file
 import os
-import sys
 from os.path import join
 from datetime import datetime
 
@@ -10,12 +9,11 @@ from torch.nn import DataParallel
 
 import configargparse
 
-from src.utils import str2bool, normal_initialize, reverse_dict, get_model
-from src.data_utils import load_vocab, pickle_load, conll_to_wiki
-from src.conll.pershina import PershinaExamples
-from src.evaluation.combined import CombinedValidator
+from src.utils.utils import str2bool, normal_initialize, get_model
+from src.utils.data import load_vocab, pickle_load, load_data
+from src.eval.combined import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
-from src.tokenization.gram_tokenizer import get_gram_tokenizer
+from src.tokenizer.gram_tokenizer import get_gram_tokenizer
 from src.logger import get_logger
 from src.train.trainer import Trainer
 
@@ -42,7 +40,7 @@ data.add_argument('--yamada_model', type=str, help='name of yamada model')
 
 # Gram
 gram = parser.add_argument_group('Gram (uni / bi / tri) Settings.')
-gram.add_argument('--gram_type', type=str, choices=['unigram', 'bigram', 'trigram'], help='type of gram tokenization')
+gram.add_argument('--gram_type', type=str, choices=['unigram', 'bigram', 'trigram'], help='type of gram tokenizer')
 gram.add_argument('--gram_lower', type=str2bool, help='whether to lowercase gram tokens')
 gram.add_argument('--gram_vocab', type=str, help='name of gram vocab file')
 gram.add_argument('--gram_dim', type=int, help='dimension of gram embeddings')
@@ -162,42 +160,7 @@ else:
     word_embs = yamada_model['word_emb']
 
 # Training Data
-if args.proto_data:
-    train_data, dev_data = pickle_load(join(args.data_path, 'training_files', 'proto.pickle'))
-    test_data = []
-else:
-    if args.data_type == 'wiki':
-        logger.info("Loading Wikipedia Training data.")
-        data = []
-        for i in range(args.num_shards):
-            data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
-
-        train_data = []
-        dev_data = []
-        test_data = []
-        for d in data:
-            if len(train_data) == args.train_size:
-                break
-            r = np.random.random()
-            if r < 0.90:
-                train_data.append(d)
-
-            elif 0.9 < r < 0.95:
-                dev_data.append(d)
-            else:
-                test_data.append(d)
-
-    elif args.data_type == 'conll':
-            logger.info("Loading Pershina Training data.")
-            pershina = PershinaExamples(args, yamada_model)
-            train_data, dev_data, test_data = pershina.get_training_examples()
-            rev_word_dict = reverse_dict(yamada_model['word_dict'])
-            train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
-                                              conll_to_wiki(dev_data, rev_word_dict), conll_to_wiki(test_data, rev_word_dict)
-    else:
-        logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
-        sys.exit(1)
-
+train_data, dev_data, test_data = load_data(args, yamada_model)
 logger.info("Training data loaded.")
 logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 

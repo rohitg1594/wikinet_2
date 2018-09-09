@@ -140,6 +140,7 @@ def str2bool(v):
 
 def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=None, init='xavier_normal'):
     """Based on parameters in args, initialize and return appropriate model."""
+
     kwargs = {'args': args,
               'gram_embs': gram_embs,
               'ent_embs': ent_embs,

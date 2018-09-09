@@ -8,8 +8,8 @@ import numpy as np
 import torch
 import torch.utils.data
 
-from src.utils import reverse_dict, equalize_len, get_normalised_forms
-from src.tokenization.regexp_tokenizer import RegexpTokenizer
+from src.utils.utils import reverse_dict, equalize_len, get_normalised_forms
+from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
 
 class CombinedDataSet(object):

@@ -5,8 +5,8 @@ import torch.utils.data
 
 from os.path import join
 
-from src.utils import get_normalised_forms, reverse_dict
-from src.data_utils import pickle_load
+from src.utils.utils import get_normalised_forms, reverse_dict
+from src.utils.data import pickle_load
 
 
 class YamadaConllDataset(object):

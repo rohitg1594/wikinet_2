@@ -10,11 +10,11 @@ from torch.nn import DataParallel
 
 import configargparse
 
-from src.utils import str2bool
-from src.data_utils import pickle_load
+from src.utils.utils import str2bool
+from src.utils.data import pickle_load
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada_pershina import YamadaPershina
-from src.evaluation.yamada import YamadaValidator
+from src.eval.yamada import YamadaValidator
 from src.models.yamada.yamada_context import YamadaContext
 from src.models.yamada.yamada_context_stats import YamadaContextStats
 from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
