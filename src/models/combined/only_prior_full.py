@@ -46,7 +46,7 @@ class OnlyPriorFull(CombinedBase):
         mention_embs = self.mention_embs(mention_word_tokens)
         candidate_embs = self.ent_mention_embs(self.candidate_ids)
         print('CANDIDATE EMBS SHAPE : {}'.format(candidate_embs.shape))
-        n_ent, dim = candidate_embs.shape()
+        n_ent, dim = candidate_embs.shape
         size = (n_ent * dim * 4) / (10 ** 6)
         print('CANDIDATE EMBS SIZE : {}'.format(size))
 
