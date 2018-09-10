@@ -32,7 +32,8 @@ class OnlyPriorFull(CombinedBase):
 
         self.candidate_ids = torch.arange(1, len(self.ent_mention_embs.weight)).long()
         if args.use_cuda:
-            self.candidate_ids = self.candidate_ids.cuda(self.args.device)
+            if isinstance(self.args.device, int):
+                self.candidate_ids = self.candidate_ids.cuda(self.args.device)
 
     def forward(self, inputs):
         mention_word_tokens = inputs[0]
@@ -45,10 +46,6 @@ class OnlyPriorFull(CombinedBase):
         # Get the embeddings
         mention_embs = self.mention_embs(mention_word_tokens)
         candidate_embs = self.ent_mention_embs(self.candidate_ids)
-        print('CANDIDATE EMBS SHAPE : {}'.format(candidate_embs.shape))
-        n_ent, dim = candidate_embs.shape
-        size = (n_ent * dim * 4) / (10 ** 6)
-        print('CANDIDATE EMBS SIZE : {}'.format(size))
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
