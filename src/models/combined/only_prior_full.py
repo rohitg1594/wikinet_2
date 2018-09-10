@@ -3,6 +3,8 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
+import sys
+
 from src.models.combined.base import CombinedBase
 
 
@@ -43,6 +45,8 @@ class OnlyPriorFull(CombinedBase):
         # Get the embeddings
         mention_embs = self.mention_embs(mention_word_tokens)
         candidate_embs = self.ent_mention_embs(self.candidate_ids)
+        print('CANDIDATE EMBS SHAPE : {}'.format(candidate_embs.shape))
+        print('CANDIDATE EMBS SIZE : {}'.format(sys.getsizeof(candidate_embs) / 10**6))
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
