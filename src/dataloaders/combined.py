@@ -144,6 +144,21 @@ class CombinedDataSet(object):
 
         return mask, all_mention_words, all_candidate_ids
 
+    def _getitem_only_prior_full(self, mask, mentions):
+
+        _, all_mention_words = self._init_tokens(flag='word')
+
+        for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
+            if ent_str in self.ent2id:
+                ent_id = self.ent2id[ent_str]
+            else:
+                continue
+
+            # Mention Word Tokens
+            all_mention_words[ent_idx] = self._get_tokens(mention, flag='word')
+
+        return mask, all_mention_words
+
     def _getitem_include_word(self, mask, mentions, all_candidate_ids, all_context_words):
         """getitem for model which include mention and candidate words."""
 
@@ -284,6 +299,8 @@ class CombinedDataSet(object):
 
         if self.model_name == 'only_prior' or self.model_name == 'only_prior_linear':
             return self._getitem_only_prior(mask, mentions, all_candidate_ids)
+        elif self.model_name == 'only_prior_full':
+            return self._getitem_only_prior_full(mask, mentions)
         elif self.model_name == 'include_word':
             return self._getitem_include_word(mask, mentions, all_candidate_ids, all_context_tokens)
         elif self.model_name == 'mention_prior':

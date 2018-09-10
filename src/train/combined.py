@@ -55,7 +55,7 @@ padding.add_argument('--max_ent_size', type=int, help='max number of entities co
 # Model Type
 model_selection = parser.add_argument_group('Type of model to train.')
 model_selection.add_argument('--init_yamada', type=str2bool, help='whether to initialize the combined model randomly')
-model_names = ['only_prior', 'only_prior_linear', 'include_word', 'include_gram', 'mention_prior', 'weigh_concat']
+model_names = ['only_prior', 'only_prior_linear', 'only_prior_full', 'include_word', 'include_gram', 'mention_prior', 'weigh_concat']
 model_selection.add_argument('--model_name', type=str, choices=model_names, help='type of model to train')
 model_selection.add_argument('--init_mention', type=str, help='how to initialize mention and ent mention embs')
 model_selection.add_argument('--init_mention_model', type=str, help='ckpt file to initialize mention and ent mention embs')
@@ -202,11 +202,11 @@ if args.use_cuda:
         model = model.cuda(args.device)
 
 
-logger.info("Starting validation for untrained model.")
-top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
-logger.info('Dev Validation')
-logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
+#logger.info("Starting validation for untrained model.")
+#top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
+#logger.info('Dev Validation')
+#logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+#logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
 
 # Train
 trainer = Trainer(loader=train_loader,

@@ -16,6 +16,7 @@ from src.models.combined.mention_prior import MentionPrior
 from src.models.combined.weigh_concat import WeighConcat
 from src.models.combined.only_prior import OnlyPrior
 from src.models.combined.only_prior_linear import OnlyPriorLinear
+from src.models.combined.only_prior_full import OnlyPriorFull
 
 use_cuda = torch.cuda.is_available()
 RE_WS_PRE_PUCT = re.compile(u'\s+([^a-zA-Z\d])')
@@ -215,6 +216,8 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             kwargs['mention_linear_b'] = mention_linear_b
 
             model_type = OnlyPriorLinear
+        elif model_name == 'only_prior_full':
+            model_type = OnlyPriorFull
         else:
             model_type = MentionPrior
     else:
