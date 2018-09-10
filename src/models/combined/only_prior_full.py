@@ -1,4 +1,4 @@
-# Model that only tries to learn the prior probability through mention words
+# Model that only tries to learn the prior probability through mention words, it predicts on all candidates
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
