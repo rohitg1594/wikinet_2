@@ -14,6 +14,7 @@ class OnlyPriorFull(CombinedBase):
         # Unpack args
         mention_embs = kwargs['mention_embs']
         ent_mention_embs = kwargs['ent_mention_embs']
+        args = kwargs['args']
 
         # Mention embeddings
         self.mention_embs = nn.Embedding(mention_embs.shape[0], mention_embs.shape[1], padding_idx=0,
@@ -28,6 +29,8 @@ class OnlyPriorFull(CombinedBase):
         self.ent_mention_embs.weight.requires_grad = self.args.train_mention
 
         self.candidate_ids = torch.arange(1, len(self.ent_mention_embs.weight)).long()
+        if args.use_cuda:
+            self.candidate_ids = self.candidate_ids.cuda(self.args.device)
 
     def forward(self, inputs):
         mention_word_tokens = inputs[0]
