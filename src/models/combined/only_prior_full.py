@@ -46,7 +46,9 @@ class OnlyPriorFull(CombinedBase):
         mention_embs = self.mention_embs(mention_word_tokens)
         candidate_embs = self.ent_mention_embs(self.candidate_ids)
         print('CANDIDATE EMBS SHAPE : {}'.format(candidate_embs.shape))
-        print('CANDIDATE EMBS SIZE : {}'.format(sys.getsizeof(candidate_embs) / 10**6))
+        n_ent, dim = candidate_embs.shape()
+        size = (n_ent * dim * 4) / (10 ** 6)
+        print('CANDIDATE EMBS SIZE : {}'.format(size))
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
@@ -57,6 +59,8 @@ class OnlyPriorFull(CombinedBase):
             mention_embs_agg = F.normalize(mention_embs_agg, dim=1)
 
         # Dot product over last dimension
-        scores = (mention_embs_agg * candidate_embs).sum(dim=1)
+        mention_embs_agg.unsqueeze_(1)
+        candidate_embs.unsqueeze_(0)
+        scores = (mention_embs_agg * candidate_embs).sum(dim=2)
 
         return scores
