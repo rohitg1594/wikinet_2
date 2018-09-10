@@ -28,7 +28,7 @@ class OnlyPriorFull(CombinedBase):
         self.ent_mention_embs.weight.requires_grad = self.args.train_mention
 
     def forward(self, inputs):
-        mention_word_tokens = inputs
+        mention_word_tokens = inputs[0]
 
         num_abst, num_ent, num_word = mention_word_tokens.shape
 
