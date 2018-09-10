@@ -159,7 +159,7 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
         model_type = WeighConcat
     elif model_name == 'include_gram':
         model_type = IncludeGram
-    elif model_name in ['only_prior', 'only_prior_linear', 'mention_prior']:
+    elif 'prior' in model_name:
 
         if init == 'pre_trained':
             logger.info("Loading mention and ent mention embs from {}".format(args.init_mention_model))

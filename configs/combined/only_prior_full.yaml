@@ -1,6 +1,6 @@
 # General
 seed:-1
-exp_name:only_prior
+exp_name:only_prior_full
 debug:False
 
 # Data
