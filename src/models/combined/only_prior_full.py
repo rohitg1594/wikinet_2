@@ -27,6 +27,8 @@ class OnlyPriorFull(CombinedBase):
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
         self.ent_mention_embs.weight.requires_grad = self.args.train_mention
 
+        self.candidate_ids = torch.arange(1, len(self.ent_mention_embs.weight)).long()
+
     def forward(self, inputs):
         mention_word_tokens = inputs[0]
 
@@ -34,11 +36,10 @@ class OnlyPriorFull(CombinedBase):
 
         # Reshape to two dimensions - needed because nn.Embedding only allows lookup with 2D-Tensors
         mention_word_tokens = mention_word_tokens.view(-1, num_word)
-        candidate_ids = torch.arange(1, len(self.ent_mention_embs.weight))
 
         # Get the embeddings
         mention_embs = self.mention_embs(mention_word_tokens)
-        candidate_embs = self.ent_mention_embs(candidate_ids)
+        candidate_embs = self.ent_mention_embs(self.candidate_ids)
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
