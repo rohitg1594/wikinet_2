@@ -475,7 +475,7 @@ class CombinedValidator:
         if data_type == 'wiki':
             gram_indices = torch.from_numpy(self.wiki_mention_gram_indices[self.wiki_mask, :]).long()
             word_indices = torch.from_numpy(self.wiki_mention_word_indices[self.wiki_mask, :]).long()
-            context_indices = torch.from_numpy(self.wiki_mention_context_indices[self.wiki_mask, :])
+            context_indices = torch.from_numpy(self.wiki_mention_context_indices[self.wiki_mask, :]).long()
         elif data_type == 'conll':
             gram_indices = torch.from_numpy(self.conll_mention_gram_indices).long()
             word_indices = torch.from_numpy(self.conll_mention_word_indices).long()
