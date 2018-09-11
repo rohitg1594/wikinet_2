@@ -538,6 +538,10 @@ class CombinedValidator:
             input_conll = self._get_data(data_type='wiki')
             ent_combined_embs, conll_mention_combined_embs = model(input_conll)
 
+            ent_combined_embs = ent_combined_embs.detach().numpy()
+            wiki_mention_combined_embs = wiki_mention_combined_embs.detach().numpy()
+            conll_mention_combined_embs = conll_mention_combined_embs.detach().numpy()
+
         else:
             params = self._get_model_params(model)
             ent_combined_embs = self._get_ent_combined_embs(params=params)
