@@ -5,7 +5,6 @@ import faiss
 from os.path import join
 import sys
 
-from collections import OrderedDict
 import re
 
 from logging import getLogger
@@ -13,7 +12,7 @@ from logging import getLogger
 import torch
 from torch.nn import DataParallel
 
-from src.utils.utils import reverse_dict, equalize_len, normalize, sigmoid
+from src.utils.utils import reverse_dict, equalize_len
 from src.eval.utils import eval_ranking, check_errors
 from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
@@ -211,262 +210,6 @@ class CombinedValidator:
 
         return all_gold, all_mention_gram_indices, all_mention_word_indices, all_context_word_indices
 
-    def _get_model_params(self, model):
-        """Return model's parameters from state_dict in a dictionary format.
-           Keys of return dict change depending on model type in self.args."""
-
-        # Init dict
-        params = dict()
-        new_state_dict = OrderedDict()
-
-        # Remove 'module' in state_dict's keys
-        for k, v in model.state_dict().items():
-            if 'module' in k:
-                name = k[7:]
-            else:
-                name = k
-            new_state_dict[name] = v
-
-        # Create dict
-        params['word_embs'] = new_state_dict['word_embs.weight'].cpu().numpy()
-        params['ent_embs'] = new_state_dict['ent_embs.weight'].cpu().numpy()
-        params['gram_embs'] = new_state_dict['gram_embs.weight'].cpu().numpy()
-        params['W'] = new_state_dict['orig_linear.weight'].cpu().numpy().T  # Transpose here
-        params['b'] = new_state_dict['orig_linear.bias'].cpu().numpy()
-
-        if self.model_name in ['mention_prior', 'only_prior', 'only_prior_linear']:
-            params['mention_embs'] = new_state_dict['mention_embs.weight'].cpu().numpy()
-            params['ent_mention_embs'] = new_state_dict['ent_mention_embs.weight'].cpu().numpy()
-
-        if self.model_name == 'only_prior_linear':
-            logger.info("Extracting mention linear layer from model.")
-            params['mention_linear_W'] = new_state_dict['mention_linear.weight'].cpu().numpy().T
-            params['mention_linear_b'] = new_state_dict['mention_linear.bias'].cpu().numpy()
-
-            if self.args.debug:
-                print('MENTION LINEAR W')
-                print(params['mention_linear_W'])
-                print('\n\nMENTION LINEAR b')
-                print(params['mention_linear_b'])
-
-        if self.model_name == 'weigh_concat':
-            params['weighing_linear'] = new_state_dict['weighing_linear.weight'].cpu().numpy().T  # Transpose here!
-
-        return params
-
-    def _get_ent_combined_mention_prior(self, params):
-
-        gram_embs = params['gram_embs']
-        ent_embs = params['ent_embs']
-        ent_mention_embs = params['ent_mention_embs']
-
-        if self.args.debug:
-            print("ENT MENTION EMBS")
-            print(ent_mention_embs[:5])
-
-        ent_gram_embs = gram_embs[self.ent_gram_indices, :].mean(axis=1)
-
-        if self.args.norm_gram:
-            ent_gram_embs = normalize(ent_gram_embs)
-
-        ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_mention_embs), axis=1)
-
-        return ent_combined_embs
-
-    @staticmethod
-    def _get_ent_combined_only_prior(params):
-
-        ent_combined_embs = params['ent_mention_embs']
-
-        return ent_combined_embs
-
-    def _get_ent_combined_include_word(self, params):
-
-        gram_embs = params['gram_embs']
-        ent_embs = params['ent_embs']
-        word_embs = params['word_embs']
-        ent_mention_embs = params['ent_mention_embs']
-        W = params['W']
-        b = params['b']
-
-        if self.args.debug:
-            print("ENT MENTION EMBS")
-            print(ent_mention_embs[:5])
-
-        ent_gram_embs = gram_embs[self.ent_gram_indices, :].mean(axis=1)
-        if self.args.norm_gram:
-            ent_gram_embs = normalize(ent_gram_embs)
-
-        ent_word_embs = word_embs[self.ent_word_indices, :].mean(axis=1)
-        ent_word_embs = ent_word_embs @ W + b
-
-        if self.args.norm_word:
-            ent_word_embs = normalize(ent_word_embs)
-
-        ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs, ent_word_embs), axis=1)
-
-        return ent_combined_embs
-
-    def _get_ent_combined_include_gram(self, params):
-
-        gram_embs = params['gram_embs']
-        ent_embs = params['ent_embs']
-
-        ent_gram_embs = gram_embs[self.ent_gram_indices, :].mean(axis=1)
-        if self.args.norm_gram:
-            ent_gram_embs = normalize(ent_gram_embs)
-
-        ent_combined_embs = np.concatenate((ent_embs, ent_gram_embs), axis=1)
-
-        return ent_combined_embs
-
-    def _get_mention_combined_mention_prior(self, gram_indices, word_indices, context_indices, params):
-
-        gram_embs = params['gram_embs']
-        word_embs = params['word_embs']
-        mention_embs = params['mention_embs']
-        W = params['W']
-        b = params['b']
-
-        mention_gram_embs = gram_embs[gram_indices, :].mean(axis=1)
-        if self.args.norm_gram:
-            mention_gram_embs = normalize(mention_gram_embs)
-
-        mention_word_embs = mention_embs[word_indices, :].mean(axis=1)
-        if self.args.norm_mention:
-            mention_word_embs = normalize(mention_word_embs)
-
-        mention_context_embs = word_embs[context_indices, :].mean(axis=1)
-        mention_context_embs = mention_context_embs @ W + b
-        if self.args.norm_context:
-            mention_context_embs = normalize(mention_context_embs)
-
-        mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_word_embs), axis=1)
-
-        return mention_combined_embs
-
-    def _get_mention_combined_only_prior(self, word_indices, params):
-
-        mention_embs = params['mention_embs']
-
-        mention_word_embs = mention_embs[word_indices, :].mean(axis=1)
-
-        if self.args.norm_word:
-            mention_word_embs = normalize(mention_word_embs)
-
-        mention_combined_embs = mention_word_embs
-
-        return mention_combined_embs
-
-    def _get_mention_combined_only_prior_linear(self, word_indices, params):
-
-        mention_embs = self._get_mention_combined_only_prior(word_indices, params)
-        mention_combined_embs = mention_embs @ params['mention_linear_W'] + params['mention_linear_b']
-
-        return mention_combined_embs
-
-    def _get_mention_combined_include_word(self, gram_indices, word_indices, context_indices, params):
-
-        gram_embs = params['gram_embs']
-        word_embs = params['word_embs']
-        W = params['W']
-        b = params['b']
-
-        mention_gram_embs = gram_embs[gram_indices, :].mean(axis=1)
-
-        if self.args.norm_gram:
-            mention_gram_embs = normalize(mention_gram_embs)
-
-        mention_word_embs = word_embs[word_indices, :].mean(axis=1)
-        mention_word_embs = mention_word_embs @ W + b
-
-        if self.args.norm_word:
-            mention_word_embs = normalize(mention_word_embs)
-
-        mention_context_embs = word_embs[context_indices, :].mean(axis=1)
-        mention_context_embs = mention_context_embs @ W + b
-
-        if self.args.norm_context:
-            mention_context_embs = normalize(mention_context_embs)
-
-        mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs, mention_word_embs), axis=1)
-
-        return mention_combined_embs
-
-    def _get_mention_combined_include_gram(self, gram_indices, context_indices, params):
-
-        gram_embs = params['gram_embs']
-        word_embs = params['word_embs']
-        W = params['W']
-        b = params['b']
-
-        mention_gram_embs = gram_embs[gram_indices, :].mean(axis=1)
-        if self.args.norm_gram:
-            mention_gram_embs = normalize(mention_gram_embs)
-
-        mention_context_embs = word_embs[context_indices, :].mean(axis=1)
-        mention_context_embs = mention_context_embs @ W + b
-        if self.args.norm_context:
-            mention_context_embs = normalize(mention_context_embs)
-
-        mention_combined_embs = np.concatenate((mention_context_embs, mention_gram_embs), axis=1)
-
-        return mention_combined_embs
-
-    def _get_mention_combined_embs(self, params, data):
-        """get mention embeddings for different models."""
-
-        if data == 'wiki':
-            gram_indices = self.wiki_mention_gram_indices[self.wiki_mask, :]
-            word_indices = self.wiki_mention_word_indices[self.wiki_mask, :]
-            context_indices = self.wiki_mention_context_indices[self.wiki_mask, :]
-        elif data == 'conll':
-            gram_indices = self.conll_mention_gram_indices
-            word_indices = self.conll_mention_word_indices
-            context_indices = self.conll_mention_context_indices
-        else:
-            logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data))
-            sys.exit(1)
-
-        if self.model_name == 'only_prior':
-            mention_combined_embs = self._get_mention_combined_only_prior(word_indices, params)
-        elif self.model_name == 'only_prior_linear':
-            mention_combined_embs = self._get_mention_combined_only_prior_linear(word_indices, params)
-        elif self.model_name == 'include_word':
-            mention_combined_embs = self._get_mention_combined_include_word(gram_indices, word_indices, context_indices, params)
-        elif self.model_name in ['include_gram', 'weigh_concat']:
-            mention_combined_embs = self._get_mention_combined_include_gram(gram_indices, context_indices, params)
-        elif self.model_name == 'mention_prior':
-            mention_combined_embs = self._get_mention_combined_mention_prior(gram_indices, word_indices, context_indices, params)
-        else:
-            logger.error("model type {} not recognized".format(self.model_name))
-            sys.exit(1)
-
-        if self.args.norm_final:
-            mention_combined_embs = normalize(mention_combined_embs)
-
-        return mention_combined_embs
-
-    def _get_ent_combined_embs(self, params):
-        """get entity embeddings for different models."""
-
-        if self.model_name in ['only_prior', 'only_prior_linear']:
-            ent_combined_embs = self._get_ent_combined_only_prior(params)
-        elif self.model_name == 'include_word':
-            ent_combined_embs = self._get_ent_combined_include_word(params)
-        elif self.model_name in ['include_gram', 'weigh_concat']:
-            ent_combined_embs = self._get_ent_combined_include_gram(params)
-        elif self.model_name == 'mention_prior':
-            ent_combined_embs = self._get_ent_combined_mention_prior(params)
-        else:
-            logger.error("model type {} not recognized".format(self.model_name))
-            sys.exit(1)
-
-        if self.args.norm_final:
-            ent_combined_embs = normalize(ent_combined_embs)
-
-        return ent_combined_embs
-
     def _get_data(self, data_type='wiki'):
 
         ent_gram_tokens = torch.from_numpy(self.ent_gram_indices).long()
@@ -530,63 +273,20 @@ class CombinedValidator:
 
         return s
 
-    @staticmethod
-    def concat_weighted(w, emb_1, emb_2): return np.concatenate((w * emb_1, (1 - w) * emb_2), axis=1)
-
     def validate(self, model=None, error=True):
         model = model.eval()
         model = model.cpu()
 
-        if self.model_name == 'include_gram':
-            input_wiki = self._get_data(data_type='wiki')
-            _, wiki_mention_combined_embs = model(input_wiki)
-            input_conll = self._get_data(data_type='conll')
-            ent_combined_embs, conll_mention_combined_embs = model(input_conll)
+        input_wiki = self._get_data(data_type='wiki')
+        _, wiki_mention_combined_embs = model(input_wiki)
+        input_conll = self._get_data(data_type='conll')
+        ent_combined_embs, conll_mention_combined_embs = model(input_conll)
 
-            ent_combined_embs = ent_combined_embs.detach().numpy()
-            wiki_mention_combined_embs = wiki_mention_combined_embs.detach().numpy()
-            conll_mention_combined_embs = conll_mention_combined_embs.detach().numpy()
+        ent_combined_embs = ent_combined_embs.detach().numpy()
+        wiki_mention_combined_embs = wiki_mention_combined_embs.detach().numpy()
+        conll_mention_combined_embs = conll_mention_combined_embs.detach().numpy()
 
-            print(ent_combined_embs.shape, wiki_mention_combined_embs.shape, conll_mention_combined_embs.shape)
-
-        else:
-            params = self._get_model_params(model)
-            ent_combined_embs = self._get_ent_combined_embs(params=params)
-            wiki_mention_combined_embs = self._get_mention_combined_embs(params=params, data='wiki')
-            conll_mention_combined_embs = self._get_mention_combined_embs(params=params, data='conll')
-
-        assert ent_combined_embs.shape[1] == wiki_mention_combined_embs.shape[1]
-        assert ent_combined_embs.shape[1] == conll_mention_combined_embs.shape[1]
-
-        # if self.model_name == 'weigh_concat':
-        #     w = params['weighing_linear']
-        #
-        #     scores_mention_wiki = wiki_mention_combined_embs @ w
-        #     w_mention_wiki = sigmoid(scores_mention_wiki)
-        #     print("w mention wiki: {}".format(w_mention_wiki[:100]))
-        #
-        #     scores_mention_conll = conll_mention_combined_embs @ w
-        #     w_mention_conll = sigmoid(scores_mention_conll)
-        #     print("w mention conll: {}".format(w_mention_conll[:100]))
-        #
-        #     word_dim = params['word_embs'].shape[1]
-        #
-        #     assert word_dim < ent_combined_embs.shape[1]
-        #
-        #     wiki_mention_combined_embs = self.concat_weighted(w_mention_wiki, wiki_mention_combined_embs[:, :word_dim],
-        #                                                       wiki_mention_combined_embs[:, word_dim:])
-        #     conll_mention_combined_embs = self.concat_weighted(w_mention_conll, conll_mention_combined_embs[:, :word_dim],
-        #                                                       conll_mention_combined_embs[:, word_dim:])
-
-        if self.args.debug:
-            print('Ent Shape : {}'.format(ent_combined_embs.shape))
-            print('Wiki Mention Shape : {}'.format(wiki_mention_combined_embs.shape))
-            print('Conll Mention Shape : {}'.format(conll_mention_combined_embs.shape))
-            print('Wiki Gold Shape : {}'.format(self.wiki_all_gold[self.wiki_mask].shape))
-            print('Conll Gold Shape : {}'.format(self.conll_all_gold.shape))
-            print(ent_combined_embs[:5, :])
-            print(wiki_mention_combined_embs[:5, :])
-            print(conll_mention_combined_embs[:5, :])
+        print(ent_combined_embs.shape, wiki_mention_combined_embs.shape, conll_mention_combined_embs.shape)
 
         # Create / search in Faiss Index
         if self.args.measure == 'ip':
@@ -599,19 +299,6 @@ class CombinedValidator:
 
         D_wiki, I_wiki = index.search(wiki_mention_combined_embs.astype(np.float32), 100)
         D_conll, I_conll = index.search(conll_mention_combined_embs.astype(np.float32), 100)
-
-        if self.args.debug:
-            print('Wiki result : \n{}'.format(I_wiki[:20, :10]))
-            print('Conll result : \n{}'.format(I_conll[:20, :10]))
-
-            wiki_debug_result = self._get_debug_string(I=I_wiki, data='wiki', result=True)
-            conll_debug_result = self._get_debug_string(I=I_conll, data='conll', result=True)
-
-            print("Wikipedia Debug Results")
-            print(wiki_debug_result)
-
-            print("Conll Debug Results")
-            print(conll_debug_result)
 
         # Evaluate rankings
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki = eval_ranking(I_wiki, self.wiki_all_gold[self.wiki_mask], [1, 10, 100])
