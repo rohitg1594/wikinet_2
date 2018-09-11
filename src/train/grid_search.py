@@ -184,13 +184,11 @@ train_loader = train_dataset.get_loader(batch_size=args.batch_size,
 logger.info("Dataset created.")
 logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
 
-for lr in [0.001, 0.0001, 0.005]:
-    for wd in [0.001, 0.0001, 0.005]:
-        for dp in [0, 0.1, 0.2]:
-            args.__dict__['lr'] = lr
-            args.__dict__['wd'] = wd
-            args.__dict__['dp'] = dp
-            logger.info("GRID SEARCH PARAMS : wd - {}, lr - {}, dp - {}".format(wd, lr, dp))
+for norm_final in [True, False]:
+    for measure in ['ip', 'l2']:
+            args.__dict__['norm_final'] = norm_final
+            args.__dict__['measure'] = measure
+            logger.info("GRID SEARCH PARAMS : norm_final - {}, measure - {}".format(norm_final, measure))
 
             # Model
             model = get_model(args,
