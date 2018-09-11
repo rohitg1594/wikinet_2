@@ -5,6 +5,8 @@ from os.path import join
 import numpy as np
 from sklearn.model_selection import ParameterGrid
 
+import torch
+
 from src.train.combined import parse_args, setup
 from src.utils.utils import get_model
 from src.train.trainer import Trainer
@@ -13,7 +15,7 @@ np.warnings.filterwarnings('ignore')
 
 
 def grid_search():
-    param_grid = {'init': ['normal', 'xavier_normal', 'xavier_uniform', 'kaiming_normal', 'kaiming_uniform'],
+    param_grid = {'init_mention': ['normal', 'xavier_normal', 'xavier_uniform', 'kaiming_normal', 'kaiming_uniform'],
                   'mention_word_dim': [32, 64, 128],
                   'lr': [0.001, 0.001, 0.005, 0.0001],
                   'wd': [0.001, 0.005, 0.0001, 0.0005]
@@ -55,7 +57,14 @@ def grid_search():
         logger.info("Starting Training")
         trainer.train()
         logger.info("Finished Training")
-        print(result_dict)
+        model = model.cpu()
+        torch.cuda.empty_cache()
+        for k, v in result_dict:
+            print(k)
+            print('WIKI')
+            print(v['Wikipedia'])
+            print('CONLL')
+            print(v['Conll'])
 
     return result_dict
 
