@@ -1,9 +1,11 @@
 # Main training file
 import os
+import pickle
 from os.path import join
 from datetime import datetime
 
 import numpy as np
+from sklearn.model_selection import ParameterGrid
 
 import configargparse
 
@@ -184,32 +186,47 @@ train_loader = train_dataset.get_loader(batch_size=args.batch_size,
 logger.info("Dataset created.")
 logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
 
-for norm_final in [True, False]:
-    for measure in ['ip', 'l2']:
-            args.__dict__['norm_final'] = norm_final
-            args.__dict__['measure'] = measure
-            logger.info("GRID SEARCH PARAMS : norm_final - {}, measure - {}".format(norm_final, measure))
+param_grid = {'norm_final': [True, False],
+              'measure': ['ip', 'l2'],
+              'num_candidates': [16, 32, 64]
+              }
 
-            # Model
-            model = get_model(args,
-                              yamada_model=yamada_model,
-                              ent_embs=ent_embs,
-                              word_embs=word_embs,
-                              gram_embs=gram_embs,
-                              init=args.init_mention)
+result_dict = {}
 
-            logger.info("Starting validation for untrained model.")
-            top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
-            logger.info('Dev Validation')
-            logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-            logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
+for param_dict in list(ParameterGrid(param_grid)):
+    for k, v in param_dict:
+        assert k in args.__dict__
+        args.__dict__[k] = v
+        logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
+        result_key = tuple(param_dict.items())
+        result_dict[result_key] = {'Wikipedia': [],
+                                   'Conll': []}
+        # Model
+        model = get_model(args,
+                          yamada_model=yamada_model,
+                          ent_embs=ent_embs,
+                          word_embs=word_embs,
+                          gram_embs=gram_embs,
+                          init=args.init_mention)
 
-            trainer = Trainer(loader=train_loader,
-                              args=args,
-                              validator=validator,
-                              model=model,
-                              model_dir=model_dir,
-                              model_type='combined')
-            logger.info("Starting Training")
-            trainer.train()
-            logger.info("Finished Training")
+        logger.info("Starting validation for untrained model.")
+        top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
+        result_dict[result_key]['Wikipedia'].append((top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+        result_dict[result_key]['Conll'].append((top1_conll, top10_conll, top100_conll, mrr_conll))
+        logger.info('Dev Validation')
+        logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+        logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
+
+        trainer = Trainer(loader=train_loader,
+                          args=args,
+                          validator=validator,
+                          model=model,
+                          model_dir=model_dir,
+                          model_type='combined',
+                          result_dict=result_dict)
+        logger.info("Starting Training")
+        trainer.train()
+        logger.info("Finished Training")
+
+with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
+    pickle.dump(result_dict, f)

@@ -16,7 +16,8 @@ logger = logging.getLogger()
 
 class Trainer(object):
 
-    def __init__(self, loader=None, args=None, model=None, validator=None, model_dir=None, model_type=None):
+    def __init__(self, loader=None, args=None, model=None, validator=None, model_dir=None, model_type=None,
+                 result_dict=None, result_key=None):
         self.loader = loader
         self.args = args
         self.model = model
@@ -26,6 +27,8 @@ class Trainer(object):
         self.model_dir = model_dir
         self.min_delta = 1e-03
         self.patience = self.args.patience
+        self.result_dict = result_dict
+        self.result_key = result_key
 
         if args.optim == 'adagrad':
             self.optimizer = torch.optim.Adagrad(filter(lambda p: p.requires_grad, self.model.parameters()), lr=args.lr, weight_decay=args.wd)
@@ -150,7 +153,9 @@ class Trainer(object):
     def combined_validate(self, epoch):
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.validator.validate(
             model=self.model)
-        logger.info('Dev Validation')
+        if self.result_dict is not None:
+            self.result_dict[self.result_key]['Wikipedia'].append((top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+            self.result_dict[self.result_key]['Conll'].append((top1_conll, top10_conll, top100_conll, mrr_conll))
         logger.info(
             "Wikipedia: Epoch {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
                                                                                                          top1_wiki,
