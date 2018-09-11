@@ -477,17 +477,22 @@ class CombinedValidator:
             word_indices = torch.from_numpy(self.wiki_mention_word_indices[self.wiki_mask, :]).long()
             context_indices = torch.from_numpy(self.wiki_mention_context_indices[self.wiki_mask, :])
         elif data_type == 'conll':
-            gram_indices = torch.from_numpy(self.conll_mention_gram_indices)
-            word_indices = torch.from_numpy(self.conll_mention_word_indices)
-            context_indices = torch.from_numpy(self.conll_mention_context_indices)
+            gram_indices = torch.from_numpy(self.conll_mention_gram_indices).long()
+            word_indices = torch.from_numpy(self.conll_mention_word_indices).long()
+            context_indices = torch.from_numpy(self.conll_mention_context_indices).long()
         else:
             logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data_type))
             sys.exit(1)
 
-        if self.model_name == 'include_gram':
+        if self.model_name in ['include_gram', 'weigh_concat']:
             data = (gram_indices, context_indices, ent_gram_tokens, ent_indices)
         elif self.model_name == 'mention prior':
             data = (gram_indices, word_indices, context_indices, ent_gram_tokens, ent_indices)
+        elif self.model_name in ['only_prior', 'only_prior_linear']:
+            data = (word_indices, ent_indices)
+        else:
+            logger.error('model {} not implemented'.format(data_type))
+            sys.exit(1)
 
         return data
 
