@@ -32,7 +32,7 @@ class OnlyPrior(CombinedBase):
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
 
-        if len(mention_word_tokens) == 3:
+        if len(mention_word_tokens.shape) == 3:
             num_abst, num_ent, num_word = mention_word_tokens.shape
             num_abst, num_ent, num_cand = candidate_ids.shape
 
