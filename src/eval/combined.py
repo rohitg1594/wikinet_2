@@ -518,8 +518,8 @@ class CombinedValidator:
             ent_combined_embs, wiki_mention_combined_embs = model(
                 (gram_indices, context_indices, ent_gram_tokens, ent_indices))
             logger.info("FORWARD FINFISHED")
-            gram_indices = torch.from_numpy(self.conll_mention_gram_indices)
-            context_indices = torch.from_numpy(self.conll_mention_context_indices)
+            gram_indices = torch.from_numpy(self.conll_mention_gram_indices).long()
+            context_indices = torch.from_numpy(self.conll_mention_context_indices).long()
             logger.info("SENDING FULL CONLL DATA TO MODEL")
             ent_combined_embs, conll_mention_combined_embs = model(
                 (gram_indices, context_indices, ent_gram_tokens, ent_indices))
