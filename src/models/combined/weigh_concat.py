@@ -103,15 +103,8 @@ class WeighConcat(CombinedBase):
             # Calculate weights
             w = self.sigmoid(self.weighing_linear(combined_mention_unw))
 
-            # Apply dropout
-            w = self.dp(w)
-
             # Concatenate word / gram embeddings (weighted)
             combined_mention_w = torch.cat((w * context_word_embs, (1 - w) * mention_gram_embs), dim=1)
-            combined_mention_w.unsqueeze_(1)
 
-            # Dot product over last dimension
-            scores = (combined_mention_w * combined_ent).sum(dim=2)
-
-            return scores
+            return combined_ent, combined_mention_w
 

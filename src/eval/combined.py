@@ -558,25 +558,25 @@ class CombinedValidator:
         assert ent_combined_embs.shape[1] == wiki_mention_combined_embs.shape[1]
         assert ent_combined_embs.shape[1] == conll_mention_combined_embs.shape[1]
 
-        if self.model_name == 'weigh_concat':
-            w = params['weighing_linear']
-
-            scores_mention_wiki = wiki_mention_combined_embs @ w
-            w_mention_wiki = sigmoid(scores_mention_wiki)
-            print("w mention wiki: {}".format(w_mention_wiki[:100]))
-
-            scores_mention_conll = conll_mention_combined_embs @ w
-            w_mention_conll = sigmoid(scores_mention_conll)
-            print("w mention conll: {}".format(w_mention_conll[:100]))
-
-            word_dim = params['word_embs'].shape[1]
-
-            assert word_dim < ent_combined_embs.shape[1]
-
-            wiki_mention_combined_embs = self.concat_weighted(w_mention_wiki, wiki_mention_combined_embs[:, :word_dim],
-                                                              wiki_mention_combined_embs[:, word_dim:])
-            conll_mention_combined_embs = self.concat_weighted(w_mention_conll, conll_mention_combined_embs[:, :word_dim],
-                                                              conll_mention_combined_embs[:, word_dim:])
+        # if self.model_name == 'weigh_concat':
+        #     w = params['weighing_linear']
+        #
+        #     scores_mention_wiki = wiki_mention_combined_embs @ w
+        #     w_mention_wiki = sigmoid(scores_mention_wiki)
+        #     print("w mention wiki: {}".format(w_mention_wiki[:100]))
+        #
+        #     scores_mention_conll = conll_mention_combined_embs @ w
+        #     w_mention_conll = sigmoid(scores_mention_conll)
+        #     print("w mention conll: {}".format(w_mention_conll[:100]))
+        #
+        #     word_dim = params['word_embs'].shape[1]
+        #
+        #     assert word_dim < ent_combined_embs.shape[1]
+        #
+        #     wiki_mention_combined_embs = self.concat_weighted(w_mention_wiki, wiki_mention_combined_embs[:, :word_dim],
+        #                                                       wiki_mention_combined_embs[:, word_dim:])
+        #     conll_mention_combined_embs = self.concat_weighted(w_mention_conll, conll_mention_combined_embs[:, :word_dim],
+        #                                                       conll_mention_combined_embs[:, word_dim:])
 
         if self.args.debug:
             print('Ent Shape : {}'.format(ent_combined_embs.shape))

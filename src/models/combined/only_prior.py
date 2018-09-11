@@ -32,36 +32,44 @@ class OnlyPrior(CombinedBase):
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
 
-        # print('INPUT TO MODEL')
-        #
-        # print('MENTION_WORD_TOKENS')
-        # print(mention_word_tokens[:5])
-        # print('CANDIDATE_IDS')
-        # print(candidate_ids[:5, :10])
-        # sys.exit(1)
+        if len(mention_word_tokens) == 3:
+            num_abst, num_ent, num_word = mention_word_tokens.shape
+            num_abst, num_ent, num_cand = candidate_ids.shape
 
-        num_abst, num_ent, num_word = mention_word_tokens.shape
-        num_abst, num_ent, num_cand = candidate_ids.shape
+            # Reshape to two dimensions - needed because nn.Embedding only allows lookup with 2D-Tensors
+            mention_word_tokens = mention_word_tokens.view(-1, num_word)
+            candidate_ids = candidate_ids.view(-1, num_cand)
 
-        # Reshape to two dimensions - needed because nn.Embedding only allows lookup with 2D-Tensors
-        mention_word_tokens = mention_word_tokens.view(-1, num_word)
-        candidate_ids = candidate_ids.view(-1, num_cand)
+            # Get the embeddings
+            mention_embs = self.mention_embs(mention_word_tokens)
+            candidate_embs = self.ent_mention_embs(candidate_ids)
 
-        # Get the embeddings
-        mention_embs = self.mention_embs(mention_word_tokens)
-        candidate_embs = self.ent_mention_embs(candidate_ids)
+            # Sum the embeddings over the small and large tokens dimension
+            mention_embs_agg = torch.mean(mention_embs, dim=1)
 
-        # Sum the embeddings over the small and large tokens dimension
-        mention_embs_agg = torch.mean(mention_embs, dim=1)
+            # Normalize
+            if self.args.norm_final:
+                candidate_embs = F.normalize(candidate_embs, dim=2)
+                mention_embs_agg = F.normalize(mention_embs_agg, dim=1)
 
-        # Normalize
-        if self.args.norm_final:
-            candidate_embs = F.normalize(candidate_embs, dim=2)
-            mention_embs_agg = F.normalize(mention_embs_agg, dim=1)
+            mention_embs_agg.unsqueeze_(1)
 
-        mention_embs_agg.unsqueeze_(1)
+            # Dot product over last dimension
+            scores = (mention_embs_agg * candidate_embs).sum(dim=2)
 
-        # Dot product over last dimension
-        scores = (mention_embs_agg * candidate_embs).sum(dim=2)
+            return scores
 
-        return scores
+        else:
+            # Get the embeddings
+            mention_embs = self.mention_embs(mention_word_tokens)
+            candidate_embs = self.ent_mention_embs(candidate_ids)
+
+            # Sum the embeddings over the small and large tokens dimension
+            mention_embs_agg = torch.mean(mention_embs, dim=1)
+
+            # Normalize
+            if self.args.norm_final:
+                candidate_embs = F.normalize(candidate_embs, dim=1)
+                mention_embs_agg = F.normalize(mention_embs_agg, dim=1)
+
+            return candidate_embs, mention_embs_agg
