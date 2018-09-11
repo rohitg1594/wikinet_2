@@ -194,7 +194,7 @@ param_grid = {'norm_final': [True, False],
 result_dict = {}
 
 for param_dict in list(ParameterGrid(param_grid)):
-    for k, v in param_dict:
+    for k, v in param_dict.items():
         assert k in args.__dict__
         args.__dict__[k] = v
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
