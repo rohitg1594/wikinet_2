@@ -128,18 +128,3 @@ if __name__ == "__main__":
     with open(join(args.data_path, 'necounts', 'new_necounts.pickle'), 'wb') as f:
         pickle.dump(ne_counts_dict, f)
     logging.info("Done.")
-
-    #logging.info('Creating necounts dict.')
-    #current_shard = 0
-    #dict_shard = {}
-    #for i, ne_count in enumerate(ne_counts):
-    #    mention, counter = ne_count
-    #    dict_shard[mention] = counter
-    #    if i % 10 ** 5 == 0:
-    #        logging.info('Saving to disk shard {}.'.format(current_shard))
-    #        with open(join(args.data_path, 'necounts', 'necounts_{}'.format(str(current_shard))), 'wb') as f:
-    #            pickle.dump(dict_shard, f)
-    #        logging.info('Saved.')
-    #        current_shard += 1
-    #        dict_shard = {}
-
