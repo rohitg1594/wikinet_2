@@ -47,7 +47,7 @@ class CombinedDataSet(object):
             with open(join(self.args.data_path, 'necounts', 'normal_necounts.pickle'), 'rb') as f:
                 self.necounts = pickle.load(f)
 
-    def _get_candidates(self, ent_id, mention):
+    def _get_candidates(self, ent_id, mention, prior=False):
         """Candidate generation step, can be random or based on necounts."""
 
         if self.args.cand_gen_rand:
@@ -73,7 +73,19 @@ class CombinedDataSet(object):
 
             candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random))
 
-        return candidate_ids
+        if prior:
+            priors = np.zeros(self.args.num_candidates)
+            nfs = get_normalised_forms(mention)
+            for i, cand_id in enumerate(candidate_ids):
+                for nf in nfs:
+                    if nf in self.necounts:
+                        if cand_id in self.necounts[nf]:
+                            priors[i] = self.necounts[nf]
+                            break
+        if not prior:
+            return candidate_ids
+        else:
+            return candidate_ids, priors
 
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
@@ -143,6 +155,28 @@ class CombinedDataSet(object):
             all_candidate_ids[ent_idx] = candidate_ids
 
         return mask, all_mention_words, all_candidate_ids
+
+    def _getitem_only_prior_regress(self, mask, mentions, all_candidate_ids):
+        """getitem for only prior with regression model."""
+
+        all_candidate_words, all_mention_words = self._init_tokens(flag='word')
+        all_candidate_priors = np.zeros_like(all_candidate_ids)
+
+        for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
+            if ent_str in self.ent2id:
+                ent_id = self.ent2id[ent_str]
+            else:
+                continue
+
+            # Mention Word Tokens
+            all_mention_words[ent_idx] = self._get_tokens(mention, flag='word')
+
+            # Candidate Generation
+            candidate_ids, priors = self._get_candidates(ent_id, mention)
+            all_candidate_ids[ent_idx] = candidate_ids
+            all_candidate_priors[ent_idx] = priors
+
+        return mask, all_mention_words, all_candidate_ids, all_candidate_priors
 
     def _getitem_only_prior_full(self, mask, mentions):
 
@@ -301,6 +335,8 @@ class CombinedDataSet(object):
             return self._getitem_only_prior(mask, mentions, all_candidate_ids)
         elif self.model_name == 'only_prior_full':
             return self._getitem_only_prior_full(mask, mentions)
+        elif self.model_name == 'only_prior_regress':
+            return self._getitem_only_prior_regress(mask, mentions)
         elif self.model_name == 'include_word':
             return self._getitem_include_word(mask, mentions, all_candidate_ids, all_context_tokens)
         elif self.model_name == 'mention_prior':

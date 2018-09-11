@@ -13,9 +13,10 @@ np.warnings.filterwarnings('ignore')
 
 
 def grid_search():
-    param_grid = {'norm_final': [True, False],
-                  'measure': ['ip', 'l2'],
-                  'num_candidates': [16, 32, 64]
+    param_grid = {'init': ['normal', 'xavier_normal', 'xavier_uniform', 'kaiming_normal', 'kaiming_uniform'],
+                  'mention_word_dim': [32, 64, 128],
+                  'lr': [0.001, 0.001, 0.005, 0.0001],
+                  'wd': [0.001, 0.005, 0.0001, 0.0005]
                   }
     result_dict = {}
 
