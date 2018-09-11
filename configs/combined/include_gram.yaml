@@ -29,7 +29,6 @@ max_ent_size:60
 init_yamada:True
 model_name:include_gram
 init_mention:xavier_normal
-init_mention_model:
 
 # Model Params
 measure:ip
