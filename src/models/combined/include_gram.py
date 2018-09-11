@@ -15,7 +15,7 @@ class IncludeGram(CombinedBase):
     def forward(self, inputs):
         mention_gram_tokens, context_word_tokens, candidate_gram_tokens, candidate_ids = inputs
 
-        if len(candidate_gram_tokens.shape == 4):
+        if len(candidate_gram_tokens.shape) == 4:
             num_abst, num_ent, num_cand, num_gram = candidate_gram_tokens.shape
             num_abst, num_ent, num_context = context_word_tokens.shape
 
