@@ -146,7 +146,7 @@ def parse_args():
     return args, logger, model_dir
 
 
-def setup():
+def setup(args, logger):
     # Yamada model
     print()
     logger.info("Loading Yamada model.")
@@ -203,7 +203,6 @@ def setup():
 
 
 def train():
-
     # Model
     model = get_model(args,
                       yamada_model=yamada_model,
@@ -243,5 +242,5 @@ def train():
 
 if __name__ == '__main__':
     args, logger, model_dir = parse_args()
-    train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs = setup()
+    train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs = setup(args, logger)
     train()

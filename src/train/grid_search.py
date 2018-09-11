@@ -59,7 +59,7 @@ def grid_search():
 
 if __name__ == '__main__':
     args, logger, model_dir = parse_args()
-    train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs = setup()
+    train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs = setup(args, logger)
     result_dict = grid_search()
     with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
         pickle.dump(result_dict, f)
