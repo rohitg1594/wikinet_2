@@ -59,7 +59,7 @@ def grid_search():
         logger.info("Finished Training")
         model = model.cpu()
         torch.cuda.empty_cache()
-        for k, v in result_dict:
+        for k, v in result_dict.items():
             print(k)
             print('WIKI')
             print(v['Wikipedia'])
