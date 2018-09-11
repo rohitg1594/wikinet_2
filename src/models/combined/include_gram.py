@@ -87,13 +87,13 @@ class IncludeGram(CombinedBase):
             # Normalize
             if self.args.norm_gram:
                 mention_gram_embs = F.normalize(mention_gram_embs, dim=1)
-                candidate_gram_embs = F.normalize(candidate_gram_embs, dim=2)
+                candidate_gram_embs = F.normalize(candidate_gram_embs, dim=1)
 
             if self.args.norm_context:
                 context_word_embs = F.normalize(context_word_embs, dim=1)
 
             # Concatenate word / gram embeddings
-            combined_ent = torch.cat((candidate_ent_embs, candidate_gram_embs), dim=2)
+            combined_ent = torch.cat((candidate_ent_embs, candidate_gram_embs), dim=1)
             combined_mention = torch.cat((context_word_embs, mention_gram_embs), dim=1)
 
             if self.args.norm_final:

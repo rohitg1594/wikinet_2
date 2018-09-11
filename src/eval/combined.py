@@ -521,13 +521,19 @@ class CombinedValidator:
             gram_indices = torch.from_numpy(self.conll_mention_gram_indices)
             context_indices = torch.from_numpy(self.conll_mention_context_indices)
             logger.info("SENDING FULL CONLL DATA TO MODEL")
-            ent_combined_embs, wiki_mention_combined_embs = model(
+            ent_combined_embs, conll_mention_combined_embs = model(
                 (gram_indices, context_indices, ent_gram_tokens, ent_indices))
             logger.info("FORWARD FINISHED")
-        params = self._get_model_params(model)
-        ent_combined_embs = self._get_ent_combined_embs(params=params)
-        wiki_mention_combined_embs = self._get_mention_combined_embs(params=params, data='wiki')
-        conll_mention_combined_embs = self._get_mention_combined_embs(params=params, data='conll')
+
+            ent_combined_embs = ent_combined_embs.numpy()
+            wiki_mention_combined_embs = wiki_mention_combined_embs.numpy()
+            conll_mention_combined_embs = conll_mention_combined_embs.numpy()
+
+        else:
+            params = self._get_model_params(model)
+            ent_combined_embs = self._get_ent_combined_embs(params=params)
+            wiki_mention_combined_embs = self._get_mention_combined_embs(params=params, data='wiki')
+            conll_mention_combined_embs = self._get_mention_combined_embs(params=params, data='conll')
 
         assert ent_combined_embs.shape[1] == wiki_mention_combined_embs.shape[1]
         assert ent_combined_embs.shape[1] == conll_mention_combined_embs.shape[1]
