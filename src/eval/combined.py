@@ -513,7 +513,7 @@ class CombinedValidator:
 
             gram_indices = torch.from_numpy(self.wiki_mention_gram_indices[self.wiki_mask, :])
             context_indices = torch.from_numpy(self.wiki_mention_context_indices[self.wiki_mask, :])
-
+            print(ent_gram_tokens.shape, ent_indices.shape, gram_indices.shape, context_indices.shape)
             logger.info("SENDING FULL WIKI DATA TO MODEL")
             ent_combined_embs, wiki_mention_combined_embs = model(
                 (gram_indices, context_indices, ent_gram_tokens, ent_indices))
