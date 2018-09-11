@@ -11,6 +11,7 @@ import re
 from logging import getLogger
 
 import torch
+from torch.nn import DataParallel
 
 from src.utils.utils import reverse_dict, equalize_len, normalize, sigmoid
 from src.eval.utils import eval_ranking, check_errors
@@ -466,6 +467,30 @@ class CombinedValidator:
 
         return ent_combined_embs
 
+    def _get_data(self, data_type='wiki'):
+
+        ent_gram_tokens = torch.from_numpy(self.ent_gram_indices).long()
+        ent_indices = torch.arange(0, len(self.ent_dict) + 1).long()
+
+        if data_type == 'wiki':
+            gram_indices = torch.from_numpy(self.wiki_mention_gram_indices[self.wiki_mask, :]).long()
+            word_indices = torch.from_numpy(self.wiki_mention_word_indices[self.wiki_mask, :]).long()
+            context_indices = torch.from_numpy(self.wiki_mention_context_indices[self.wiki_mask, :])
+        elif data_type == 'conll':
+            gram_indices = torch.from_numpy(self.conll_mention_gram_indices)
+            word_indices = torch.from_numpy(self.conll_mention_word_indices)
+            context_indices = torch.from_numpy(self.conll_mention_context_indices)
+        else:
+            logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data_type))
+            sys.exit(1)
+
+        if self.model_name == 'include_gram':
+            data = (gram_indices, word_indices, ent_gram_tokens, ent_indices)
+        elif self.model_name == 'mention prior':
+            data = (gram_indices, word_indices, context_indices, ent_gram_tokens, ent_indices)
+
+        return data
+
     def _get_debug_string(self, I=None, data='wiki', result=False):
 
         if data == 'wiki':
@@ -508,26 +533,10 @@ class CombinedValidator:
         model = model.cpu()
 
         if self.model_name == 'include_gram':
-            ent_gram_tokens = torch.from_numpy(self.ent_gram_indices).long()
-            ent_indices = torch.arange(0, len(self.ent_dict) + 1).long()
-
-            gram_indices = torch.from_numpy(self.wiki_mention_gram_indices[self.wiki_mask, :]).long()
-            context_indices = torch.from_numpy(self.wiki_mention_context_indices[self.wiki_mask, :]).long()
-            print(ent_gram_tokens.shape, ent_indices.shape, gram_indices.shape, context_indices.shape)
-            logger.info("SENDING FULL WIKI DATA TO MODEL")
-            ent_combined_embs, wiki_mention_combined_embs = model(
-                (gram_indices, context_indices, ent_gram_tokens, ent_indices))
-            logger.info("FORWARD FINFISHED")
-            gram_indices = torch.from_numpy(self.conll_mention_gram_indices).long()
-            context_indices = torch.from_numpy(self.conll_mention_context_indices).long()
-            logger.info("SENDING FULL CONLL DATA TO MODEL")
-            ent_combined_embs, conll_mention_combined_embs = model(
-                (gram_indices, context_indices, ent_gram_tokens, ent_indices))
-            logger.info("FORWARD FINISHED")
-
-            ent_combined_embs = ent_combined_embs.detach().numpy()
-            wiki_mention_combined_embs = wiki_mention_combined_embs.detach().numpy()
-            conll_mention_combined_embs = conll_mention_combined_embs.detach().numpy()
+            input_wiki = self._get_data(data_type='wiki')
+            _, wiki_mention_combined_embs = model(input_wiki)
+            input_conll = self._get_data(data_type='wiki')
+            ent_combined_embs, conll_mention_combined_embs = model(input_conll)
 
         else:
             params = self._get_model_params(model)
@@ -606,5 +615,12 @@ class CombinedValidator:
             print('Conll Errors')
             check_errors(I_conll, self.conll_all_gold, self.conll_mention_gram_indices,
                          self.rev_ent_dict, self.rev_gram_dict, [1, 10, 100])
+
+        if self.args.use_cuda:
+            if isinstance(self.args.device, tuple):
+                model = model.cuda(self.args.device[0])
+                model = DataParallel(model, self.args.device)
+            else:
+                model = model.cuda(self.args.device)
 
         return top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll
