@@ -70,11 +70,7 @@ class IncludeGram(CombinedBase):
 
         else:
             num_cand, num_gram = candidate_gram_tokens.shape
-            num_abst, num_ent, num_context = context_word_tokens.shape
-
-            # Reshape to two dimensions - needed because nn.Embedding only allows lookup with 2D-Tensors
-            mention_gram_tokens = mention_gram_tokens.view(-1, num_gram)
-            context_word_tokens = context_word_tokens.view(-1, num_context)
+            num_men, num_context = context_word_tokens.shape
 
             # Get the embeddings
             mention_gram_embs = self.gram_embs(mention_gram_tokens)
@@ -84,7 +80,7 @@ class IncludeGram(CombinedBase):
 
             # Sum the embeddings over the small and large tokens dimension
             mention_gram_embs = torch.mean(mention_gram_embs, dim=1)
-            candidate_gram_embs = torch.mean(candidate_gram_embs, dim=2)
+            candidate_gram_embs = torch.mean(candidate_gram_embs, dim=1)
             context_word_embs = torch.mean(context_word_embs, dim=1)
             context_word_embs = self.orig_linear(context_word_embs)
 
