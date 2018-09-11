@@ -542,6 +542,8 @@ class CombinedValidator:
             wiki_mention_combined_embs = wiki_mention_combined_embs.detach().numpy()
             conll_mention_combined_embs = conll_mention_combined_embs.detach().numpy()
 
+            print(ent_combined_embs.shape, wiki_mention_combined_embs.shape, conll_mention_combined_embs.shape)
+
         else:
             params = self._get_model_params(model)
             ent_combined_embs = self._get_ent_combined_embs(params=params)
