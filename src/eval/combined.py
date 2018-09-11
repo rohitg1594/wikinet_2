@@ -286,8 +286,6 @@ class CombinedValidator:
         wiki_mention_combined_embs = wiki_mention_combined_embs.detach().numpy()
         conll_mention_combined_embs = conll_mention_combined_embs.detach().numpy()
 
-        print(ent_combined_embs.shape, wiki_mention_combined_embs.shape, conll_mention_combined_embs.shape)
-
         # Create / search in Faiss Index
         if self.args.measure == 'ip':
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])

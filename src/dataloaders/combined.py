@@ -336,7 +336,7 @@ class CombinedDataSet(object):
         elif self.model_name == 'only_prior_full':
             return self._getitem_only_prior_full(mask, mentions)
         elif self.model_name == 'only_prior_regress':
-            return self._getitem_only_prior_regress(mask, mentions)
+            return self._getitem_only_prior_regress(mask, mentions, all_candidate_ids)
         elif self.model_name == 'include_word':
             return self._getitem_include_word(mask, mentions, all_candidate_ids, all_context_tokens)
         elif self.model_name == 'mention_prior':
