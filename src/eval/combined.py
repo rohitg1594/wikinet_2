@@ -485,7 +485,7 @@ class CombinedValidator:
             sys.exit(1)
 
         if self.model_name == 'include_gram':
-            data = (gram_indices, word_indices, ent_gram_tokens, ent_indices)
+            data = (gram_indices, context_indices, ent_gram_tokens, ent_indices)
         elif self.model_name == 'mention prior':
             data = (gram_indices, word_indices, context_indices, ent_gram_tokens, ent_indices)
 
@@ -535,7 +535,7 @@ class CombinedValidator:
         if self.model_name == 'include_gram':
             input_wiki = self._get_data(data_type='wiki')
             _, wiki_mention_combined_embs = model(input_wiki)
-            input_conll = self._get_data(data_type='wiki')
+            input_conll = self._get_data(data_type='conll')
             ent_combined_embs, conll_mention_combined_embs = model(input_conll)
 
             ent_combined_embs = ent_combined_embs.detach().numpy()
