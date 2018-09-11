@@ -21,7 +21,8 @@ np.warnings.filterwarnings('ignore')
 
 
 def parse_args():
-    parser = configargparse.ArgumentParser(description='Training Wikinet 2', formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
+    parser = configargparse.ArgumentParser(description='Training Wikinet 2',
+                                           formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
     # General
     general = parser.add_argument_group('General Settings.')
     parser.add_argument('--my-config', required=True, is_config_file=True, help='config file path')
@@ -37,7 +38,8 @@ def parse_args():
     data.add_argument('--num_shards', type=int, help='number of shards of training file')
     data.add_argument('--train_size', type=int, help='number of training abstracts')
     data.add_argument('--query_size', type=int, help='number of queries during validation')
-    data.add_argument('--conll_split', type=str, choices=['train', 'dev', 'test'],  help='which split of connl data to evaluate on')
+    data.add_argument('--conll_split', type=str, choices=['train', 'dev', 'test'],
+                      help='which split of connl data to evaluate on')
     data.add_argument('--yamada_model', type=str, help='name of yamada model')
 
     # Gram
@@ -56,11 +58,13 @@ def parse_args():
 
     # Model Type
     model_selection = parser.add_argument_group('Type of model to train.')
-    model_selection.add_argument('--init_yamada', type=str2bool, help='whether to initialize the combined model randomly')
+    model_selection.add_argument('--init_yamada', type=str2bool,
+                                 help='whether to initialize the combined model randomly')
     model_names = ['only_prior', 'only_prior_linear', 'only_prior_full', 'include_word', 'include_gram', 'mention_prior', 'weigh_concat']
     model_selection.add_argument('--model_name', type=str, choices=model_names, help='type of model to train')
     model_selection.add_argument('--init_mention', type=str, help='how to initialize mention and ent mention embs')
-    model_selection.add_argument('--init_mention_model', type=str, help='ckpt file to initialize mention and ent mention embs')
+    model_selection.add_argument('--init_mention_model', type=str,
+                                 help='ckpt file to initialize mention and ent mention embs')
 
     # Model params
     model_params = parser.add_argument_group("Parameters for chosen model.")
@@ -84,7 +88,8 @@ def parse_args():
     # Training
     train = parser.add_argument_group("Training parameters.")
     train.add_argument("--num_epochs", type=int, default=5, help="Number of epochs")
-    train.add_argument("--bold_driver", type=str2bool, default=False, help="whether to use bold driver heuristic to adjust lr")
+    train.add_argument("--bold_driver", type=str2bool, default=False,
+                       help="whether to use bold driver heuristic to adjust lr")
     train.add_argument("--save_every", type=int, default=5, help="how often to checkpoint")
     train.add_argument("--patience", type=int, default=5, help="Patience for early stopping")
     train.add_argument("--batch_size", type=int, default=32, help="Batch size")
@@ -96,7 +101,8 @@ def parse_args():
 
     # Loss
     loss = parser.add_argument_group('Type of loss.')
-    loss.add_argument('--loss_func', type=str, default='cross_entropy', choices=['cross_entropy', 'cosine'], help='loss function')
+    loss.add_argument('--loss_func', type=str, default='cross_entropy', choices=['cross_entropy', 'cosine'],
+                      help='loss function')
     loss.add_argument('--margin', type=float, help='margin of hinge loss')
 
     # Things to Train
@@ -140,8 +146,7 @@ def parse_args():
     return args, logger, model_dir
 
 
-def setup(args, logger):
-
+def setup():
     # Yamada model
     print()
     logger.info("Loading Yamada model.")
@@ -197,8 +202,8 @@ def setup(args, logger):
     return train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs
 
 
-def train(args, yamada_model=None, ent_embs=None, word_embs=None, gram_embs=None, train_loader=None, validator=None,
-          model_dir=None):
+def train():
+
     # Model
     model = get_model(args,
                       yamada_model=yamada_model,
@@ -238,6 +243,5 @@ def train(args, yamada_model=None, ent_embs=None, word_embs=None, gram_embs=None
 
 if __name__ == '__main__':
     args, logger, model_dir = parse_args()
-    train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs = setup(args, logger)
-    train(args, yamada_model=yamada_model, ent_embs=ent_embs, word_embs=word_embs, gram_embs=gram_embs,
-          validator=validator, train_loader=train_loader)
+    train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs = setup()
+    train()

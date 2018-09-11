@@ -546,7 +546,7 @@ class CombinedValidator:
         if self.args.measure == 'ip':
             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
             logger.info("Using IndexFlatIP")
-
+        else:
             index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
             logger.info("Using IndexFlatL2")
         index.add(ent_combined_embs)
