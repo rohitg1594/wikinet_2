@@ -525,9 +525,9 @@ class CombinedValidator:
                 (gram_indices, context_indices, ent_gram_tokens, ent_indices))
             logger.info("FORWARD FINISHED")
 
-            ent_combined_embs = ent_combined_embs.numpy()
-            wiki_mention_combined_embs = wiki_mention_combined_embs.numpy()
-            conll_mention_combined_embs = conll_mention_combined_embs.numpy()
+            ent_combined_embs = ent_combined_embs.detach().numpy()
+            wiki_mention_combined_embs = wiki_mention_combined_embs.detach().numpy()
+            conll_mention_combined_embs = conll_mention_combined_embs.detach().numpy()
 
         else:
             params = self._get_model_params(model)
