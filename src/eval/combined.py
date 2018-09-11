@@ -10,6 +10,8 @@ import re
 
 from logging import getLogger
 
+import torch
+
 from src.utils.utils import reverse_dict, equalize_len, normalize, sigmoid
 from src.eval.utils import eval_ranking, check_errors
 from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
@@ -503,7 +505,25 @@ class CombinedValidator:
 
     def validate(self, model=None, error=True):
         model = model.eval()
+        model = model.cpu()
 
+        if self.model_name == 'include_gram':
+            ent_gram_tokens = torch.from_numpy(self.ent_gram_indices)
+            ent_indices = torch.arange(1, len(self.ent_dict) + 1)
+
+            gram_indices = torch.from_numpy(self.wiki_mention_gram_indices[self.wiki_mask, :])
+            context_indices = torch.from_numpy(self.wiki_mention_context_indices[self.wiki_mask, :])
+
+            logger.info("SENDING FULL WIKI DATA TO MODEL")
+            ent_combined_embs, wiki_mention_combined_embs = model(
+                (gram_indices, context_indices, ent_gram_tokens, ent_indices))
+            logger.info("FORWARD FINFISHED")
+            gram_indices = torch.from_numpy(self.conll_mention_gram_indices)
+            context_indices = torch.from_numpy(self.conll_mention_context_indices)
+            logger.info("SENDING FULL CONLL DATA TO MODEL")
+            ent_combined_embs, wiki_mention_combined_embs = model(
+                (gram_indices, context_indices, ent_gram_tokens, ent_indices))
+            logger.info("FORWARD FINISHED")
         params = self._get_model_params(model)
         ent_combined_embs = self._get_ent_combined_embs(params=params)
         wiki_mention_combined_embs = self._get_mention_combined_embs(params=params, data='wiki')
