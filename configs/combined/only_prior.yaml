@@ -29,6 +29,7 @@ max_ent_size:60
 # Model types
 init_yamada:True
 model_name:only_prior
+init_mention:xavier_normal
 
 # Model Params
 measure:ip
