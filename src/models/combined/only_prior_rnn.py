@@ -63,16 +63,14 @@ class OnlyPriorRNN(CombinedBase):
         else:
             # Mask for lstm
             mask = (mention_word_tokens > 0).sum(1)
-            print('MASK : {}'.format(mask))
+
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Sum the embeddings over the small and large tokens dimension
             mention_embs, _ = self.lstm(mention_embs)
-            print('mention embs before : {}'.format(mention_embs.shape))
             mention_embs = mention_embs[torch.arange(mention_embs.shape[0]).long(), mask - 1]
-            print('mention embs after : {}'.format(mention_embs.shape))
 
             # Normalize
             if self.args.norm_final:
