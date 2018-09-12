@@ -69,8 +69,9 @@ class OnlyPriorRNN(CombinedBase):
 
             # Sum the embeddings over the small and large tokens dimension
             mention_embs, _ = self.lstm(mention_embs)
+            print(mention_embs.shape)
             mention_embs = mention_embs[mask]
-
+            print(mention_embs.shape)
             # Normalize
             if self.args.norm_final:
                 candidate_embs = F.normalize(candidate_embs, dim=1)

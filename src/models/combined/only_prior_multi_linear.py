@@ -25,8 +25,16 @@ class OnlyPriorMultiLinear(CombinedBase):
 
         # Mention linear
         self.mention_linear1 = nn.Linear(ent_mention_embs.shape[1], 128)
+        torch.nn.init.eye(self.mention_linear1.weight)
+        torch.nn.init.constant(self.mention_linear1.bias, 0)
+
         self.mention_linear2 = nn.Linear(128, 128)
+        torch.nn.init.eye(self.mention_linear2.weight)
+        torch.nn.init.constant(self.mention_linear2.bias, 0)
+
         self.mention_linear3 = nn.Linear(128, ent_mention_embs.shape[1])
+        torch.nn.init.eye(self.mention_linear3.weight)
+        torch.nn.init.constant(self.mention_linear3.bias, 0)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs

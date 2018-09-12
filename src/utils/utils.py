@@ -204,23 +204,6 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
         elif model_name == 'only_prior_rnn':
             model_type = OnlyPriorRNN
         elif model_name == 'only_prior_linear':
-
-            # Initialize linear layer with identity matrix
-            mention_linear_W = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1])
-            torch.nn.init.eye(mention_linear_W)
-            mention_linear_b = torch.Tensor(mention_embs.shape[1])
-            torch.nn.init.constant(mention_linear_b, 0)
-
-            if args.debug:
-                print('Mention Linear W:')
-                print(mention_linear_W)
-
-                print('\n\nMention Linear b:')
-                print(mention_linear_b)
-
-            kwargs['mention_linear_W'] = mention_linear_W
-            kwargs['mention_linear_b'] = mention_linear_b
-
             model_type = OnlyPriorLinear
         elif model_name == 'only_prior_full':
             model_type = OnlyPriorFull
