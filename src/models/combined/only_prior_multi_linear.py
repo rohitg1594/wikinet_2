@@ -24,15 +24,15 @@ class OnlyPriorMultiLinear(CombinedBase):
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
 
         # Mention linear
-        self.mention_linear1 = nn.Linear(ent_mention_embs.shape[1], 128)
+        self.mention_linear1 = nn.Linear(ent_mention_embs.shape[1], 64)
         torch.nn.init.eye(self.mention_linear1.weight)
         torch.nn.init.constant(self.mention_linear1.bias, 0)
 
-        self.mention_linear2 = nn.Linear(128, 128)
+        self.mention_linear2 = nn.Linear(64, 64)
         torch.nn.init.eye(self.mention_linear2.weight)
         torch.nn.init.constant(self.mention_linear2.bias, 0)
 
-        self.mention_linear3 = nn.Linear(128, ent_mention_embs.shape[1])
+        self.mention_linear3 = nn.Linear(64, ent_mention_embs.shape[1])
         torch.nn.init.eye(self.mention_linear3.weight)
         torch.nn.init.constant(self.mention_linear3.bias, 0)
 
