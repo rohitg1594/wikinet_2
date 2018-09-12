@@ -12,6 +12,7 @@ max_ent_size:60
 max_context_size:100
 
 # Model types
+model:yamada
 include_stats:True
 include_string:True
 
