@@ -120,6 +120,7 @@ def grid_search_yamada():
 
 
 if __name__ == '__main__':
+    print(sys.argv)
     if sys.argv[1] == 'combined':
         from src.train.combined import parse_args, setup
         from src.utils.utils import get_model
