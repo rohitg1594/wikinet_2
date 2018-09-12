@@ -17,6 +17,7 @@ from src.models.combined.weigh_concat import WeighConcat
 from src.models.combined.only_prior import OnlyPrior
 from src.models.combined.only_prior_linear import OnlyPriorLinear
 from src.models.combined.only_prior_full import OnlyPriorFull
+from src.models.combined.only_prior_multi_linear import OnlyPriorMultiLinear
 
 use_cuda = torch.cuda.is_available()
 RE_WS_PRE_PUCT = re.compile(u'\s+([^a-zA-Z\d])')
@@ -197,6 +198,8 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
 
         if model_name == 'only_prior':
             model_type = OnlyPrior
+        elif model_name == 'only_prior_multi_linear':
+            model_type = OnlyPriorMultiLinear
         elif model_name == 'only_prior_linear':
 
             # Initialize linear layer with identity matrix

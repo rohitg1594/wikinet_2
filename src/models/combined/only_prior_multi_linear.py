@@ -6,7 +6,7 @@ import torch.nn as nn
 from src.models.combined.base import CombinedBase
 
 
-class OnlyPriorLinear(CombinedBase):
+class OnlyPriorMultiLinear(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
