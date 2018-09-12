@@ -82,7 +82,7 @@ class OnlyPriorMultiLinear(CombinedBase):
 
             # Normalize
             if self.args.norm_final:
-                candidate_embs = F.normalize(candidate_embs, dim=2)
+                candidate_embs = F.normalize(candidate_embs, dim=1)
                 mention_embs = F.normalize(mention_embs, dim=1)
 
             return candidate_embs, mention_embs
