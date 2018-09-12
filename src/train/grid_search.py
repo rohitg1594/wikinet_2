@@ -1,6 +1,7 @@
 # Main training file
 import pickle
 from os.path import join
+import gc
 
 import numpy as np
 from sklearn.model_selection import ParameterGrid
@@ -18,9 +19,9 @@ def grid_search():
     param_grid = {'init_mention': ['normal', 'xavier_normal', 'xavier_uniform', 'kaiming_normal', 'kaiming_uniform'],
                   'mention_word_dim': [32, 64, 128],
                   'lr': [0.01, 0.001, 0.005, 0.0001],
-                  'wd': [0.001, 0.005, 0.0001, 0.0005]
+                  'wd': [0.0001, 0.0005]
                   }
-    result_dict = {}
+    results = {}
 
     for param_dict in list(ParameterGrid(param_grid)):
         for k, v in param_dict.items():
@@ -28,7 +29,7 @@ def grid_search():
             args.__dict__[k] = v
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())
-        result_dict[result_key] = {'Wikipedia': [],
+        results[result_key] = {'Wikipedia': [],
                                    'Conll': []}
         # Model
         model = get_model(args,
@@ -40,8 +41,8 @@ def grid_search():
 
         logger.info("Starting validation for untrained model.")
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
-        result_dict[result_key]['Wikipedia'].append((top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-        result_dict[result_key]['Conll'].append((top1_conll, top10_conll, top100_conll, mrr_conll))
+        results[result_key]['Wikipedia'].append((top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
+        results[result_key]['Conll'].append((top1_conll, top10_conll, top100_conll, mrr_conll))
         logger.info('Dev Validation')
         logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
         logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
@@ -57,21 +58,24 @@ def grid_search():
         logger.info("Starting Training")
         trainer.train()
         logger.info("Finished Training")
-        model = model.cpu()
-        torch.cuda.empty_cache()
-        for k, v in result_dict.items():
+
+        for k, v in results.items():
             print(k)
             print('WIKI')
             print(v['Wikipedia'])
             print('CONLL')
             print(v['Conll'])
+        with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
+            pickle.dump(results, f)
 
-    return result_dict
+        del model
+        torch.cuda.empty_cache()
+        gc.collect()
+
+    return results
 
 
 if __name__ == '__main__':
     args, logger, model_dir = parse_args()
     train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs = setup(args, logger)
     result_dict = grid_search()
-    with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
-        pickle.dump(result_dict, f)

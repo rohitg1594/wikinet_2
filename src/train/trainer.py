@@ -132,11 +132,7 @@ class Trainer(object):
         return loss
 
     def step(self, data):
-
         data, ymask, labels = self._get_next_batch(data)
-        print(type(data), type(ymask), type(labels))
-        for d in data:
-            print(d.shape)
         scores = self.model(data)
 
         if self.args.loss_func == 'cosine':

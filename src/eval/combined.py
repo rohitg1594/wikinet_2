@@ -57,9 +57,6 @@ class CombinedValidator:
         self.wiki_mention_context_indices = np.vstack(wiki_mention_context_indices_l).astype(np.int32)
         self.wiki_all_gold = np.array(wiki_all_gold).astype(np.int32)
 
-        assert self.wiki_all_gold.shape[0] == self.wiki_mention_word_indices.shape[0] == self.wiki_mention_gram_indices.shape[0]
-        assert self.wiki_all_gold.shape[0] == self.wiki_mention_context_indices.shape[0]
-
         # Mask to select wiki mention queries
         self.wiki_mask = np.random.choice(np.arange(len(self.wiki_mention_gram_indices)),
                                           size=self.args.query_size).astype(np.int32)
@@ -74,20 +71,6 @@ class CombinedValidator:
         self.conll_mention_word_indices = np.vstack(conll_mention_word_indices_l).astype(np.int32)
         self.conll_mention_context_indices = np.vstack(conll_mention_context_indices_l).astype(np.int32)
         self.conll_all_gold = np.array(conll_all_gold).astype(np.int32)
-
-        assert self.conll_all_gold.shape[0] == self.conll_mention_word_indices.shape[0] == self.conll_mention_gram_indices.shape[0]
-        assert self.conll_all_gold.shape[0] == self.conll_mention_context_indices.shape[0]
-
-        # Debug
-        if self.args.debug:
-            wiki_debug_result = self._get_debug_string(data='wiki', result=False)
-            conll_debug_result = self._get_debug_string(data='conll', result=False)
-
-            print("Wikipedia Debug Results")
-            print(wiki_debug_result)
-
-            print("ConllDebug Results")
-            print(conll_debug_result)
 
     def _get_ent_tokens(self):
         """Creates numpy arrays containing gram and word token ids for each entity."""
@@ -274,8 +257,8 @@ class CombinedValidator:
         return s
 
     def validate(self, model=None, error=True):
-        model = model.eval()
-        model = model.cpu()
+        model.eval()
+        model.cpu()
 
         input_wiki = self._get_data(data_type='wiki')
         _, wiki_mention_combined_embs = model(input_wiki)
@@ -315,8 +298,8 @@ class CombinedValidator:
         if self.args.use_cuda:
             if isinstance(self.args.device, tuple):
                 model = model.cuda(self.args.device[0])
-                model = DataParallel(model, self.args.device)
+                DataParallel(model, self.args.device)
             else:
-                model = model.cuda(self.args.device)
+                model.cuda(self.args.device)
 
         return top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll
