@@ -54,7 +54,7 @@ class OnlyPriorMultiLinear(CombinedBase):
             # Sum the embeddings over the small and large tokens dimension
             mention_embs = torch.mean(mention_embs, dim=1)
 
-            # Transform with linear layer
+            # Transform with linear layers
             mention_embs = self.mention_linear1(mention_embs)
             mention_embs = F.relu(mention_embs)
             mention_embs = self.mention_linear2(mention_embs)
@@ -81,7 +81,7 @@ class OnlyPriorMultiLinear(CombinedBase):
             # Sum the embeddings over the small and large tokens dimension
             mention_embs = torch.mean(mention_embs, dim=1)
 
-            # Transform with linear layer
+            # Transform with linear layers
             mention_embs = self.mention_linear1(mention_embs)
             mention_embs = F.relu(mention_embs)
             mention_embs = self.mention_linear2(mention_embs)
