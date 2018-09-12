@@ -24,7 +24,7 @@ class OnlyPriorRNN(CombinedBase):
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
 
         # Mention linear
-        self.lstm = nn.LSTM(mention_embs.shape[1], self.mention_embs.shape[1], 2, batch_first=True)
+        self.lstm = nn.LSTM(mention_embs.shape[1], mention_embs.shape[1], 2, batch_first=True)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
