@@ -60,7 +60,7 @@ def parse_args():
     model_selection = parser.add_argument_group('Type of model to train.')
     model_selection.add_argument('--init_yamada', type=str2bool,
                                  help='whether to initialize the combined model randomly')
-    model_names = ['only_prior', 'only_prior_linear', 'only_prior_full', 'include_word', 'include_gram', 'mention_prior', 'weigh_concat']
+    model_names = ['only_prior', 'only_prior_linear', 'only_prior_full', 'only_prior_multi_linear', 'include_word', 'include_gram', 'mention_prior', 'weigh_concat']
     model_selection.add_argument('--model_name', type=str, choices=model_names, help='type of model to train')
     model_selection.add_argument('--init_mention', type=str, help='how to initialize mention and ent mention embs')
     model_selection.add_argument('--init_mention_model', type=str,

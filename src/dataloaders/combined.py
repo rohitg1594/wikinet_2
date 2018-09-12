@@ -331,7 +331,7 @@ class CombinedDataSet(object):
         mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
         mask[:len(mentions)] = 1
 
-        if self.model_name == 'only_prior' or self.model_name == 'only_prior_linear':
+        if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear']:
             return self._getitem_only_prior(mask, mentions, all_candidate_ids)
         elif self.model_name == 'only_prior_full':
             return self._getitem_only_prior_full(mask, mentions)

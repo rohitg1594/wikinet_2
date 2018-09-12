@@ -24,9 +24,9 @@ class OnlyPriorLinear(CombinedBase):
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
 
         # Mention linear
-        self.mention_linear1 = nn.Linear(ent_mention_embs.shape[1], ent_mention_embs.shape[1])
-        self.mention_linear.weight.data.copy_(kwargs['mention_linear_W'])
-        self.mention_linear.bias.data.copy_(kwargs['mention_linear_b'])
+        self.mention_linear1 = nn.Linear(ent_mention_embs.shape[1], 128)
+        self.mention_linear2 = nn.Linear(128, 128)
+        self.mention_linear3 = nn.Linear(128, ent_mention_embs.shape[1])
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
@@ -47,7 +47,11 @@ class OnlyPriorLinear(CombinedBase):
             mention_embs = torch.mean(mention_embs, dim=1)
 
             # Transform with linear layer
-            mention_embs = self.mention_linear(mention_embs)
+            mention_embs = self.mention_linear1(mention_embs)
+            mention_embs = F.relu(mention_embs)
+            mention_embs = self.mention_linear2(mention_embs)
+            mention_embs = F.relu(mention_embs)
+            mention_embs = self.mention_linear3(mention_embs)
 
             # Normalize
             if self.args.norm_final:
@@ -70,7 +74,11 @@ class OnlyPriorLinear(CombinedBase):
             mention_embs = torch.mean(mention_embs, dim=1)
 
             # Transform with linear layer
-            mention_embs = self.mention_linear(mention_embs)
+            mention_embs = self.mention_linear1(mention_embs)
+            mention_embs = F.relu(mention_embs)
+            mention_embs = self.mention_linear2(mention_embs)
+            mention_embs = F.relu(mention_embs)
+            mention_embs = self.mention_linear3(mention_embs)
 
             # Normalize
             if self.args.norm_final:
