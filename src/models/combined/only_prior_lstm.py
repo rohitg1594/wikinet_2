@@ -31,11 +31,6 @@ class OnlyPriorMultiLinear(CombinedBase):
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
 
-        print('WORD TOKENS')
-        print(mention_word_tokens[:10])
-        print('CAND IDS')
-        print(candidate_ids[:10])
-
         if len(mention_word_tokens.shape) == 3:
             num_abst, num_ent, num_word = mention_word_tokens.shape
             num_abst, num_ent, num_cand = candidate_ids.shape
