@@ -1,6 +1,7 @@
 # Only prior model with LSTM
 import torch.nn.functional as F
 import torch.nn as nn
+import torch
 
 from src.models.combined.base import CombinedBase
 
@@ -23,7 +24,7 @@ class OnlyPriorRNN(CombinedBase):
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
 
         # Mention linear
-        self.lstm = nn.LSTM(mention_embs.shape[1], 128, 2, batch_first=True)
+        self.lstm = nn.LSTM(mention_embs.shape[1], self.mention_embs.shape[1], 2, batch_first=True)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
@@ -45,7 +46,7 @@ class OnlyPriorRNN(CombinedBase):
 
             # Sum the embeddings over the small and large tokens dimension
             mention_embs, _ = self.lstm(mention_embs)
-            mention_embs = mention_embs[mask]
+            mention_embs = mention_embs[torch.arange(self.mention_embs.shape[0]).long(), mask - 1]
 
             # Normalize
             if self.args.norm_final:
@@ -70,7 +71,7 @@ class OnlyPriorRNN(CombinedBase):
             # Sum the embeddings over the small and large tokens dimension
             mention_embs, _ = self.lstm(mention_embs)
             print('mention embs before : {}'.format(mention_embs.shape))
-            mention_embs = mention_embs[mask]
+            mention_embs = mention_embs[torch.arange(self.mention_embs.shape[0]).long(), mask - 1]
             print('mention embs after : {}'.format(mention_embs.shape))
 
             # Normalize

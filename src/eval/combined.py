@@ -297,7 +297,7 @@ class CombinedValidator:
 
         if self.args.use_cuda:
             if isinstance(self.args.device, tuple):
-                model = model.cuda(self.args.device[0])
+                model.cuda(self.args.device[0])
                 DataParallel(model, self.args.device)
             else:
                 model.cuda(self.args.device)
