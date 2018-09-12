@@ -38,7 +38,6 @@ data = parser.add_argument_group('Data Settings.')
 data.add_argument('--data_path', type=str, help='location of data dir')
 data.add_argument('--yamada_model', type=str, help='name of yamada model')
 
-
 # Model Type
 model_selection = parser.add_argument_group('Type of model to train.')
 model_selection.add_argument('--include_string', type=str2bool,
