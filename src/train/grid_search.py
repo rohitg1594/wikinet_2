@@ -53,7 +53,7 @@ def grid_search():
                           model=model,
                           model_dir=model_dir,
                           model_type='combined',
-                          result_dict=result_dict,
+                          result_dict=results,
                           result_key=result_key)
         logger.info("Starting Training")
         trainer.train()
