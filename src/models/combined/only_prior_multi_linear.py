@@ -52,7 +52,7 @@ class OnlyPriorMultiLinear(CombinedBase):
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Sum the embeddings over the small and large tokens dimension
-            mention_embs_agg = torch.mean(mention_embs, dim=1)
+            mention_embs = torch.mean(mention_embs, dim=1)
 
             # Transform with linear layers
             mention_embs = self.mention_linear1(mention_embs)
@@ -64,7 +64,7 @@ class OnlyPriorMultiLinear(CombinedBase):
             # Normalize
             if self.args.norm_final:
                 candidate_embs = F.normalize(candidate_embs, dim=2)
-                mention_embs_agg = F.normalize(mention_embs_agg, dim=1)
+                mention_embs = F.normalize(mention_embs, dim=1)
 
             mention_embs.unsqueeze_(1)
 
