@@ -45,7 +45,6 @@ padding.add_argument('--max_ent_size', type=int, help='max number of entities co
 
 # Model Type
 model_selection = parser.add_argument_group('Type of model to train.')
-model_selection.add_argument('--model_type', type=str, choices=['yamada', 'combined'], help='type of models to train')
 model_selection.add_argument('--include_string', type=str2bool,
                              help='whether to include string information in yamada model')
 model_selection.add_argument('--include_stats', type=str2bool,
@@ -197,7 +196,8 @@ trainer = Trainer(loader=train_loader,
                   args=args,
                   validator=validator,
                   model=model,
-                  model_dir=model_dir)
+                  model_dir=model_dir,
+                  model_type='yamada')
 logger.info("Starting Training")
 best_model = trainer.train()
 logger.info("Finished Training")

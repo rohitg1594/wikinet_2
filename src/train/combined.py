@@ -25,10 +25,10 @@ def parse_args():
                                            formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
     # General
     general = parser.add_argument_group('General Settings.')
-    parser.add_argument('--my-config', required=True, is_config_file=True, help='config file path')
-    parser.add_argument('--seed', type=int, default=-1, help="Initialization seed")
-    parser.add_argument('--exp_name', type=str, default="debug", help="Experiment name")
-    parser.add_argument("--debug", type=str2bool, default=True, help="whether to debug")
+    general.add_argument('--my-config', required=True, is_config_file=True, help='config file path')
+    general.add_argument('--seed', type=int, default=-1, help="Initialization seed")
+    general.add_argument('--exp_name', type=str, default="debug", help="Experiment name")
+    general.add_argument("--debug", type=str2bool, default=True, help="whether to debug")
 
     # Data
     data = parser.add_argument_group('Data Settings.')

@@ -98,7 +98,7 @@ class Trainer(object):
         elif self.model_type == 'yamada':
             return self._yamada_get_next_batch(data)
         else:
-            logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model))
+            logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model_type))
             sys.exit(1)
 
     def _cosine_loss(self, scores, ymask):
@@ -202,7 +202,7 @@ class Trainer(object):
             elif self.model_type == 'yamada':
                 valid_metric = self.yamada_validate(epoch)
             else:
-                logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model))
+                logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model_type))
                 sys.exit(1)
 
             self.scheduler.step(valid_metric)
