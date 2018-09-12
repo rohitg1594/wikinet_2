@@ -16,9 +16,9 @@ np.warnings.filterwarnings('ignore')
 
 
 def grid_search():
-    param_grid = {'init_mention': ['normal', 'xavier_normal', 'xavier_uniform', 'kaiming_normal', 'kaiming_uniform'],
-                  'mention_word_dim': [32, 64, 128],
-                  'lr': [0.01, 0.001, 0.005, 0.0001],
+    param_grid = {'num_candidates': [32, 64, 128, 256],
+                  'mention_word_dim': [64, 128],
+                  'lr': [0.001, 0.005, 0.0001],
                   'wd': [0.0001, 0.0005]
                   }
     results = {}
