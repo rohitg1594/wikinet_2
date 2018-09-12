@@ -29,16 +29,17 @@ max_ent_size:60
 # Model types
 init_yamada:True
 model_name:only_prior_multi_linear
+init_mention:xavier_normal
 
 # Model Params
 measure:ip
 dp:0
 
 # Normalization
-norm_gram:True
+norm_gram:False
 norm_word:False
 norm_mention:False
-norm_context:True
+norm_context:False
 norm_final:True
 
 # Candidate Generation
@@ -50,7 +51,7 @@ patience:2
 num_epochs:10
 batch_size:64
 num_workers:8
-lr:1e-02
+lr:1e-03
 wd:1e-04
 optim:adagrad
 sparse:False
