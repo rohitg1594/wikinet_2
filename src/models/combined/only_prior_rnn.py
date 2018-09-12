@@ -46,7 +46,7 @@ class OnlyPriorRNN(CombinedBase):
 
             # Sum the embeddings over the small and large tokens dimension
             mention_embs, _ = self.lstm(mention_embs)
-            mention_embs = mention_embs[torch.arange(self.mention_embs.shape[0]).long(), mask - 1]
+            mention_embs = mention_embs[torch.arange(mention_embs.shape[0]).long(), mask - 1]
 
             # Normalize
             if self.args.norm_final:
