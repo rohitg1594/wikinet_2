@@ -38,6 +38,11 @@ data = parser.add_argument_group('Data Settings.')
 data.add_argument('--data_path', type=str, help='location of data dir')
 data.add_argument('--yamada_model', type=str, help='name of yamada model')
 
+# Max Padding
+padding = parser.add_argument_group('Max Padding for batch.')
+padding.add_argument('--max_context_size', type=int, help='max number of context')
+padding.add_argument('--max_ent_size', type=int, help='max number of entities considered in abstract')
+
 # Model Type
 model_selection = parser.add_argument_group('Type of model to train.')
 model_selection.add_argument('--include_string', type=str2bool,

@@ -18,8 +18,8 @@ class YamadaPershina(object):
         super().__init__()
 
         self.args = args
-        self.number_candidates = self.args.num_candidates
-        self.cand_generation = self.number_candidates // 2
+        self.num_candidates = self.args.num_candidates
+        self.cand_generation = self.num_candidates // 2
         self.ent2id = yamada_model['ent_dict']
         self.id2ent = reverse_dict(self.ent2id)
         self.data = data
@@ -29,7 +29,7 @@ class YamadaPershina(object):
         self.cand_rand = cand_rand
 
         if self.cand_rand:
-            self.number_candidates = 10 ** 6
+            self.num_candidates = 10 ** 6
 
     def __getitem__(self, index):
         if isinstance(index, slice):
@@ -38,15 +38,15 @@ class YamadaPershina(object):
         result = []
 
         # Each abstract is of shape num_ents * NUMBER_CANDIDATES
-        all_candidates = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.int64)
+        all_candidates = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.int64)
         labels = np.zeros(self.args.max_ent_size).astype(np.int64)
 
         if self.args.include_string:
-            exact_match = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.float32)
-            contains = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.float32)
+            exact_match = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.float32)
+            contains = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.float32)
         if self.args.include_stats:
-            candidate_priors = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.float32)
-            candidate_conditionals = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.float32)
+            candidate_priors = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.float32)
+            candidate_conditionals = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.float32)
 
         words_array = np.zeros(self.args.max_context_size, dtype=np.int64)
         words, values = self.data[index]
@@ -68,14 +68,14 @@ class YamadaPershina(object):
                     cand_generation = np.random.choice(np.array(other_cands),
                                                        replace=False, size=self.cand_generation)
                     cand_random = np.random.randint(0, self.max_ent,
-                                                    size=self.number_candidates - self.cand_generation - 1)
+                                                    size=self.num_candidates - self.cand_generation - 1)
                 else:
                     cand_generation = np.array(other_cands)
                     cand_random = np.random.randint(0, self.max_ent,
-                                                    size=self.number_candidates - len(other_cands) - 1)
+                                                    size=self.num_candidates - len(other_cands) - 1)
                 before = np.concatenate((np.array(true_ent)[None], cand_generation, cand_random))
             else:
-                cand_random = np.random.randint(0, self.max_ent, size=self.number_candidates - 1)
+                cand_random = np.random.randint(0, self.max_ent, size=self.num_candidates - 1)
                 before = np.concatenate((np.array(true_ent)[None], cand_random))
 
             true_index = np.random.randint(len(before))

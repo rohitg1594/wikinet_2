@@ -7,6 +7,10 @@ debug:False
 data_path:/home/rogupta/wikinet_2/data
 yamada_model:yamada_model.pickle
 
+# Padding
+max_ent_size:60
+max_context_size:100
+
 # Model types
 include_stats:True
 include_string:True
@@ -21,7 +25,7 @@ num_candidates:32
 
 # Training Settings
 patience:2
-num_epochs:10
+num_epochs:100
 batch_size:64
 num_workers:8
 lr:1e-03
