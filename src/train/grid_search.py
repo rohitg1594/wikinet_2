@@ -98,7 +98,7 @@ def grid_search_yamada():
                           validator=validator,
                           model=model,
                           model_dir=model_dir,
-                          model_type='combined',
+                          model_type='yamada',
                           result_dict=results,
                           result_key=result_key)
         logger.info("Starting Training")
