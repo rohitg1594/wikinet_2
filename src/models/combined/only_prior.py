@@ -3,8 +3,6 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-import sys
-
 from src.models.combined.base import CombinedBase
 
 
@@ -18,16 +16,12 @@ class OnlyPrior(CombinedBase):
         ent_mention_embs = kwargs['ent_mention_embs']
 
         # Mention embeddings
-        self.mention_embs = nn.Embedding(mention_embs.shape[0], mention_embs.shape[1], padding_idx=0,
-                                         sparse=self.args.sparse)
+        self.mention_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
         self.mention_embs.weight.data.copy_(mention_embs)
-        self.mention_embs.weight.requires_grad = self.args.train_mention
 
         # Entity mention embeddings
-        self.ent_mention_embs = nn.Embedding(ent_mention_embs.shape[0], ent_mention_embs.shape[1], padding_idx=0,
-                                             sparse=self.args.sparse)
+        self.ent_mention_embs = nn.Embedding(*ent_mention_embs.shape[0], padding_idx=0, sparse=self.args.sparse)
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
-        self.ent_mention_embs.weight.requires_grad = self.args.train_mention
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs

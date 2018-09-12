@@ -190,6 +190,9 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             elif init == 'kaiming_normal':
                 nn.init.kaiming_normal(mention_embs)
                 nn.init.kaiming_normal(ent_mention_embs)
+            else:
+                logger.error("No argument to initialize mention embeddings, exiting....")
+                sys.exit(1)
 
             mention_embs[0] = 0
             ent_mention_embs[0] = 0
