@@ -75,6 +75,7 @@ loss.add_argument('--margin', type=float, help='margin of hinge loss')
 
 # cuda
 parser.add_argument("--device", type=str, help="cuda device")
+parser.add_argument("--use_cuda", type=str2bool, help="use gpu or not")
 
 args = parser.parse_args()
 use_cuda = torch.cuda.is_available()
