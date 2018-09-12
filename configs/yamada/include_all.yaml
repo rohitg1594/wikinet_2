@@ -24,7 +24,7 @@ cand_gen_rand:False
 num_candidates:32
 
 # Training Settings
-patience:2
+patience:10
 num_epochs:100
 batch_size:64
 num_workers:8

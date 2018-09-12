@@ -16,7 +16,7 @@ np.warnings.filterwarnings('ignore')
 
 def grid_search(model):
     param_grid = {'dp': [0, 0.1, 0.2, 0.3],
-                  'hidden_size': [64, 128],
+                  'hidden_size': [250, 500, 1000, 2000],
                   'lr': [0.01, 0.005, 0.001],
                   'wd': [0.001, 0.0001, 0.0005]
                   }
