@@ -35,6 +35,7 @@ def grid_search():
         logger.info("Starting validation for untrained model.")
         correct, mentions = validator.validate(model)
         perc = correct / mentions * 100
+        results[result_key].append(perc)
         logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 
         trainer = Trainer(loader=train_loader,

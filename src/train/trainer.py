@@ -172,6 +172,8 @@ class Trainer(object):
     def yamada_validate(self, epoch):
         correct, mentions = self.validator.validate(model=self.model)
         perc = correct / mentions * 100
+        if self.result_key is not None:
+            self.result_dict[self.result_key].append(perc)
         logger.info('Epoch : {}, Correct : {}, Mention : {}, Percentage : {}'.format(epoch, correct, mentions, perc))
 
         return perc
