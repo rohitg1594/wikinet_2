@@ -174,7 +174,7 @@ def setup(args, logger):
     return train_loader, validator, yamada_model
 
 
-def get_model(args):
+def get_model(args, yamada_model):
     if args.include_stats and args.include_string:
         model = YamadaContextStatsString(yamada_model=yamada_model, args=args)
         logger.info("Model YamadaContextStatsString created.")
@@ -236,5 +236,5 @@ def train(model):
 if __name__ == '__main__':
     args, logger, model_dir = parse_args()
     train_loader, validator, yamada_model = setup(args, logger)
-    model = get_model(args)
+    model = get_model(args, yamada_model)
     train()

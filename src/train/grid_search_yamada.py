@@ -30,7 +30,7 @@ def grid_search():
         result_key = tuple(param_dict.items())
         results[result_key] = []
 
-        model = get_model(args)
+        model = get_model(args, yamada_model)
 
         logger.info("Starting validation for untrained model.")
         correct, mentions = validator.validate(model)
