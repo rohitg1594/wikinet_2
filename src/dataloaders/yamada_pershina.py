@@ -102,17 +102,17 @@ class YamadaDataloader(object):
             words_array[:len(words)] = words
 
         for ent_idx, (mention_str, candidates) in enumerate(examples[:self.args.max_ent_size]):
-            if self.cand_type == 'pershina':
-                candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates]
-                true_ent = candidate_ids[0]
-                candidate_ids = candidate_ids[1:]
-            else:
-                true_ent = self.ent2id.get(candidates[0])
+            print('MENTION : {}'.format(mention_str))
+            candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates]
+            true_ent = candidate_ids[0]
+            candidate_ids = candidate_ids[1:]
+            if self.cand_type == 'necounts':
                 nfs = get_normalised_forms(mention_str)
                 candidates = []
                 for nf in nfs:
                     if nf in self.necounts:
                         candidates.extend(self.necounts[nf])
+                print('CANDIDATES: {}'.format(candidates))
                 candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates]
 
                 if true_ent in candidate_ids:
