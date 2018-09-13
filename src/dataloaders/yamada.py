@@ -101,7 +101,7 @@ class YamadaDataloader(object):
         result = []
 
         # Each abstract is of shape num_ents * NUMBER_CANDIDATES
-        all_candidates = self._init_feats(0)[0]
+        all_candidates = self._init_feats(1)[0]
 
         if self.args.include_string:
             exact_match, contains = self._init_feats(2)
