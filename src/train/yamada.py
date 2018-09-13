@@ -12,7 +12,7 @@ import configargparse
 from src.utils.utils import str2bool
 from src.utils.data import pickle_load
 from src.conll.pershina import PershinaExamples
-from src.dataloaders.yamada_pershina import YamadaPershina
+from src.dataloaders.yamada_pershina import YamadaDataloader
 from src.dataloaders.yamada_necounts import YamadaConllDataset
 from src.eval.yamada import YamadaValidator
 from src.models.yamada.yamada_context import YamadaContext
@@ -30,10 +30,10 @@ def parse_args():
                                            formatter_class=configargparse.ArgumentDefaultsHelpFormatter)
     # General
     general = parser.add_argument_group('General Settings.')
-    parser.add_argument('--my-config', required=True, is_config_file=True, help='config file path')
-    parser.add_argument('--seed', type=int, default=-1, help="Initialization seed")
-    parser.add_argument('--exp_name', type=str, default="debug", help="Experiment name")
-    parser.add_argument("--debug", type=str2bool, default=True, help="whether to debug")
+    general.add_argument('--my-config', required=True, is_config_file=True, help='config file path')
+    general.add_argument('--seed', type=int, default=-1, help="Initialization seed")
+    general.add_argument('--exp_name', type=str, default="debug", help="Experiment name")
+    general.add_argument("--debug", type=str2bool, default=True, help="whether to debug")
 
     # Data
     data = parser.add_argument_group('Data Settings.')
@@ -126,21 +126,23 @@ def setup(args, logger):
     train_data, dev_data, test_data = pershina.get_training_examples()
     logger.info("Training data created.")
 
-    train_dataset = YamadaPershina(ent_conditional=conditionals,
-                                   ent_prior=priors,
-                                   yamada_model=yamada_model,
-                                   data=train_data,
-                                   args=args)
+    train_dataset = YamadaDataloader(ent_conditional=conditionals,
+                                     ent_prior=priors,
+                                     yamada_model=yamada_model,
+                                     data=train_data,
+                                     args=args,
+                                     cand_type=args.cand_type)
     train_loader = train_dataset.get_loader(batch_size=args.batch_size,
                                             shuffle=False,
                                             num_workers=args.num_workers,
                                             drop_last=False)
 
-    dev_dataset = YamadaPershina(ent_conditional=conditionals,
-                                 ent_prior=priors,
-                                 yamada_model=yamada_model,
-                                 data=dev_data,
-                                 args=args)
+    dev_dataset = YamadaDataloader(ent_conditional=conditionals,
+                                   ent_prior=priors,
+                                   yamada_model=yamada_model,
+                                   data=dev_data,
+                                   args=args,
+                                   cand_type=args.cand_type)
     dev_loader = dev_dataset.get_loader(batch_size=args.batch_size,
                                         shuffle=False,
                                         num_workers=args.num_workers,

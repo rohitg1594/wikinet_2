@@ -3,10 +3,13 @@ import numpy as np
 import torch
 import torch.utils.data
 
-from src.utils.utils import reverse_dict
+from os.path import join
+
+from src.utils.utils import reverse_dict, get_normalised_forms
+from src.utils.data import pickle_load
 
 
-class YamadaPershina(object):
+class YamadaDataloader(object):
 
     def __init__(self,
                  ent_prior=None,
@@ -14,7 +17,8 @@ class YamadaPershina(object):
                  yamada_model=None,
                  data=None,
                  args=None,
-                 cand_rand=False):
+                 cand_rand=False,
+                 cand_type='pershina'):
         super().__init__()
 
         self.args = args
@@ -27,31 +31,51 @@ class YamadaPershina(object):
         self.ent_prior = ent_prior
         self.ent_conditional = ent_conditional
         self.cand_rand = cand_rand
+        self.cand_type = cand_type
 
         if self.cand_rand:
             self.num_candidates = 10 ** 6
 
-    def _gen_cands(self, true_ent, perhsina_cands):
+        self.necounts = pickle_load(join(self.args.data_path, "normal_necounts.pickle"))
+
+    def _gen_cands(self, true_ent, candidates):
+
         if not self.cand_rand:
-            if len(perhsina_cands) > self.cand_gen:
-                cand_gen = np.random.choice(np.array(perhsina_cands), replace=False, size=self.cand_gen)
+            if len(candidates) > self.cand_gen:
+                cand_gen = np.random.choice(np.array(candidates), replace=False, size=self.cand_gen)
                 cand_random = np.random.randint(0, self.max_ent, size=self.num_candidates - self.cand_gen - 1)
             else:
-                cand_gen = np.array(perhsina_cands)
-                cand_random = np.random.randint(0, self.max_ent, size=self.num_candidates - len(perhsina_cands) - 1)
-            cands = np.concatenate((np.array(true_ent)[None], cand_gen, cand_random))
+                cand_gen = np.array(candidates)
+                cand_random = np.random.randint(0, self.max_ent, size=self.num_candidates - len(candidates) - 1)
+            complete_cands = np.concatenate((np.array(true_ent)[None], cand_gen, cand_random))
         else:
             cand_random = np.random.randint(0, self.max_ent, size=self.num_candidates - 1)
-            cands = np.concatenate((np.array(true_ent)[None], cand_random))
+            complete_cands = np.concatenate((np.array(true_ent)[None], cand_random))
 
-        return cands
+        return complete_cands
 
-    def _init_features(self, num):
+    def _init_feats(self, num):
         arr = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.float32)
         res = []
         for _ in range(num):
             res.append(arr)
         return tuple(res)
+
+    def _update_string_feats(self, mention_str, candidates, ent_idx, exact_match, contains):
+        for c_idx, candidate in enumerate(candidates[ent_idx]):
+            ent_str = self.id2ent.get(candidate, '')
+            if mention_str == ent_str or mention_str in ent_str:
+                exact_match[ent_idx, c_idx] = 1
+            if ent_str.startswith(mention_str) or ent_str.endswith(mention_str):
+                contains[ent_idx, c_idx] = 1
+
+    def _update_stat_feats(self, mention_str, candidates, ent_idx, priors, conditionals):
+        for c_idx, candidate in enumerate(candidates[ent_idx]):
+            priors[ent_idx, c_idx] = self.ent_prior.get(candidate, 0)
+            if mention_str in self.ent_conditional:
+                conditionals[ent_idx, c_idx] = self.ent_conditional[mention_str].get(candidate, 0)
+            else:
+                conditionals[ent_idx, c_idx] = 0
 
     def __getitem__(self, index):
         if isinstance(index, slice):
@@ -61,49 +85,46 @@ class YamadaPershina(object):
 
         # Each abstract is of shape num_ents * NUMBER_CANDIDATES
         all_candidates = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.int64)
-        labels = np.zeros(self.args.max_ent_size).astype(np.int64)
 
         if self.args.include_string:
-            exact_match, contains = self._init_features(2)
+            exact_match, contains = self._init_feats(2)
         if self.args.include_stats:
-            priors, conditionals = self._init_features(2)
+            priors, conditionals = self._init_feats(2)
 
         words_array = np.zeros(self.args.max_context_size, dtype=np.int64)
-        words, values = self.data[index]
+        words, examples = self.data[index]
         mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
-        mask[:len(values)] = 1
+        mask[:len(examples)] = 1
 
         if len(words) > self.args.max_context_size:
             words_array[:self.args.max_context_size] = words[:self.args.max_context_size]
         else:
             words_array[:len(words)] = words
 
-        for ent_idx, (mention_str, candidates) in enumerate(values[:self.args.max_ent_size]):
-            candidates_id = [self.ent2id.get(candidate, 0) for candidate in candidates]
-            true_ent = candidates_id[0]
-            pershina_cands = candidates_id[1:]
+        for ent_idx, (mention_str, candidates_or_true_ent) in enumerate(examples[:self.args.max_ent_size]):
+            if self.cand_type == 'pershina':
+                candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates_or_true_ent]
+                true_ent = candidate_ids[0]
+                candidate_ids = candidate_ids[1:]
+            else:
+                true_ent = candidates_or_true_ent
+                nfs = get_normalised_forms(mention_str)
+                candidates = []
+                for nf in nfs:
+                    if nf in self.necounts:
+                        candidates.extend(self.necounts[nf])
+                candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates]
 
-            all_candidates[ent_idx] = self._gen_cands(true_ent, pershina_cands)
+                if true_ent in candidate_ids:
+                    candidate_ids.remove(true_ent)
 
-            #true_index = np.random.randint(len(before))
-            #labels[ent_idx] = true_index
-            #all_candidates[ent_idx] = np.roll(before, true_index)
+            all_candidates[ent_idx] = self._gen_cands(true_ent, candidate_ids)
 
             if self.args.include_string:
-                for c_idx, candidate in enumerate(all_candidates[ent_idx]):
-                    ent_str = self.id2ent.get(candidate, '')
-                    if mention_str == ent_str or mention_str in ent_str:
-                        exact_match[ent_idx, c_idx] = 1
-                    if ent_str.startswith(mention_str) or ent_str.endswith(mention_str):
-                        contains[ent_idx, c_idx] = 1
+                self._update_string_feats(mention_str, all_candidates, ent_idx, exact_match, contains)
 
             if self.args.include_stats:
-                for c_idx, candidate in enumerate(all_candidates[ent_idx]):
-                    priors[ent_idx, c_idx] = self.ent_prior.get(candidate, 0)
-                    if mention_str in self.ent_conditional:
-                        conditionals[ent_idx, c_idx] = self.ent_conditional[mention_str].get(candidate, 0)
-                    else:
-                        conditionals[ent_idx, c_idx] = 0
+                self._update_stat_feats(mention_str, all_candidates, ent_idx, priors, conditionals)
 
         result.extend([mask, words_array, all_candidates])
         if self.args.include_stats:
