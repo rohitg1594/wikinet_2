@@ -117,6 +117,7 @@ class YamadaDataloader(object):
 
                 if true_ent in candidate_ids:
                     candidate_ids.remove(true_ent)
+                print(true_ent, candidate_ids)
 
             all_candidates[ent_idx] = self._gen_cands(true_ent, candidate_ids)
 

@@ -16,12 +16,12 @@ class YamadaBase(nn.Module):
         self.args = args
 
         # Words
-        self.embeddings_word = nn.Embedding(word_embs.shape[0], word_embs.shape[1], padding_idx=0, sparse=True)
+        self.embeddings_word = nn.Embedding(*word_embs.shape, padding_idx=0, sparse=True)
         self.embeddings_word.weight.data.copy_(torch.from_numpy(word_embs))
         self.embeddings_word.weight.requires_grad = False
 
         # Entities
-        self.embeddings_ent = nn.Embedding(ent_embs.shape[0], ent_embs.shape[1], padding_idx=0, sparse=True)
+        self.embeddings_ent = nn.Embedding(*ent_embs.shape, padding_idx=0, sparse=True)
         self.embeddings_ent.weight.data.copy_(torch.from_numpy(ent_embs))
         self.embeddings_ent.weight.requires_grad = False
 
