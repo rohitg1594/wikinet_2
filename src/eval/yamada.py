@@ -5,7 +5,6 @@ from torch.autograd import Variable
 
 from logging import getLogger
 
-
 logger = getLogger()
 
 
@@ -30,11 +29,6 @@ class YamadaValidator:
             if isinstance(self.args.device, int):
                 for i in range(len(data)):
                     data[i] = data[i].cuda(self.args.device)
-                ymask = ymask.cuda(self.args.device)
-                labels = labels.cuda(self.args.device)
-            else:
-                ymask = ymask.cuda(self.args.device[0])
-                labels = labels.cuda(self.args.device[0])
 
         return tuple(data), ymask, labels
 
