@@ -25,6 +25,7 @@ class YamadaValidator:
         data = data[1:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
+            print(data[i].shape)
 
         if self.args.use_cuda and isinstance(self.args.device, int):
             for i in range(len(data)):
