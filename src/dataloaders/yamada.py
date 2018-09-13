@@ -146,7 +146,7 @@ class YamadaDataloader(object):
             if self.args.include_stats:
                 self._update_stat_feats(mention_str, all_candidates, ent_idx, priors, conditionals)
 
-        result.extend([mask, context.astype(np.int32), all_candidates.astype(np.int32)])
+        result.extend([mask, context.astype(np.int64), all_candidates.astype(np.int64)])
         if self.args.include_stats:
             result.extend([priors, conditionals])
         if self.args.include_string:
