@@ -101,13 +101,13 @@ class YamadaDataloader(object):
         else:
             words_array[:len(words)] = words
 
-        for ent_idx, (mention_str, candidates_or_true_ent) in enumerate(examples[:self.args.max_ent_size]):
+        for ent_idx, (mention_str, candidates) in enumerate(examples[:self.args.max_ent_size]):
             if self.cand_type == 'pershina':
-                candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates_or_true_ent]
+                candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates]
                 true_ent = candidate_ids[0]
                 candidate_ids = candidate_ids[1:]
             else:
-                true_ent = candidates_or_true_ent
+                true_ent = self.ent2id.get(candidates[0])
                 nfs = get_normalised_forms(mention_str)
                 candidates = []
                 for nf in nfs:
