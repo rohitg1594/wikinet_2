@@ -30,7 +30,7 @@ def grid_search():
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())
         results[result_key] = {'Wikipedia': [],
-                                   'Conll': []}
+                               'Conll': []}
         # Model
         model = get_model(args,
                           yamada_model=yamada_model,

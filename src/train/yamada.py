@@ -171,6 +171,10 @@ def setup(args, logger):
     # full_validator = YamadaValidator(loader=full_loader, args=args)
     logger.info("Validator created.")
 
+    return train_loader, validator, yamada_model
+
+
+def get_model(args):
     if args.include_stats and args.include_string:
         model = YamadaContextStatsString(yamada_model=yamada_model, args=args)
         logger.info("Model YamadaContextStatsString created.")
@@ -191,7 +195,7 @@ def setup(args, logger):
         else:
             model = model.cuda(args.device)
 
-    return train_loader, validator, yamada_model, model
+    return model
 
 
 def train(model):
@@ -231,5 +235,6 @@ def train(model):
 
 if __name__ == '__main__':
     args, logger, model_dir = parse_args()
-    train_loader, validator, yamada_model, model = setup(args, logger)
+    train_loader, validator, yamada_model = setup(args, logger)
+    model = get_model(args)
     train()
