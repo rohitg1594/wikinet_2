@@ -238,4 +238,4 @@ if __name__ == '__main__':
     args, logger, model_dir = parse_args()
     train_loader, validator, yamada_model = setup(args, logger)
     model = get_model(args, yamada_model, logger)
-    train()
+    train(model)
