@@ -24,7 +24,7 @@ hidden_size:1000
 dp:0.2
 
 # Candidate Generation
-cand_type:conll
+cand_type:necounts
 cand_gen_rand:False
 num_candidates:32
 

@@ -39,6 +39,9 @@ def parse_args():
     data.add_argument('--data_path', type=str, help='location of data dir')
     data.add_argument('--yamada_model', type=str, help='name of yamada model')
     data.add_argument('--data_type', type=str, choices=['conll', 'wiki'], help='whether to train with conll or wiki')
+    data.add_argument('--proto_data', type=str2bool, help='whether to use prototype data')
+    data.add_argument('--num_shards', type=int, help='number of shards of training file')
+    data.add_argument('--train_size', type=int, help='number of training abstracts')
 
     # Max Padding
     padding = parser.add_argument_group('Max Padding for batch.')
