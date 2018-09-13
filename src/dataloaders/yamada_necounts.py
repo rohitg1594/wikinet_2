@@ -20,10 +20,10 @@ class YamadaConllDataset(object):
         super().__init__()
 
         self.args = args
-        self.number_candidates = self.args.num_candidates
+        self.num_candidates = self.args.num_candidates
         self.ent2id = yamada_model['ent_dict']
         self.id2ent = reverse_dict(self.ent2id)
-        self.cand_generation = self.number_candidates // 2
+        self.cand_generation = self.num_candidates // 2
         self.ent_prior = ent_prior
         self.ent_conditional = ent_conditional
         self.data = data
@@ -37,16 +37,15 @@ class YamadaConllDataset(object):
         result = []
 
         # Each abstract is of shape num_ents * NUMBER_CANDIDATES
-        all_candidates = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.int64)
+        all_candidates = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.int64)
         labels = np.zeros(self.args.max_ent_size).astype(np.int64)
 
-        if self.args.include_stats:
-            candidate_priors = np.zeros((self.args.max_ent_size, self.number_candidates))
-            candidate_conditionals = np.zeros((self.args.max_ent_size, self.number_candidates))
-
         if self.args.include_string:
-            exact_match = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.int64)
-            contains = np.zeros((self.args.max_ent_size, self.number_candidates)).astype(np.int64)
+            exact_match = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.int64)
+            contains = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.int64)
+        if self.args.include_stats:
+            candidate_priors = np.zeros((self.args.max_ent_size, self.num_candidates))
+            candidate_conditionals = np.zeros((self.args.max_ent_size, self.num_candidates))
 
         words_array = np.zeros(self.args.max_context_size, dtype=np.int64)
         words, values = self.data[index]
@@ -76,11 +75,11 @@ class YamadaConllDataset(object):
                 cand_generation = np.random.choice(np.array(candidates_id),
                                                    replace=False, size=self.cand_generation)
                 cand_random = np.random.randint(0, len(self.ent2id),
-                                                size=self.number_candidates - self.cand_generation - 1)
+                                                size=self.num_candidates - self.cand_generation - 1)
             else:
                 cand_generation = np.array(candidates_id)
                 cand_random = np.random.randint(0, len(self.ent2id),
-                                                size=self.number_candidates - len(candidates_id) - 1)
+                                                size=self.num_candidates - len(candidates_id) - 1)
 
             before = np.concatenate((np.array(true_ent)[None], cand_generation, cand_random))
             true_index = np.random.randint(len(before))

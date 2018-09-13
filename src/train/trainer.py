@@ -44,7 +44,7 @@ class Trainer(object):
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', verbose=True, patience=5)
         self.loader_index = 0
 
-    def _combined_get_next_batch(self, data):
+    def _get_next_batch(self, data):
         data = list(data)
         ymask = data[0]
         data = data[1:]
@@ -53,7 +53,8 @@ class Trainer(object):
 
         ymask = ymask.view(self.args.batch_size * self.args.max_ent_size)
         ymask = Variable(ymask)
-        labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor), requires_grad=False)
+        labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor),
+                          requires_grad=False)
 
         if self.args.use_cuda:
             if isinstance(self.args.device, int):
@@ -67,39 +68,41 @@ class Trainer(object):
 
         return tuple(data), ymask, labels
 
-    def _yamada_get_next_batch(self, data):
-        data = list(data)
+    # def _yamada_get_next_batch(self, data):
+    #     data = list(data)
+    #
+    #     ymask = data[0]
+    #     b, e = ymask.shape
+    #     ymask = ymask.view(b * e)
+    #     labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor),
+    #                       requires_grad=False)
+    #     #labels = data[1].view(b * e)
+    #     data = data[2:]
+    #     for i in range(len(data)):
+    #         data[i] = Variable(data[i])
+    #     ymask = Variable(ymask)
+    #     labels = Variable(labels, requires_grad=False)
+    #
+    #     if self.args.use_cuda:
+    #         if isinstance(self.args.device, int):
+    #             for i in range(len(data)):
+    #                 data[i] = data[i].cuda(self.args.device)
+    #             ymask = ymask.cuda(self.args.device)
+    #             labels = labels.cuda(self.args.device)
+    #         else:
+    #             ymask = ymask.cuda(self.args.device[0])
+    #             labels = labels.cuda(self.args.device[0])
+    #
+    #     return tuple(data), ymask, labels
 
-        ymask = data[0]
-        b, e = ymask.shape
-        ymask = ymask.view(b * e)
-        labels = data[1].view(b * e)
-        data = data[2:]
-        for i in range(len(data)):
-            data[i] = Variable(data[i])
-        ymask = Variable(ymask)
-        labels = Variable(labels, requires_grad=False)
-
-        if self.args.use_cuda:
-            if isinstance(self.args.device, int):
-                for i in range(len(data)):
-                    data[i] = data[i].cuda(self.args.device)
-                ymask = ymask.cuda(self.args.device)
-                labels = labels.cuda(self.args.device)
-            else:
-                ymask = ymask.cuda(self.args.device[0])
-                labels = labels.cuda(self.args.device[0])
-
-        return tuple(data), ymask, labels
-
-    def _get_next_batch(self, data):
-        if self.model_type == 'combined':
-            return self._combined_get_next_batch(data)
-        elif self.model_type == 'yamada':
-            return self._yamada_get_next_batch(data)
-        else:
-            logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model_type))
-            sys.exit(1)
+    # def _get_next_batch(self, data):
+    #     if self.model_type == 'combined':
+    #         return self._combined_get_next_batch(data)
+    #     elif self.model_type == 'yamada':
+    #         return self._yamada_get_next_batch(data)
+    #     else:
+    #         logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model_type))
+    #         sys.exit(1)
 
     def _cosine_loss(self, scores, ymask):
         zeros_2d = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size, self.args.num_candidates - 1))
