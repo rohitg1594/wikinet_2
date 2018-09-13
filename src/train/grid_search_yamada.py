@@ -14,7 +14,7 @@ from src.train.trainer import Trainer
 np.warnings.filterwarnings('ignore')
 
 
-def grid_search(model):
+def grid_search(model_in):
     param_grid = {'dp': [0, 0.1, 0.2, 0.3],
                   'hidden_size': [250, 500, 1000, 2000],
                   'lr': [0.01, 0.005, 0.001],
@@ -31,14 +31,14 @@ def grid_search(model):
         results[result_key] = []
 
         logger.info("Starting validation for untrained model.")
-        correct, mentions = validator.validate(model)
+        correct, mentions = validator.validate(model_in)
         perc = correct / mentions * 100
         logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 
         trainer = Trainer(loader=train_loader,
                           args=args,
                           validator=validator,
-                          model=model,
+                          model=model_in,
                           model_dir=model_dir,
                           model_type='yamada',
                           result_dict=results,
