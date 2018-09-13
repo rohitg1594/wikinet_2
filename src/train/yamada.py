@@ -48,6 +48,7 @@ def parse_args():
     padding = parser.add_argument_group('Max Padding for batch.')
     padding.add_argument('--max_context_size', type=int, help='max number of context')
     padding.add_argument('--max_ent_size', type=int, help='max number of entities considered in abstract')
+    padding.add_argument('--ignore_init', type=str2bool, help='whether to ignore first five tokens of context')
 
     # Model Type
     model_selection = parser.add_argument_group('Type of model to train.')

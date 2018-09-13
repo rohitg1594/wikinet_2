@@ -84,6 +84,8 @@ class YamadaDataloader(object):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
 
         context_word_tokens, examples = self.data[index]
+        if self.args.ignore_init:
+            context_word_tokens = context_word_tokens[5:]
         if len(context_word_tokens) > 0:
             if isinstance(context_word_tokens[0], str):
                 context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
