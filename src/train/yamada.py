@@ -59,7 +59,7 @@ def parse_args():
 
     # Candidate Generation
     candidate = parser.add_argument_group('Candidate generation.')
-    candidate.add_argument('--cand_type', choices=['necounts', 'perhsina'], help='whether to use pershina candidates')
+    candidate.add_argument('--cand_type', choices=['necounts', 'pershina'], help='whether to use pershina candidates')
     candidate.add_argument('--cand_gen_rand', type=str2bool, help='whether to generate random candidates')
     candidate.add_argument("--num_candidates", type=int, default=32, help="Number of candidates")
 
