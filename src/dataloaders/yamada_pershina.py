@@ -36,6 +36,7 @@ class YamadaDataloader(object):
         if self.cand_rand:
             self.num_candidates = 10 ** 6
 
+        # This is of the form: mention_str :  Counter(cand_id: counts)
         self.necounts = pickle_load(join(self.args.data_path, "necounts", "normal_necounts.pickle"))
 
     def _gen_cands(self, true_ent, candidates):
@@ -115,7 +116,6 @@ class YamadaDataloader(object):
 
                 if true_ent in candidate_ids:
                     candidate_ids.remove(true_ent)
-                print(true_ent, candidate_ids)
 
             all_candidates[ent_idx] = self._gen_cands(true_ent, candidate_ids)
 
