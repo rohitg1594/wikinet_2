@@ -15,6 +15,8 @@ class YamadaContextStatsString(YamadaBase):
         self.output = nn.Linear(self.args.hidden_size, 1)
 
     def forward(self, inputs):
+
+        # Unpack
         context, candidate_ids, priors, conditionals, exact_match, contains = inputs
         b, max_ent, num_cand = candidate_ids.shape
         b, max_ent, num_context = context.shape
@@ -23,9 +25,9 @@ class YamadaContextStatsString(YamadaBase):
         candidate_ids = candidate_ids.view(-1, num_cand)
         context = context.view(-1, num_context)
         priors = priors.view(-1, num_cand)
-        conditionals = priors.view(-1, num_cand)
-        exact_match = priors.view(-1, num_cand)
-        contains = priors.view(-1, num_cand)
+        conditionals = conditionals.view(-1, num_cand)
+        exact_match = exact_match.view(-1, num_cand)
+        contains = contains.view(-1, num_cand)
 
         # Get the embeddings
         candidate_embs = self.embeddings_ent(candidate_ids)
@@ -40,7 +42,7 @@ class YamadaContextStatsString(YamadaBase):
         #token_embs = token_embs.expand(be, max_ent, self.emb_dim)
         #token_embs = token_embs.unsqueeze(2)
 
-        # Dot product over last dimension / compute probabilites
+        # Dot product over last dimension
         dot_product = (context_embs * candidate_embs).sum(dim=2)
 
         # Unsqueeze in second dimension
@@ -54,6 +56,7 @@ class YamadaContextStatsString(YamadaBase):
         context_embs = context_embs.expand(-1, num_cand, -1)
         input = torch.cat((context_embs, dot_product, candidate_embs, priors, conditionals, exact_match, contains), dim=2)
 
+        # Scores
         scores = self.output(F.relu(self.dropout(self.hidden(input))))
         scores.squeeze_(dim=2)
         scores = scores.view(b * max_ent, -1)
