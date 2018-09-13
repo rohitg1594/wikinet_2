@@ -7,6 +7,9 @@ debug:False
 data_type:wiki
 data_path:/home/rogupta/wikinet_2/data
 yamada_model:yamada_model.pickle
+proto_data:True
+num_shards:0
+query_size:0
 
 # Padding
 max_ent_size:60
