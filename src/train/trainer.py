@@ -47,14 +47,14 @@ class Trainer(object):
     def _get_next_batch(self, data):
         data = list(data)
         ymask = data[0]
+        b, e = ymask.shape
         data = data[1:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
 
-        ymask = ymask.view(self.args.batch_size * self.args.max_ent_size)
+        ymask = ymask.view(b * e)
         ymask = Variable(ymask)
-        labels = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size).type(torch.LongTensor),
-                          requires_grad=False)
+        labels = Variable(torch.zeros(b * e).type(torch.LongTensor), requires_grad=False)
 
         if self.args.use_cuda:
             if isinstance(self.args.device, int):

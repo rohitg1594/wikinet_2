@@ -5,6 +5,7 @@ from torch.autograd import Variable
 
 from logging import getLogger
 
+
 logger = getLogger()
 
 
@@ -14,22 +15,26 @@ class YamadaValidator:
         self.loader = loader
         self.args = args
 
-    def get_next_batch(self, data):
+    def _get_next_batch(self, data):
         data = list(data)
-
-        ymask = data[0].numpy()
+        ymask = data[0]
         b, e = ymask.shape
-        ymask = ymask.reshape(b * e)
-        #labels = data[1].numpy().reshape(b * e)
-        labels = np.zeros(b * e)
         data = data[1:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
-            print(data[i].shape)
 
-        if self.args.use_cuda and isinstance(self.args.device, int):
-            for i in range(len(data)):
-                data[i] = data[i].cuda(self.args.device)
+        ymask = ymask.view(b * e)
+        labels = np.zeros_like(ymask)
+
+        if self.args.use_cuda:
+            if isinstance(self.args.device, int):
+                for i in range(len(data)):
+                    data[i] = data[i].cuda(self.args.device)
+                ymask = ymask.cuda(self.args.device)
+                labels = labels.cuda(self.args.device)
+            else:
+                ymask = ymask.cuda(self.args.device[0])
+                labels = labels.cuda(self.args.device[0])
 
         return tuple(data), ymask, labels
 
@@ -40,7 +45,7 @@ class YamadaValidator:
         total_mention = 0
 
         for batch_no, data in enumerate(self.loader, 0):
-            data, ymask, labels = self.get_next_batch(data)
+            data, ymask, labels = self._get_next_batch(data)
 
             scores = model(data)
             scores = scores.cpu().data.numpy()
