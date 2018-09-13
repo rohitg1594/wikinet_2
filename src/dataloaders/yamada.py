@@ -104,9 +104,19 @@ class YamadaDataloader(object):
             words_array[:len(words)] = words
 
         for ent_idx, (mention_str, candidates) in enumerate(examples[:self.args.max_ent_size]):
-            candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates]
-            true_ent = candidate_ids[0]
-            candidate_ids = candidate_ids[1:]
+
+            # Train with wikipedia
+            if isinstance(candidates, str):
+                ent_str = candidates
+                if ent_str in self.ent2id:
+                    true_ent = self.ent2id[ent_str]
+                else:
+                    continue
+            # Train with Conll
+            else:
+                candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates]
+                true_ent = candidate_ids[0]
+                candidate_ids = candidate_ids[1:]
 
             if self.cand_type == 'necounts':
                 nfs = get_normalised_forms(mention_str)

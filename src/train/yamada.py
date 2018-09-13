@@ -10,7 +10,7 @@ from torch.nn import DataParallel
 import configargparse
 
 from src.utils.utils import str2bool
-from src.utils.data import pickle_load
+from src.utils.data import pickle_load, load_data
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada import YamadaDataloader
 from src.eval.yamada import YamadaValidator
@@ -38,6 +38,7 @@ def parse_args():
     data = parser.add_argument_group('Data Settings.')
     data.add_argument('--data_path', type=str, help='location of data dir')
     data.add_argument('--yamada_model', type=str, help='name of yamada model')
+    data.add_argument('--data_type', type=str, choices=['conll', 'wiki'], help='whether to train with conll or wiki')
 
     # Max Padding
     padding = parser.add_argument_group('Max Padding for batch.')
@@ -121,8 +122,12 @@ def setup(args, logger):
     priors, conditionals = pickle_load(join(args.data_path, 'yamada', 'stats.pickle'))
     logger.info("Priors and conditionals loaded.")
 
-    pershina = PershinaExamples(args, yamada_model)
-    train_data, dev_data, test_data = pershina.get_training_examples()
+    if args.data_type == 'conll':
+        pershina = PershinaExamples(args, yamada_model)
+        train_data, dev_data, test_data = pershina.get_training_examples()
+    elif args.data_type == 'wiki':
+        train_data, dev_data, test_data = load_data(args, yamada_model)
+
     logger.info("Training data created.")
 
     train_dataset = YamadaDataloader(ent_conditional=conditionals,
@@ -146,31 +151,10 @@ def setup(args, logger):
                                         shuffle=False,
                                         num_workers=args.num_workers,
                                         drop_last=False)
-
-    # full_dataset = YamadaPershina(ent_conditional=conditionals,
-    #                               ent_prior=priors,
-    #                               yamada_model=yamada_model,
-    #                               data=dev_data,
-    #                               args=args,
-    #                               cand_rand=True)
-    # full_loader = full_dataset.get_loader(batch_size=args.batch_size,
-    #                                     shuffle=False,
-    #                                     num_workers=args.num_workers,
-    #                                     drop_last=False)
-
-    # # test_dataset = YamadaPershina(ent_conditional=conditionals,
-    #                               ent_prior=priors,
-    #                               yamada_model=yamada_model,
-    #                               data=test_data,
-    #                               args=args)
-    # # test_loader = test_dataset.get_loader(batch_size=args.batch_size,
-    #                                       shuffle=False,
-    #                                       num_workers=args.num_workers,
-    #                                       drop_last=False)
     logger.info("Dataset created.")
+
     logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
     validator = YamadaValidator(loader=dev_loader, args=args)
-    # full_validator = YamadaValidator(loader=full_loader, args=args)
     logger.info("Validator created.")
 
     return train_loader, validator, yamada_model
@@ -214,25 +198,8 @@ def train(model):
                       model_dir=model_dir,
                       model_type='yamada')
     logger.info("Starting Training")
-    best_model = trainer.train()
+    trainer.train()
     logger.info("Finished Training")
-
-    # logger.info("Validating on the full without pershina candidates.")
-    # percs = []
-    # for _ in range(10):
-    #     correct, mentions = full_validator.validate(best_model)
-    #     perc = correct / mentions * 100
-    #     percs.append(perc)
-    #     logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
-    # percs = np.array(percs)
-    # avg = np.mean(percs)
-    # std = np.std(percs)
-    # logger.info("Average : {}, Std : {}".format(avg, std))
-    # logger.info("Validation on test set.")
-    # test_validator = YamadaValidator(loader=test_loader, args=args)
-    # correct, mentions = test_validator.validate(model=best_model)
-    # perc = correct / mentions * 100
-    # logger.info('Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
 
 
 if __name__ == '__main__':
