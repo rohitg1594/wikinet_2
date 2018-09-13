@@ -20,7 +20,8 @@ class YamadaValidator:
         ymask = data[0].numpy()
         b, e = ymask.shape
         ymask = ymask.reshape(b * e)
-        labels = data[1].numpy().reshape(b * e)
+        #labels = data[1].numpy().reshape(b * e)
+        labels = np.zeros(self.args.batch_size * self.args.max_ent_size)
         data = data[2:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
