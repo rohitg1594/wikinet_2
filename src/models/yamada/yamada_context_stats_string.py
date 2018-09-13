@@ -39,8 +39,6 @@ class YamadaContextStatsString(YamadaBase):
         # Normalize / Pass through linear layer / Unsqueeze
         context_embs = F.normalize(self.orig_linear(context_embs), dim=1)
         context_embs.unsqueeze_(1)
-        #token_embs = token_embs.expand(be, max_ent, self.emb_dim)
-        #token_embs = token_embs.unsqueeze(2)
 
         # Dot product over last dimension
         dot_product = (context_embs * candidate_embs).sum(dim=2)
