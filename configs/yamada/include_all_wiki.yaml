@@ -4,7 +4,7 @@ exp_name:only_prior
 debug:False
 
 # Data
-data_type:conll
+data_type:wiki
 data_path:/home/rogupta/wikinet_2/data
 yamada_model:yamada_model.pickle
 
@@ -21,7 +21,7 @@ hidden_size:1000
 dp:0.2
 
 # Candidate Generation
-cand_type:pershina
+cand_type:conll
 cand_gen_rand:False
 num_candidates:32
 

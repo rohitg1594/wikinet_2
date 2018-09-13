@@ -4,6 +4,7 @@ exp_name:only_prior
 debug:False
 
 # Data
+data_type:conll
 data_path:/home/rogupta/wikinet_2/data
 yamada_model:yamada_model.pickle
 
