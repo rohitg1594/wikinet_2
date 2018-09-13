@@ -15,10 +15,11 @@ np.warnings.filterwarnings('ignore')
 
 
 def grid_search():
-    param_grid = {'dp': [0, 0.1, 0.2, 0.3],
-                  'hidden_size': [250, 500, 1000, 2000],
-                  'lr': [0.01, 0.005, 0.001],
-                  'wd': [0.001, 0.0001, 0.0005]
+    param_grid = {'dp': [0.1, 0.2, 0.3],
+                  'hidden_size': [1000, 2000],
+                  'lr': [0.01, 0.005],
+                  'wd': [0.001, 0.0001, 0.0005],
+                  'num_candidates': [16, 32, 64, 128]
                   }
     results = {}
 

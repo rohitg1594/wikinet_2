@@ -1,4 +1,4 @@
-# This module implements dataloader for the yamada model with pershina candidates
+# This module implements dataloader for the yamada model
 import numpy as np
 import torch
 import torch.utils.data
@@ -36,8 +36,9 @@ class YamadaDataloader(object):
         if self.cand_rand:
             self.num_candidates = 10 ** 6
 
-        # This is of the form: mention_str :  Counter(cand_id: counts)
-        self.necounts = pickle_load(join(self.args.data_path, "necounts", "normal_necounts.pickle"))
+        if cand_type == 'necounts':
+            # This is of the form: mention_str :  Counter(cand_id: counts)
+            self.necounts = pickle_load(join(self.args.data_path, "necounts", "normal_necounts.pickle"))
 
     def _gen_cands(self, true_ent, candidates):
 

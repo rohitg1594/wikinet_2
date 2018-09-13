@@ -12,8 +12,7 @@ import configargparse
 from src.utils.utils import str2bool
 from src.utils.data import pickle_load
 from src.conll.pershina import PershinaExamples
-from src.dataloaders.yamada_pershina import YamadaDataloader
-from src.dataloaders.yamada_necounts import YamadaConllDataset
+from src.dataloaders.yamada import YamadaDataloader
 from src.eval.yamada import YamadaValidator
 from src.models.yamada.yamada_context import YamadaContext
 from src.models.yamada.yamada_context_stats import YamadaContextStats
