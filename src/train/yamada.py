@@ -2,6 +2,7 @@
 import os
 from os.path import join
 from datetime import datetime
+import sys
 
 import numpy as np
 
@@ -130,6 +131,9 @@ def setup(args, logger):
         train_data, dev_data, test_data = pershina.get_training_examples()
     elif args.data_type == 'wiki':
         train_data, dev_data, test_data = load_data(args, yamada_model)
+    else:
+        logger.error("Data type {} not recognized, choose one of wiki, conll".format(args.data_type))
+        sys.exit(1)
 
     logger.info("Training data created.")
 

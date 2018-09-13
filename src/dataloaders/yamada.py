@@ -5,7 +5,7 @@ import torch.utils.data
 
 from os.path import join
 
-from src.utils.utils import reverse_dict, get_normalised_forms
+from src.utils.utils import reverse_dict, get_normalised_forms, equalize_len
 from src.utils.data import pickle_load
 
 
@@ -26,6 +26,7 @@ class YamadaDataloader(object):
         self.cand_gen = self.num_candidates // 2
         self.ent2id = yamada_model['ent_dict']
         self.id2ent = reverse_dict(self.ent2id)
+        self.word_dict = yamada_model['word_dict']
         self.data = data
         self.max_ent = len(self.ent2id)
         self.ent_prior = ent_prior
@@ -79,6 +80,20 @@ class YamadaDataloader(object):
             else:
                 conditionals[ent_idx, c_idx] = 0
 
+    def _init_context(self, index):
+        """Initialize numpy array that will hold all context word tokens. Also return mentions"""
+
+        context_word_tokens, examples = self.data[index]
+        if len(context_word_tokens) > 0:
+            if isinstance(context_word_tokens[0], str):
+                context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
+        context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
+
+        context_word_tokens_array = np.zeros((self.args.max_ent_size, self.args.max_context_size), dtype=np.int64)
+        context_word_tokens_array[:len(examples)] = context_word_tokens
+
+        return context_word_tokens_array, examples
+
     def __getitem__(self, index):
         if isinstance(index, slice):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
@@ -86,22 +101,17 @@ class YamadaDataloader(object):
         result = []
 
         # Each abstract is of shape num_ents * NUMBER_CANDIDATES
-        all_candidates = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.int64)
+        all_candidates = self._init_feats(0)[0]
 
         if self.args.include_string:
             exact_match, contains = self._init_feats(2)
         if self.args.include_stats:
             priors, conditionals = self._init_feats(2)
 
-        words_array = np.zeros(self.args.max_context_size, dtype=np.int64)
-        words, examples = self.data[index]
+        context, examples = self._init_context(index)
+
         mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
         mask[:len(examples)] = 1
-
-        if len(words) > self.args.max_context_size:
-            words_array[:self.args.max_context_size] = words[:self.args.max_context_size]
-        else:
-            words_array[:len(words)] = words
 
         for ent_idx, (mention_str, candidates) in enumerate(examples[:self.args.max_ent_size]):
 
@@ -136,7 +146,7 @@ class YamadaDataloader(object):
             if self.args.include_stats:
                 self._update_stat_feats(mention_str, all_candidates, ent_idx, priors, conditionals)
 
-        result.extend([mask, words_array, all_candidates])
+        result.extend([mask, context, all_candidates])
         if self.args.include_stats:
             result.extend([priors, conditionals])
         if self.args.include_string:
