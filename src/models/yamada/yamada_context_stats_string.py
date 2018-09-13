@@ -15,40 +15,47 @@ class YamadaContextStatsString(YamadaBase):
         self.output = nn.Linear(self.args.hidden_size, 1)
 
     def forward(self, inputs):
-        tokens, candidate_ids, priors, conditionals, exact_match, contains = inputs
-        be, max_ent, num_cand = candidate_ids.shape
+        context, candidate_ids, priors, conditionals, exact_match, contains = inputs
+        b, max_ent, num_cand = candidate_ids.shape
+        b, max_ent, num_context = context.shape
+
+        # Reshape
         candidate_ids = candidate_ids.view(-1, num_cand)
+        context = context.view(-1, num_context)
+        priors = priors.view(-1, num_cand)
+        conditionals = priors.view(-1, num_cand)
+        exact_match = priors.view(-1, num_cand)
+        contains = priors.view(-1, num_cand)
 
         # Get the embeddings
         candidate_embs = self.embeddings_ent(candidate_ids)
-        candidate_embs = candidate_embs.view(be, max_ent, num_cand, -1)
+        context_embs = self.embeddings_word(context)
 
-        token_embs = self.embeddings_word(tokens)
-        token_embs = token_embs.mean(dim=1)
+        # Aggregate context
+        context_embs = context_embs.mean(dim=1)
 
-        # Normalize / Pass through linear layer
-        token_embs = F.normalize(self.orig_linear(token_embs), dim=1)
-        token_embs.unsqueeze_(1)
-        token_embs = token_embs.expand(be, max_ent, self.emb_dim)
-        token_embs = token_embs.unsqueeze(2)
+        # Normalize / Pass through linear layer / Unsqueeze
+        context_embs = F.normalize(self.orig_linear(context_embs), dim=1)
+        context_embs.unsqueeze_(1)
+        #token_embs = token_embs.expand(be, max_ent, self.emb_dim)
+        #token_embs = token_embs.unsqueeze(2)
 
         # Dot product over last dimension / compute probabilites
-        dot_product = (token_embs * candidate_embs).sum(dim=3)
+        dot_product = (context_embs * candidate_embs).sum(dim=2)
 
-        # Unsqueeze in third dimension
-        dot_product.unsqueeze_(dim=3)
-        priors.unsqueeze_(dim=3)
-        conditionals.unsqueeze_(dim=3)
-        exact_match.unsqueeze_(dim=3)
-        contains.unsqueeze_(dim=3)
+        # Unsqueeze in second dimension
+        dot_product.unsqueeze_(dim=2)
+        priors.unsqueeze_(dim=2)
+        conditionals.unsqueeze_(dim=2)
+        exact_match.unsqueeze_(dim=2)
+        contains.unsqueeze_(dim=2)
 
         # Create input for mlp
-        token_embs = token_embs.expand(be, max_ent, num_cand, self.emb_dim)
-        input = torch.cat((token_embs, dot_product, candidate_embs,
-                           priors, conditionals, exact_match, contains), dim=3)
+        context_embs = context_embs.expand(-1, num_cand, -1)
+        input = torch.cat((context_embs, dot_product, candidate_embs, priors, conditionals, exact_match, contains), dim=2)
 
         scores = self.output(F.relu(self.dropout(self.hidden(input))))
-        scores.squeeze_(dim=3)
-        scores = scores.view(be * max_ent, -1)
+        scores.squeeze_(dim=2)
+        scores = scores.view(b * max_ent, -1)
 
         return scores
