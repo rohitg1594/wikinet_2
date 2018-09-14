@@ -5,7 +5,7 @@ import torch.utils.data
 
 from os.path import join
 
-from src.utils.utils import reverse_dict, get_normalised_forms, equalize_len
+from src.utils.utils import reverse_dict, get_normalised_forms, equalize_len, normalise_form
 from src.utils.data import pickle_load
 
 
@@ -75,7 +75,7 @@ class YamadaDataloader(object):
     def _update_stat_feats(self, mention_str, candidates, ent_idx, priors, conditionals):
         for c_idx, candidate in enumerate(candidates[ent_idx]):
             priors[ent_idx, c_idx] = self.ent_prior.get(candidate, 0)
-            nf = get_normalised_forms(mention_str)
+            nf = normalise_form(mention_str)
             if nf in self.ent_conditional:
                 conditionals[ent_idx, c_idx] = self.ent_conditional[nf].get(candidate, 0)
             else:
