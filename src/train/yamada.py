@@ -124,7 +124,9 @@ def setup(args, logger):
     yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
     logger.info("Model loaded.")
 
-    priors, conditionals = pickle_load(join(args.data_path, 'yamada', 'stats.pickle'))
+    priors, _ = pickle_load(join(args.data_path, 'yamada', 'stats.pickle'))
+    conditionals = pickle_load(join(args.data_path, 'yamada', 'prior_prob.pickle'))
+
     logger.info("Priors and conditionals loaded.")
 
     if args.data_type == 'conll':

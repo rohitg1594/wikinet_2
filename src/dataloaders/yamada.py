@@ -75,8 +75,9 @@ class YamadaDataloader(object):
     def _update_stat_feats(self, mention_str, candidates, ent_idx, priors, conditionals):
         for c_idx, candidate in enumerate(candidates[ent_idx]):
             priors[ent_idx, c_idx] = self.ent_prior.get(candidate, 0)
-            if mention_str in self.ent_conditional:
-                conditionals[ent_idx, c_idx] = self.ent_conditional[mention_str].get(candidate, 0)
+            nf = get_normalised_forms(mention_str)
+            if nf in self.ent_conditional:
+                conditionals[ent_idx, c_idx] = self.ent_conditional[nf].get(candidate, 0)
             else:
                 conditionals[ent_idx, c_idx] = 0
 

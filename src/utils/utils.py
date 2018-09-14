@@ -104,6 +104,9 @@ def iter_derived_forms(sf):
     yield sf.replace("'s", "")
     yield ''.join(c for c in sf if not c in string.punctuation)
 
+    if sf.startswith('The') or sf.startswith('the'):
+        yield sf[4:]
+
     comma_parts = sf.split(',')[:-1]
     for i in range(len(comma_parts)):
         yield ''.join(comma_parts[:i + 1])
