@@ -125,7 +125,7 @@ def setup(args, logger):
     logger.info("Model loaded.")
 
     priors, _ = pickle_load(join(args.data_path, 'yamada', 'stats.pickle'))
-    conditionals = pickle_load(join(args.data_path, 'yamada', 'prior_prob.pickle'))
+    conditionals = pickle_load(join(args.data_path, 'necounts', 'prior_prob.pickle'))
 
     logger.info("Priors and conditionals loaded.")
 

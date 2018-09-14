@@ -40,5 +40,6 @@ Thumbs.db
 *.pyc
 notebooks/*
 experiments.ods
+data/*
 .~*
 .idea*
