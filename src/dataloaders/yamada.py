@@ -103,7 +103,7 @@ class YamadaDataloader(object):
 
         result = []
 
-        # Each abstract is of shape num_ents * NUMBER_CANDIDATES
+        # Each abstract is of shape max_ent_size * num_candidates
         all_candidates = self._init_feats(1)[0]
 
         if self.args.include_string:
