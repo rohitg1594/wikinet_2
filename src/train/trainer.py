@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from src.utils.data import save_checkpoint
+from src.utils.utils import yamada_validate_wrap
 
 logger = logging.getLogger()
 
@@ -23,12 +24,16 @@ class Trainer(object):
         self.model = model
         self.model_type = model_type
         self.num_epochs = self.args.num_epochs
-        self.validator = validator
         self.model_dir = model_dir
         self.min_delta = 1e-03
         self.patience = self.args.patience
         self.result_dict = result_dict
         self.result_key = result_key
+
+        if isinstance(validator, tuple):
+            self.conll_validator, self.wiki_validator = validator
+        else:
+            self.validator = validator
 
         if args.optim == 'adagrad':
             self.optimizer = torch.optim.Adagrad(filter(lambda p: p.requires_grad, self.model.parameters()), lr=args.lr, weight_decay=args.wd)
@@ -137,13 +142,16 @@ class Trainer(object):
         return mrr_conll
 
     def yamada_validate(self, epoch):
-        correct, mentions = self.validator.validate(model=self.model)
-        perc = correct / mentions * 100
+        conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=self.conll_validator,
+                                                     wiki_validator=self.wiki_validator,
+                                                     model=self.model)
+        logger.info('Epoch - {},  Conll - {}'.format(epoch, conll_perc))
+        logger.info('Epoch - {},  Wiki - {}'.format(epoch, wiki_perc))
         if self.result_key is not None:
-            self.result_dict[self.result_key].append(perc)
-        logger.info('Epoch : {}, Correct : {}, Mention : {}, Percentage : {}'.format(epoch, correct, mentions, perc))
+            self.result_dict[self.result_key]['Conll'].append(conll_perc)
+            self.result_dict[self.result_key]['Wikipedia'].append(wiki_perc)
 
-        return perc
+        return conll_perc
 
     def train(self):
         training_losses = []

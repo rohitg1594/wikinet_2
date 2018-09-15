@@ -229,3 +229,15 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
     logger.info('{} Model created.'.format(model_type.__name__))
 
     return model
+
+
+def yamada_validate_wrap(conll_validator=None,
+                         wiki_validator=None,
+                         model=None):
+    correct, mentions = conll_validator.validate(model)
+    conll_perc = correct / mentions * 100
+
+    correct, mentions = wiki_validator.validate(model)
+    wiki_perc = correct / mentions * 100
+
+    return conll_perc, wiki_perc

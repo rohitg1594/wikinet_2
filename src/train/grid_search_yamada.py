@@ -10,11 +10,18 @@ import torch
 
 from src.train.yamada import parse_args, setup, get_model
 from src.train.trainer import Trainer
+from src.utils.utils import yamada_validate_wrap
 
 np.warnings.filterwarnings('ignore')
 
 
-def grid_search():
+def grid_search(yamada_model=None,
+                logger=None,
+                conll_validator=None,
+                wiki_validator=None,
+                model_dir=None,
+                train_loader=None,
+                args=None):
     param_grid = {'dp': [0.1, 0.2, 0.3],
                   'hidden_size': [1000, 2000],
                   'lr': [0.01, 0.005],
@@ -28,19 +35,23 @@ def grid_search():
             args.__dict__[k] = v
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())
-        results[result_key] = []
+        results[result_key] = {'Wikipedia': [],
+                               'Conll': []}
 
         model = get_model(args, yamada_model, logger)
 
         logger.info("Starting validation for untrained model.")
-        correct, mentions = validator.validate(model)
-        perc = correct / mentions * 100
-        results[result_key].append(perc)
-        logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
+        conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=conll_validator,
+                                                     wiki_validator=wiki_validator,
+                                                     model=model)
+        result_dict[result_key]['Conll'].append(conll_perc)
+        result_dict[result_key]['Wikipedia'].append(wiki_perc)
+        logger.info('Untrained Conll - {}'.format(conll_perc))
+        logger.info('Untrained Wiki - {}'.format(wiki_perc))
 
         trainer = Trainer(loader=train_loader,
                           args=args,
-                          validator=validator,
+                          validator=(conll_validator, wiki_validator),
                           model=model,
                           model_dir=model_dir,
                           model_type='yamada',
@@ -65,7 +76,6 @@ def grid_search():
 
 
 if __name__ == '__main__':
-
-    args, logger, model_dir = parse_args()
-    train_loader, validator, yamada_model = setup(args, logger)
+    Args, Logger, Model_dir = parse_args()
+    Train_loader, Conll_validator, Wiki_validator, Yamada_model = setup(Args, Logger)
     result_dict = grid_search()

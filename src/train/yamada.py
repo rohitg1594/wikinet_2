@@ -10,7 +10,7 @@ from torch.nn import DataParallel
 
 import configargparse
 
-from src.utils.utils import str2bool
+from src.utils.utils import str2bool, yamada_validate_wrap
 from src.utils.data import pickle_load, load_data
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada import YamadaDataset
@@ -69,16 +69,16 @@ def parse_args():
     candidate.add_argument("--num_candidates", type=int, default=32, help="Number of candidates")
 
     # Training
-    train = parser.add_argument_group("Training parameters.")
-    train.add_argument("--num_epochs", type=int, default=5, help="Number of epochs")
-    train.add_argument("--save_every", type=int, default=5, help="how often to checkpoint")
-    train.add_argument("--patience", type=int, default=5, help="Patience for early stopping")
-    train.add_argument("--batch_size", type=int, default=32, help="Batch size")
-    train.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
-    train.add_argument('--lr', type=float, help='learning rate')
-    train.add_argument('--wd', type=float, help='weight decay')
-    train.add_argument('--optim', type=str, choices=['adagrad', 'adam', 'rmsprop'], help='optimizer')
-    train.add_argument('--sparse', type=str2bool, help='sparse gradients')
+    training = parser.add_argument_group("Training parameters.")
+    training.add_argument("--num_epochs", type=int, default=5, help="Number of epochs")
+    training.add_argument("--save_every", type=int, default=5, help="how often to checkpoint")
+    training.add_argument("--patience", type=int, default=5, help="Patience for early stopping")
+    training.add_argument("--batch_size", type=int, default=32, help="Batch size")
+    training.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
+    training.add_argument('--lr', type=float, help='learning rate')
+    training.add_argument('--wd', type=float, help='weight decay')
+    training.add_argument('--optim', type=str, choices=['adagrad', 'adam', 'rmsprop'], help='optimizer')
+    training.add_argument('--sparse', type=str2bool, help='sparse gradients')
 
     # Loss
     loss = parser.add_argument_group('Type of loss.')
@@ -129,11 +129,13 @@ def setup(args, logger):
 
     logger.info("Priors and conditionals loaded.")
 
+    pershina = PershinaExamples(args, yamada_model)
+    conll_train_data, conll_dev_data, conll_test_data = pershina.get_training_examples()
+    wiki_train_data, wiki_dev_data, wiki_test_data = load_data(args, yamada_model)
     if args.data_type == 'conll':
-        pershina = PershinaExamples(args, yamada_model)
-        train_data, dev_data, test_data = pershina.get_training_examples()
+        train_data = conll_train_data
     elif args.data_type == 'wiki':
-        train_data, dev_data, test_data = load_data(args, yamada_model)
+        train_data = wiki_train_data
     else:
         logger.error("Data type {} not recognized, choose one of wiki, conll".format(args.data_type))
         sys.exit(1)
@@ -151,23 +153,35 @@ def setup(args, logger):
                                             num_workers=args.num_workers,
                                             drop_last=False)
 
-    dev_dataset = YamadaDataset(ent_conditional=conditionals,
-                                ent_prior=priors,
-                                yamada_model=yamada_model,
-                                data=dev_data,
-                                args=args,
-                                cand_type=args.cand_type)
-    dev_loader = dev_dataset.get_loader(batch_size=args.batch_size,
-                                        shuffle=False,
-                                        num_workers=args.num_workers,
-                                        drop_last=False)
+    conll_dev_dataset = YamadaDataset(ent_conditional=conditionals,
+                                      ent_prior=priors,
+                                      yamada_model=yamada_model,
+                                      data=conll_dev_data,
+                                      args=args,
+                                      cand_type=args.cand_type)
+    conll_dev_loader = conll_dev_dataset.get_loader(batch_size=args.batch_size,
+                                                    shuffle=False,
+                                                    num_workers=args.num_workers,
+                                                    drop_last=False)
+
+    wiki_dev_dataset = YamadaDataset(ent_conditional=conditionals,
+                                     ent_prior=priors,
+                                     yamada_model=yamada_model,
+                                     data=wiki_dev_data,
+                                     args=args,
+                                     cand_type=args.cand_type)
+    wiki_dev_loader = wiki_dev_dataset.get_loader(batch_size=args.batch_size,
+                                                  shuffle=False,
+                                                  num_workers=args.num_workers,
+                                                  drop_last=False)
     logger.info("Dataset created.")
 
     logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
-    validator = YamadaValidator(loader=dev_loader, args=args)
+    conll_validator = YamadaValidator(loader=conll_dev_loader, args=args)
+    wiki_validator = YamadaValidator(loader=wiki_dev_loader, args=args)
     logger.info("Validator created.")
 
-    return train_loader, validator, yamada_model
+    return train_loader, conll_validator, wiki_validator, yamada_model
 
 
 def get_model(args, yamada_model, logger):
@@ -194,16 +208,24 @@ def get_model(args, yamada_model, logger):
     return model
 
 
-def train(model):
+def train(model=None,
+          logger=None,
+          conll_validator=None,
+          wiki_validator=None,
+          model_dir=None,
+          train_loader=None,
+          args=None):
 
     logger.info("Starting validation for untrained model.")
-    correct, mentions = validator.validate(model)
-    perc = correct / mentions * 100
-    logger.info('Untrained, Correct : {}, Mention : {}, Percentage : {}'.format(correct, mentions, perc))
+    conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=conll_validator,
+                                                 wiki_validator=wiki_validator,
+                                                 model=model)
+    logger.info('Untrained Conll - {}'.format(conll_perc))
+    logger.info('Untrained Wiki - {}'.format(wiki_perc))
 
     trainer = Trainer(loader=train_loader,
                       args=args,
-                      validator=validator,
+                      validator=(conll_validator, wiki_validator),
                       model=model,
                       model_dir=model_dir,
                       model_type='yamada')
@@ -213,7 +235,12 @@ def train(model):
 
 
 if __name__ == '__main__':
-    args, logger, model_dir = parse_args()
-    train_loader, validator, yamada_model = setup(args, logger)
-    model = get_model(args, yamada_model, logger)
-    train(model)
+    Args, Logger, Model_dir = parse_args()
+    Train_loader, Conll_validator, Wiki_validator, Yamada_model = setup(Args, Logger)
+    Model = get_model(Args, Yamada_model, Logger)
+    train(model=Model,
+          conll_validator=Conll_validator,
+          wiki_validator=Wiki_validator,
+          model_dir=Model_dir,
+          train_loader=Train_loader,
+          args=Args)
