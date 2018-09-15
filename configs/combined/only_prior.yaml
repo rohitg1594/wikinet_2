@@ -17,7 +17,7 @@ gram_type:trigram
 gram_lower:True
 gram_vocab:vocab_trigram_266826.tsv
 gram_dim:64
-mention_word_dim:64
+mention_word_dim:128
 
 # Max padding
 max_word_size:5
@@ -28,7 +28,7 @@ max_ent_size:60
 # Model types
 init_yamada:True
 model_name:only_prior
-init_mention:xavier_normal
+init_mention:normal
 
 # Model Params
 measure:ip

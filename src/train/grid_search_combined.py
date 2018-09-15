@@ -17,7 +17,6 @@ np.warnings.filterwarnings('ignore')
 
 def grid_search():
     param_grid = {'num_candidates': [32, 64, 128, 256],
-                  'mention_word_dim': [64, 128],
                   'lr': [0.001, 0.0001],
                   'wd': [0.0001, 0.0005]
                   }
