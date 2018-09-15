@@ -140,7 +140,7 @@ def setup(args, logger):
         logger.error("Data type {} not recognized, choose one of wiki, conll".format(args.data_type))
         sys.exit(1)
 
-    logger.info("Training data created.")
+    logger.info("Using {} for training.".format(args.data_type))
 
     train_dataset = YamadaDataset(ent_conditional=conditionals,
                                   ent_prior=priors,
@@ -243,4 +243,5 @@ if __name__ == '__main__':
           wiki_validator=Wiki_validator,
           model_dir=Model_dir,
           train_loader=Train_loader,
+          logger=Logger,
           args=Args)
