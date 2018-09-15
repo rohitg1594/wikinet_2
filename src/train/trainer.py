@@ -145,8 +145,8 @@ class Trainer(object):
         conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=self.conll_validator,
                                                      wiki_validator=self.wiki_validator,
                                                      model=self.model)
-        logger.info('Epoch - {},  Conll - {}'.format(epoch, conll_perc))
-        logger.info('Epoch - {},  Wiki - {}'.format(epoch, wiki_perc))
+        logger.info('Epoch - {}, Conll - {}'.format(epoch, conll_perc))
+        logger.info('Epoch - {}, Wiki - {}'.format(epoch, wiki_perc))
         if self.result_key is not None:
             self.result_dict[self.result_key]['Conll'].append(conll_perc)
             self.result_dict[self.result_key]['Wikipedia'].append(wiki_perc)

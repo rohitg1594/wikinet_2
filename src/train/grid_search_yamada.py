@@ -46,8 +46,8 @@ def grid_search(yamada_model=None,
                                                      model=model)
         result_dict[result_key]['Conll'].append(conll_perc)
         result_dict[result_key]['Wikipedia'].append(wiki_perc)
-        logger.info('Untrained Conll - {}'.format(conll_perc))
-        logger.info('Untrained Wiki - {}'.format(wiki_perc))
+        logger.info('Untrained, Conll - {}'.format(conll_perc))
+        logger.info('Untrained, Wiki - {}'.format(wiki_perc))
 
         trainer = Trainer(loader=train_loader,
                           args=args,

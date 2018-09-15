@@ -104,7 +104,8 @@ def parse_args():
             devices = int(devices[0])
         args.__dict__['device'] = devices
 
-    logger.info("Experiment Parameters")
+    logger.info("Experiment Parameters:")
+    print()
     for arg in sorted(vars(args)):
         logger.info('{:<15}\t{}'.format(arg, getattr(args, arg)))
 
@@ -221,8 +222,8 @@ def train(model=None,
     conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=conll_validator,
                                                  wiki_validator=wiki_validator,
                                                  model=model)
-    logger.info('Untrained Conll - {}'.format(conll_perc))
-    logger.info('Untrained Wiki - {}'.format(wiki_perc))
+    logger.info('Untrained, Conll - {}'.format(conll_perc))
+    logger.info('Untrained, Wiki - {}'.format(wiki_perc))
 
     trainer = Trainer(loader=train_loader,
                       args=args,
