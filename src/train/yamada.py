@@ -169,7 +169,7 @@ def setup(args, logger):
                                      yamada_model=yamada_model,
                                      data=wiki_dev_data,
                                      args=args,
-                                     cand_type=args.cand_type)
+                                     cand_type='necounts')
     wiki_dev_loader = wiki_dev_dataset.get_loader(batch_size=args.batch_size,
                                                   shuffle=False,
                                                   num_workers=args.num_workers,
