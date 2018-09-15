@@ -169,7 +169,7 @@ def load_wiki_data(data_type, args, yamada_model):
     else:
         logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
         sys.exit(1)
-    logger("Data loaded.")
+    logger.info("Data loaded.")
 
     return train_data, dev_data, test_data
 
