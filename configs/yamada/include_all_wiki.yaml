@@ -7,7 +7,6 @@ debug:False
 data_type:wiki
 data_path:/home/rogupta/wikinet_2/data
 yamada_model:yamada_model.pickle
-proto_data:True
 num_shards:0
 train_size:0
 
