@@ -32,7 +32,7 @@ batch_size:16
 num_workers:8
 lr:1e-03
 wd:1e-04
-optim:adagrad
+optim:rmsprop
 sparse:False
 save_every:5
 

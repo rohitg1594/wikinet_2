@@ -19,7 +19,6 @@ def grid_search():
                   'hidden_size': [1000, 2000],
                   'lr': [0.01, 0.005],
                   'wd': [0.001, 0.0001],
-                  'optim': ['adagrad', 'rmsprop']
                   }
     results = {}
 
