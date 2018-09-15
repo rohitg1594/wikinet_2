@@ -44,8 +44,8 @@ def grid_search(yamada_model=None,
         conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=conll_validator,
                                                      wiki_validator=wiki_validator,
                                                      model=model)
-        result_dict[result_key]['Conll'].append(conll_perc)
-        result_dict[result_key]['Wikipedia'].append(wiki_perc)
+        results[result_key]['Conll'].append(conll_perc)
+        results[result_key]['Wikipedia'].append(wiki_perc)
         logger.info('Untrained, Conll - {}'.format(conll_perc))
         logger.info('Untrained, Wiki - {}'.format(wiki_perc))
 

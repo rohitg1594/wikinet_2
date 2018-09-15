@@ -231,7 +231,8 @@ def train(model=None,
                       model=model,
                       model_dir=model_dir,
                       model_type='yamada')
-    logger.info("Starting Training")
+    logger.info("Starting Training:")
+    print()
     trainer.train()
     logger.info("Finished Training")
 
