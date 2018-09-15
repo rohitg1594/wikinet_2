@@ -40,7 +40,7 @@ def grid_search(yamada_model=None,
 
         model = get_model(args, yamada_model, logger)
 
-        logger.info("Starting validation for untrained model.")
+        logger.info("Starting validation for untrained model.....")
         conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=conll_validator,
                                                      wiki_validator=wiki_validator,
                                                      model=model)
@@ -57,7 +57,8 @@ def grid_search(yamada_model=None,
                           model_type='yamada',
                           result_dict=results,
                           result_key=result_key)
-        logger.info("Starting Training")
+        logger.info("Starting Training:")
+        print()
         trainer.train()
         logger.info("Finished Training")
 

@@ -154,7 +154,7 @@ def load_data(args, yamada_model):
                     test_data.append(d)
 
         elif args.data_type == 'conll':
-            logger.info("Loading Pershina Training data.")
+            logger.info("Loading Pershina Training data.....")
             pershina = PershinaExamples(args, yamada_model)
             train_data, dev_data, test_data = pershina.get_training_examples()
             rev_word_dict = reverse_dict(yamada_model['word_dict'])
