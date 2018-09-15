@@ -79,4 +79,10 @@ def grid_search(yamada_model=None,
 if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
     Train_loader, Conll_validator, Wiki_validator, Yamada_model = setup(Args, Logger)
-    result_dict = grid_search()
+    result_dict = grid_search(yamada_model=Yamada_model,
+                              conll_validator=Conll_validator,
+                              wiki_validator=Wiki_validator,
+                              model_dir=Model_dir,
+                              train_loader=Train_loader,
+                              logger=Logger,
+                              args=Args)

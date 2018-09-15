@@ -141,7 +141,6 @@ def load_wiki_data(data_type, args, yamada_model):
         data = []
         for i in range(args.num_shards):
             data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
-        logger.info("Data loaded")
 
         train_data = []
         dev_data = []
@@ -169,7 +168,6 @@ def load_wiki_data(data_type, args, yamada_model):
     else:
         logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
         sys.exit(1)
-    logger.info("Data loaded.")
 
     return train_data, dev_data, test_data
 
