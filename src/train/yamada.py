@@ -120,15 +120,16 @@ def parse_args():
 
 def setup(args, logger):
     print()
-    logger.info("Loading Yamada model.")
+    logger.info("Loading Yamada model.....")
     yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
     logger.info("Model loaded.")
 
+    logger.info("Loading Stat features.....")
     priors, _ = pickle_load(join(args.data_path, 'yamada', 'stats.pickle'))
     conditionals = pickle_load(join(args.data_path, 'necounts', 'prior_prob.pickle'))
-
     logger.info("Priors and conditionals loaded.")
 
+    logger.info("Using {} for training.....".format(args.data_type))
     pershina = PershinaExamples(args, yamada_model)
     conll_train_data, conll_dev_data, conll_test_data = pershina.get_training_examples()
     wiki_train_data, wiki_dev_data, wiki_test_data = load_data(args, yamada_model)
@@ -139,9 +140,9 @@ def setup(args, logger):
     else:
         logger.error("Data type {} not recognized, choose one of wiki, conll".format(args.data_type))
         sys.exit(1)
+    logger.info("Data loaded.")
 
-    logger.info("Using {} for training.".format(args.data_type))
-
+    logger.info("Creating data loaders.....")
     train_dataset = YamadaDataset(ent_conditional=conditionals,
                                   ent_prior=priors,
                                   yamada_model=yamada_model,
@@ -174,12 +175,12 @@ def setup(args, logger):
                                                   shuffle=False,
                                                   num_workers=args.num_workers,
                                                   drop_last=False)
-    logger.info("Dataset created.")
+    logger.info("Data loaders created.There will be {} batches.".format(len(train_loader)))
 
-    logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
+    logger.info("Creating validators.....")
     conll_validator = YamadaValidator(loader=conll_dev_loader, args=args)
     wiki_validator = YamadaValidator(loader=wiki_dev_loader, args=args)
-    logger.info("Validator created.")
+    logger.info("Validators created.")
 
     return train_loader, conll_validator, wiki_validator, yamada_model
 
