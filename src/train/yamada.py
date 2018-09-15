@@ -13,7 +13,7 @@ import configargparse
 from src.utils.utils import str2bool
 from src.utils.data import pickle_load, load_data
 from src.conll.pershina import PershinaExamples
-from src.dataloaders.yamada import YamadaDataloader
+from src.dataloaders.yamada import YamadaDataset
 from src.eval.yamada import YamadaValidator
 from src.models.yamada.yamada_context import YamadaContext
 from src.models.yamada.yamada_context_stats import YamadaContextStats
@@ -140,23 +140,23 @@ def setup(args, logger):
 
     logger.info("Training data created.")
 
-    train_dataset = YamadaDataloader(ent_conditional=conditionals,
-                                     ent_prior=priors,
-                                     yamada_model=yamada_model,
-                                     data=train_data,
-                                     args=args,
-                                     cand_type=args.cand_type)
+    train_dataset = YamadaDataset(ent_conditional=conditionals,
+                                  ent_prior=priors,
+                                  yamada_model=yamada_model,
+                                  data=train_data,
+                                  args=args,
+                                  cand_type=args.cand_type)
     train_loader = train_dataset.get_loader(batch_size=args.batch_size,
                                             shuffle=False,
                                             num_workers=args.num_workers,
                                             drop_last=False)
 
-    dev_dataset = YamadaDataloader(ent_conditional=conditionals,
-                                   ent_prior=priors,
-                                   yamada_model=yamada_model,
-                                   data=dev_data,
-                                   args=args,
-                                   cand_type=args.cand_type)
+    dev_dataset = YamadaDataset(ent_conditional=conditionals,
+                                ent_prior=priors,
+                                yamada_model=yamada_model,
+                                data=dev_data,
+                                args=args,
+                                cand_type=args.cand_type)
     dev_loader = dev_dataset.get_loader(batch_size=args.batch_size,
                                         shuffle=False,
                                         num_workers=args.num_workers,

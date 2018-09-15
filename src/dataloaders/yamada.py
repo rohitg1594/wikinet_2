@@ -9,7 +9,7 @@ from src.utils.utils import reverse_dict, get_normalised_forms, equalize_len, no
 from src.utils.data import pickle_load
 
 
-class YamadaDataloader(object):
+class YamadaDataset(object):
 
     def __init__(self,
                  ent_prior=None,
