@@ -158,11 +158,15 @@ class Trainer(object):
         best_model = self.model
         wait = 0
         best_valid_metric = 0
+        num_batches = len(self.loader)
+        if num_batches > 1000:
+            batch_verbose = True
+        print('NUM BATCHEs : {}'.format(num_batches))
 
         for epoch in range(self.num_epochs):
             self.model = self.model.train()
             for batch_no, data in enumerate(self.loader, 0):
-                if batch_no % 1000 == 0:
+                if batch_no % 1000 == 0 and batch_verbose:
                     logger.info("Now on batch : {}".format(batch_no))
                 loss = self.step(data)
                 training_losses.append(loss)
