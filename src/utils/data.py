@@ -127,43 +127,49 @@ def load_stats(args, yamada_model):
     return priors, conditionals
 
 
-def load_data(args, yamada_model):
-    if args.proto_data:
+def load_wiki_data(data_type, args, yamada_model):
+    """
+       Load train data in format used by combined dataloader.
+    """
+    if data_type == 'proto':
+        logger.info("Loading Wikipedia proto training data.....")
         train_data, dev_data = pickle_load(join(args.data_path, 'training_files', 'proto.pickle'))
         test_data = []
+
+    elif data_type == 'wiki':
+        logger.info("Loading Wikipedia orig training data.....")
+        data = []
+        for i in range(args.num_shards):
+            data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
+        logger.info("Data loaded")
+
+        train_data = []
+        dev_data = []
+        test_data = []
+        for d in data:
+            if len(train_data) == args.train_size:
+                break
+            r = np.random.random()
+            if r < 0.90:
+                train_data.append(d)
+
+            elif 0.9 < r < 0.95:
+                dev_data.append(d)
+            else:
+                test_data.append(d)
+
+    elif data_type == 'conll':
+        logger.info("Loading Pershina training data.....")
+        pershina = PershinaExamples(args, yamada_model)
+        train_data, dev_data, test_data = pershina.get_training_examples()
+        rev_word_dict = reverse_dict(yamada_model['word_dict'])
+        train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
+                                          conll_to_wiki(dev_data, rev_word_dict), conll_to_wiki(test_data,
+                                                                                                rev_word_dict)
     else:
-        if args.data_type == 'wiki':
-            logger.info("Loading Wikipedia Training data.")
-            data = []
-            for i in range(args.num_shards):
-                data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
-
-            train_data = []
-            dev_data = []
-            test_data = []
-            for d in data:
-                if len(train_data) == args.train_size:
-                    break
-                r = np.random.random()
-                if r < 0.90:
-                    train_data.append(d)
-
-                elif 0.9 < r < 0.95:
-                    dev_data.append(d)
-                else:
-                    test_data.append(d)
-
-        elif args.data_type == 'conll':
-            logger.info("Loading Pershina Training data.....")
-            pershina = PershinaExamples(args, yamada_model)
-            train_data, dev_data, test_data = pershina.get_training_examples()
-            rev_word_dict = reverse_dict(yamada_model['word_dict'])
-            train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
-                                              conll_to_wiki(dev_data, rev_word_dict), conll_to_wiki(test_data,
-                                                                                                    rev_word_dict)
-        else:
-            logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
-            sys.exit(1)
+        logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
+        sys.exit(1)
+    logger("Data loaded.")
 
     return train_data, dev_data, test_data
 

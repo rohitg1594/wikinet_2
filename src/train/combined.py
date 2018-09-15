@@ -10,7 +10,7 @@ from torch.nn import DataParallel
 import configargparse
 
 from src.utils.utils import str2bool, normal_initialize, get_model
-from src.utils.data import load_vocab, pickle_load, load_data
+from src.utils.data import load_vocab, pickle_load, load_wiki_data
 from src.eval.combined import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenizer.gram_tokenizer import get_gram_tokenizer
@@ -33,8 +33,7 @@ def parse_args():
     # Data
     data = parser.add_argument_group('Data Settings.')
     data.add_argument('--data_path', type=str, help='location of data dir')
-    data.add_argument('--data_type', choices=['wiki', 'conll'], type=str, help='dataset to train on.')
-    data.add_argument('--proto_data', type=str2bool, help='whether to use prototype data')
+    data.add_argument('--data_type', choices=['wiki', 'conll', 'proto'], type=str, help='dataset to train on.')
     data.add_argument('--num_shards', type=int, help='number of shards of training file')
     data.add_argument('--train_size', type=int, help='number of training abstracts')
     data.add_argument('--query_size', type=int, help='number of queries during validation')
@@ -173,7 +172,7 @@ def setup(args, logger):
         word_embs = yamada_model['word_emb']
 
     # Training Data
-    train_data, dev_data, test_data = load_data(args, yamada_model)
+    train_data, dev_data, test_data = load_wiki_data(args.data_type, args, yamada_model)
     logger.info("Training data loaded.")
     logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 

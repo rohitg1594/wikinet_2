@@ -11,7 +11,7 @@ from torch.nn import DataParallel
 import configargparse
 
 from src.utils.utils import str2bool, yamada_validate_wrap
-from src.utils.data import pickle_load, load_data
+from src.utils.data import pickle_load, load_wiki_data
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada import YamadaDataset
 from src.eval.yamada import YamadaValidator
@@ -39,8 +39,7 @@ def parse_args():
     data = parser.add_argument_group('Data Settings.')
     data.add_argument('--data_path', type=str, help='location of data dir')
     data.add_argument('--yamada_model', type=str, help='name of yamada model')
-    data.add_argument('--data_type', type=str, choices=['conll', 'wiki'], help='whether to train with conll or wiki')
-    data.add_argument('--proto_data', type=str2bool, help='whether to use prototype data')
+    data.add_argument('--data_type', type=str, choices=['conll', 'wiki', 'proto'], help='whether to train with conll or wiki')
     data.add_argument('--num_shards', type=int, help='number of shards of training file')
     data.add_argument('--train_size', type=int, help='number of training abstracts')
 
@@ -133,13 +132,14 @@ def setup(args, logger):
     logger.info("Using {} for training.....".format(args.data_type))
     pershina = PershinaExamples(args, yamada_model)
     conll_train_data, conll_dev_data, conll_test_data = pershina.get_training_examples()
-    wiki_train_data, wiki_dev_data, wiki_test_data = load_data(args, yamada_model)
+    data_type = 'proto' if args.data_type == 'conll' else args.data_type
+    wiki_train_data, wiki_dev_data, wiki_test_data = load_wiki_data(data_type, args, yamada_model)
     if args.data_type == 'conll':
         train_data = conll_train_data
-    elif args.data_type == 'wiki':
+    elif args.data_type in ['wiki', 'proto']:
         train_data = wiki_train_data
     else:
-        logger.error("Data type {} not recognized, choose one of wiki, conll".format(args.data_type))
+        logger.error("Data type {} not recognized, choose one of wiki, conll, proto.".format(args.data_type))
         sys.exit(1)
     logger.info("Data loaded.")
 
