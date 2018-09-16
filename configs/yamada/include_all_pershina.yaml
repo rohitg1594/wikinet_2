@@ -1,6 +1,6 @@
 # General
 seed:-1
-exp_name:only_prior
+exp_name:include_all_pershina
 debug:False
 
 # Data
@@ -11,6 +11,7 @@ yamada_model:yamada_model.pickle
 # Padding
 max_ent_size:60
 max_context_size:100
+ignore_init:False
 
 # Model types
 include_stats:True
