@@ -44,11 +44,11 @@ class YamadaContextStatsString(YamadaBase):
         dot_product = (context_embs * candidate_embs).sum(dim=2)
 
         # Unsqueeze in second dimension
-        dot_product.unsqueeze_(dim=2)
-        priors.unsqueeze_(dim=2)
-        conditionals.unsqueeze_(dim=2)
-        exact_match.unsqueeze_(dim=2)
-        contains.unsqueeze_(dim=2)
+        dot_product = dot_product.unsqueeze(dim=2)
+        priors = priors.unsqueeze(dim=2)
+        conditionals = conditionals.unsqueeze(dim=2)
+        exact_match = exact_match.unsqueeze(dim=2)
+        contains = contains.unsqueeze(dim=2)
 
         # Create input for mlp
         context_embs = context_embs.expand(-1, num_cand, -1)
@@ -56,7 +56,6 @@ class YamadaContextStatsString(YamadaBase):
 
         # Scores
         scores = self.output(F.relu(self.dropout(self.hidden(input))))
-        scores.squeeze_(dim=2)
         scores = scores.view(b * max_ent, -1)
 
         return scores
