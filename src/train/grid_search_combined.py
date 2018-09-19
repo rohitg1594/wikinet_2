@@ -19,7 +19,7 @@ def grid_search():
     param_grid = {'num_candidates': [32, 64],
                   'lr': [0.1, 0.01, 0.001],
                   'wd': [10e-3, 10e-4, 10e-5, 10e-6],
-                  'mention_word_dim': [128, 256]
+                  'mention_word_dim': [64, 128]
                   }
     results = {}
 
