@@ -48,11 +48,11 @@ num_candidates:32
 # Training Settings
 patience:2
 num_epochs:10
-batch_size:64
+batch_size:32
 num_workers:8
 lr:1e-03
 wd:1e-04
-optim:rmsprop
+optim:adagrad
 sparse:False
 save_every:5
 
