@@ -17,7 +17,7 @@ gram_type:trigram
 gram_lower:True
 gram_vocab:vocab_trigram_266826.tsv
 gram_dim:64
-mention_word_dim:64
+mention_word_dim:256
 
 # Max padding
 max_word_size:5
@@ -28,7 +28,7 @@ max_ent_size:60
 # Model types
 init_yamada:True
 model_name:only_prior_rnn
-init_mention:xavier_normal
+init_mention:normal
 
 # Model Params
 measure:ip
@@ -43,15 +43,15 @@ norm_final:True
 
 # Candidate Generation
 cand_gen_rand:False
-num_candidates:32
+num_candidates:128
 
 # Training Settings
 patience:2
 num_epochs:10
-batch_size:32
+batch_size:16
 num_workers:8
 lr:1e-03
-wd:1e-04
+wd:1e-05
 optim:adagrad
 sparse:False
 save_every:5
