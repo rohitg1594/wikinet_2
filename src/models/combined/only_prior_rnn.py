@@ -38,7 +38,7 @@ class OnlyPriorRNN(CombinedBase):
             candidate_ids = candidate_ids.view(-1, num_cand)
 
             # Mask for lstm
-            mask = (mention_word_tokens > 0).sum(1)
+            mask = (mention_word_tokens > 0).long().sum(1)
 
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
@@ -62,7 +62,7 @@ class OnlyPriorRNN(CombinedBase):
 
         else:
             # Mask for lstm
-            mask = (mention_word_tokens > 0).sum(1)
+            mask = (mention_word_tokens > 0).long().sum(1)
 
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
