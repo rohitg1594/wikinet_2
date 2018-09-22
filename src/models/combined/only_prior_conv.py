@@ -84,4 +84,4 @@ class OnlyPriorConv(CombinedBase):
                 candidate_embs = F.normalize(candidate_embs, dim=1)
                 conved_embs = F.normalize(conved_embs, dim=1)
 
-            return conved_embs, candidate_embs
+            return candidate_embs, conved_embs
