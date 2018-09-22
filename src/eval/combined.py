@@ -283,6 +283,7 @@ class CombinedValidator:
         D_wiki, I_wiki = index.search(wiki_mention_combined_embs.astype(np.float32), 100)
         D_conll, I_conll = index.search(conll_mention_combined_embs.astype(np.float32), 100)
 
+        print(I_wiki.shape, I_conll.shape, self.wiki_all_gold[self.wiki_mask].shape, self.conll_all_gold.shape)
         # Evaluate rankings
         top1_wiki, top10_wiki, top100_wiki, mrr_wiki = eval_ranking(I_wiki, self.wiki_all_gold[self.wiki_mask], [1, 10, 100])
         top1_conll, top10_conll, top100_conll, mrr_conll = eval_ranking(I_conll, self.conll_all_gold, [1, 10, 100])
