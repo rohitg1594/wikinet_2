@@ -84,6 +84,9 @@ class OnlyPriorConv(CombinedBase):
                 candidate_embs = F.normalize(candidate_embs, dim=1)
                 conved_embs = F.normalize(conved_embs, dim=1)
 
+            print('BEFORE : {}'.format(conved_embs.shape))
+            conved_embs = conved_embs.tranpose(0, 1)
+            print('AFTER : {}'.format(conved_embs.shape))
             # Dot product over last dimension
             scores = (conved_embs * candidate_embs).sum(dim=1)
 
