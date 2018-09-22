@@ -136,10 +136,10 @@ class CombinedDataSet(object):
 
         return pad_tokens
 
-    def _getitem_only_prior(self, mask, examples, all_candidate_ids):
-        """getitem for only prior and only prior linear models."""
+    def _getitem_only_prior(self, mask, examples, all_candidate_ids, token_type='word'):
+        """getitem for only prior and only prior linear models with word or gram tokens."""
 
-        all_candidate_words, all_mention_words = self._init_tokens(flag='word')
+        all_candidate_words, all_mention_words = self._init_tokens(flag=token_type)
 
         for ent_idx, (mention, ent_str) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
@@ -148,7 +148,7 @@ class CombinedDataSet(object):
                 continue
 
             # Mention Word Tokens
-            all_mention_words[ent_idx] = self._get_tokens(mention, flag='word')
+            all_mention_words[ent_idx] = self._get_tokens(mention, flag=token_type)
 
             # Candidate Generation
             candidate_ids = self._get_candidates(ent_id, mention)
@@ -332,9 +332,11 @@ class CombinedDataSet(object):
         mask[:len(examples)] = 1
 
         if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
-            return self._getitem_only_prior(mask, examples, all_candidate_ids)
+            return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='word')
+        elif self.model_name == 'only_prior_conv':
+            return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='gram')
         elif self.model_name == 'only_prior_full':
-            return self._getitem_only_prior_full(mask, examples)
+            return self._getitem_only_prior_full(mask, example)
         elif self.model_name == 'only_prior_regress':
             return self._getitem_only_prior_regress(mask, examples, all_candidate_ids)
         elif self.model_name == 'include_word':
