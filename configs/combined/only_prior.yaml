@@ -31,7 +31,7 @@ model_name:only_prior
 init_mention:normal
 
 # Model Params
-measure:l2
+measure:ip
 dp:0
 
 # Normalization
@@ -39,7 +39,7 @@ norm_gram:False
 norm_word:False
 norm_mention:False
 norm_context:False
-norm_final:False
+norm_final:True
 
 # Candidate Generation
 cand_gen_rand:False
