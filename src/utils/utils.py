@@ -216,7 +216,12 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             model_type = OnlyPriorFull
         elif model_name == 'only_prior_conv':
             model_type = OnlyPriorConv
-            conv_weights = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1], 2)
+
+            if args.gram_type == 'bigram':
+                kernel = 2
+            else:
+                kernel = 2
+            conv_weights = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1], kernel)
             if init == 'xavier_uniform':
                 nn.init.xavier_uniform(conv_weights)
             elif init == 'xavier_normal':
