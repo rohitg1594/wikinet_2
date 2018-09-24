@@ -14,6 +14,7 @@ class OnlyPriorConv(CombinedBase):
         # Unpack args
         mention_embs = kwargs['mention_embs']
         ent_mention_embs = kwargs['ent_mention_embs']
+        conv_weights = kwargs['conv_weights']
 
         # Mention embeddings
         self.mention_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
@@ -30,6 +31,7 @@ class OnlyPriorConv(CombinedBase):
             kernel = 3
         self.conv = torch.nn.Conv1d(in_channels=mention_embs.shape[1], out_channels=mention_embs.shape[1],
                                     kernel_size=kernel, dilation=1, bias=False)
+        self.conv.weight.data.copy_(conv_weights)
 
     def forward(self, inputs):
         mention_gram_tokens, candidate_ids = inputs

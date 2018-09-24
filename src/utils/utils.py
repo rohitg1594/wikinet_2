@@ -216,6 +216,12 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             model_type = OnlyPriorFull
         elif model_name == 'only_prior_conv':
             model_type = OnlyPriorConv
+            conv_weights = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1])
+            if init == 'normal':
+                conv_weights = torch.from_numpy(normal_initialize(mention_embs.shape[1], mention_embs.shape[1]))
+            elif init == 'xavier_normal':
+                nn.init.xavier_normal(conv_weights)
+            kwargs['conv_weights'] = conv_weights
         else:
             model_type = MentionPrior
     else:
