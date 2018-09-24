@@ -27,10 +27,12 @@ class OnlyPriorConv(CombinedBase):
         # Conv Layer
         if self.args.gram_type == 'bigram':
             kernel = 2
+            self.ignore = 1
         else:
             kernel = 3
+            self.ignore = 2
         self.conv = torch.nn.Conv1d(in_channels=mention_embs.shape[1], out_channels=mention_embs.shape[1],
-                                    kernel_size=kernel, dilation=1, bias=False)
+                                    kernel_size=kernel, dilation=1, bias=False, padding=1)
         self.conv.weight.data.copy_(conv_weights)
 
     def forward(self, inputs):
@@ -49,11 +51,11 @@ class OnlyPriorConv(CombinedBase):
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Mask for conv
-            mask = (mention_gram_tokens > 0).unsqueeze(1).float()[:, :, 1:]
+            mask = (mention_gram_tokens > 0).unsqueeze(1).float()
 
             # Encode mention embs
-            conved_embs = self.conv(mention_embs)
-            conved_embs = conved_embs + mention_embs[:, :, 1:]  # Residual connection
+            conved_embs = self.conv(mention_embs)[:, :, :-self.ignore]
+            conved_embs = conved_embs + mention_embs  # Residual connection
             conved_embs = (conved_embs * mask).sum(dim=2)
 
             # Normalize
@@ -74,11 +76,11 @@ class OnlyPriorConv(CombinedBase):
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Mask for conv
-            mask = (mention_gram_tokens > 0).unsqueeze(1).float()[:, :, 1:]
+            mask = (mention_gram_tokens > 0).unsqueeze(1).float()
 
             # Encode mention embs
-            conved_embs = self.conv(mention_embs)
-            conved_embs = conved_embs + mention_embs[:, :, 1:]
+            conved_embs = self.conv(mention_embs)[:, :, :-self.ignore]
+            conved_embs = conved_embs + mention_embs  # Residual connection
             conved_embs = (conved_embs * mask).sum(dim=2)
 
             # Normalize
