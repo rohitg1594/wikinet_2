@@ -52,14 +52,10 @@ class OnlyPriorConv(CombinedBase):
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Mask for conv
-            print('MENTION_GRAM_TOKENS : {}'.format(mention_gram_tokens[:10, :30]))
             mask = (mention_gram_tokens > 0).unsqueeze(1).float()
-            print('MASK : {}'.format(mask[:10, :30]))
 
             # Encode mention embs
             conved_embs = self.conv(mention_embs)[:, :, :-self.ignore]
-            print('MENTION EMBS SHAPE : {}, CONVED EMBS : {}'.format(mention_embs.shape, conved_embs.shape))
-            sys.exit(1)
             conved_embs = conved_embs + mention_embs  # Residual connection
             conved_embs = (conved_embs * mask).sum(dim=2)
 
@@ -88,7 +84,7 @@ class OnlyPriorConv(CombinedBase):
             # Encode mention embs
             conved_embs = self.conv(mention_embs)[:, :, :-self.ignore]
             print('MENTION EMBS SHAPE : {}, CONVED EMBS : {}'.format(mention_embs.shape, conved_embs.shape))
-            conved_embs = conved_embs + mention_embs  # Residual connection
+            conved_embs = conved_embs + mention_embs[:, :, :-self.ignore]  # Residual connection
             conved_embs = (conved_embs * mask).sum(dim=2)
 
             # Normalize
