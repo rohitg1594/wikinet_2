@@ -220,7 +220,7 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             if args.gram_type == 'bigram':
                 kernel = 2
             else:
-                kernel = 2
+                kernel = 3
             conv_weights = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1], kernel)
             if init == 'xavier_uniform':
                 nn.init.xavier_uniform(conv_weights)
