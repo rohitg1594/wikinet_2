@@ -15,7 +15,6 @@ yamada_model:yamada_model.pickle
 # Gram Settings
 gram_type:trigram
 gram_lower:True
-gram_vocab:vocab_trigram_266826.tsv
 gram_dim:64
 mention_word_dim:128
 
