@@ -49,7 +49,7 @@ class OnlyPriorConv(CombinedBase):
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Mask for conv
-            mask = (mention_gram_tokens > 0).unsqueeze(2).float()[:, :, 1:]
+            mask = (mention_gram_tokens > 0).unsqueeze(1).float()[:, :, 1:]
 
             # Encode mention embs
             conved_embs = self.conv(mention_embs)
@@ -74,7 +74,7 @@ class OnlyPriorConv(CombinedBase):
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Mask for conv
-            mask = (mention_gram_tokens > 0).unsqueeze(2).float()[:, :, 1:]
+            mask = (mention_gram_tokens > 0).unsqueeze(1).float()[:, :, 1:]
 
             # Encode mention embs
             conved_embs = self.conv(mention_embs)
