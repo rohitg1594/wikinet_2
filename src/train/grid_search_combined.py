@@ -19,8 +19,6 @@ def grid_search():
     param_grid = {
                   'lr': [0.001, 0.01, 0.005],
                   'wd': [10e-4, 10e-5, 10e-6],
-                  'num_candidates': [64, 128, 256],
-                  'init_mention': ['xavier_uniform', 'xavier_normal']
                   }
     results = {}
 
