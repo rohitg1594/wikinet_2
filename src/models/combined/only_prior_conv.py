@@ -2,6 +2,7 @@
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
+import sys
 
 from src.models.combined.base import CombinedBase
 
@@ -51,10 +52,14 @@ class OnlyPriorConv(CombinedBase):
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Mask for conv
+            print('MENTION_GRAM_TOKENS : {}'.format(mention_gram_tokens[:10, :30]))
             mask = (mention_gram_tokens > 0).unsqueeze(1).float()
+            print('MASK : {}'.format(mask[:10, :30]))
 
             # Encode mention embs
             conved_embs = self.conv(mention_embs)[:, :, :-self.ignore]
+            print('MENTION EMBS SHAPE : {}, CONVED EMBS : {}'.format(mention_embs.shape, conved_embs.shape))
+            sys.exit(1)
             conved_embs = conved_embs + mention_embs  # Residual connection
             conved_embs = (conved_embs * mask).sum(dim=2)
 

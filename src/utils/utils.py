@@ -4,7 +4,9 @@ import numpy as np
 import string
 import re
 import sys
+from os.path import join
 import logging
+import pickle
 
 import torch
 from torch.nn import DataParallel
@@ -173,6 +175,13 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
                 ckpt = torch.load(f, map_location='cpu')
             mention_embs = ckpt['state_dict']['mention_embs.weight']
             ent_mention_embs = ckpt['state_dict']['ent_mention_embs.weight']
+
+        elif init == 'pca':
+            logger.info("Loading mention and ent mention embs from yamada pca at {}.".format(args.init_mention_model))
+            with open(join(args.data_path, 'yamada', args.init_mention_model), 'rb') as f:
+                d = pickle.load(f)
+            mention_embs = d['word']
+            ent_mention_embs = d['ent']
 
         else:
             mention_embs = torch.Tensor(word_embs.shape[0], args.mention_word_dim)
