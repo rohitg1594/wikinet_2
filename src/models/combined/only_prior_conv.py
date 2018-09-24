@@ -84,7 +84,7 @@ class OnlyPriorConv(CombinedBase):
             # Encode mention embs
             conved_embs = self.conv(mention_embs)[:, :, :-self.ignore]
             print('MENTION EMBS SHAPE : {}, CONVED EMBS : {}'.format(mention_embs.shape, conved_embs.shape))
-            conved_embs = conved_embs + mention_embs[:, :, :-self.ignore]  # Residual connection
+            conved_embs = conved_embs + mention_embs  # Residual connection
             conved_embs = (conved_embs * mask).sum(dim=2)
 
             # Normalize
