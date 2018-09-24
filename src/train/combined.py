@@ -45,7 +45,6 @@ def parse_args():
     gram = parser.add_argument_group('Gram (uni / bi / tri) Settings.')
     gram.add_argument('--gram_type', type=str, choices=['unigram', 'bigram', 'trigram'], help='type of gram tokenizer')
     gram.add_argument('--gram_lower', type=str2bool, help='whether to lowercase gram tokens')
-    gram.add_argument('--gram_vocab', type=str, help='name of gram vocab file')
     gram.add_argument('--gram_dim', type=int, help='dimension of gram embeddings')
 
     # Max Padding
@@ -156,7 +155,7 @@ def setup(args, logger):
     # Gram Embeddings
     gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
     logger.info("Using gram tokenizer {}".format(gram_tokenizer.__name__))
-    gram_dict = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_vocab), plus_one=True)
+    gram_dict = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_type + '.tsv'), plus_one=True)
     logger.info("Gram dictionary loaded of length: {}".format(len(gram_dict)))
     gram_embs = normal_initialize(len(gram_dict) + 1, args.gram_dim)
     logger.info("Gram embeddings created of shape: {}".format(gram_embs.shape))
