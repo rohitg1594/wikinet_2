@@ -36,6 +36,7 @@ class OnlyPriorPosition(CombinedBase):
 
             # Reshape to two dimensions - needed because nn.Embedding only allows lookup with 2D-Tensors
             mention_word_tokens = mention_word_tokens.view(-1, num_word)
+            mention_pos_tokens = mention_pos_tokens.view(-1, num_word)
             candidate_ids = candidate_ids.view(-1, num_cand)
 
             # Get the embeddings
