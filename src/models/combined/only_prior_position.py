@@ -66,18 +66,6 @@ class OnlyPriorPosition(CombinedBase):
         self.position_lin = nn.Linear(mention_embs.shape[1], mention_embs.shape[1])
         self.position_embs = nn.Embedding(self.args.max_word_size + 1, mention_embs.shape[1], padding_idx=0)
 
-    @staticmethod
-    def get_absolute_pos(word_sequences):
-        batch = torch.zeros_like(word_sequences).long()
-        for i, word_seq in enumerate(word_sequences):
-            start_idx = 1
-            for j, pos in enumerate(word_seq):
-                if int(pos) == 0:
-                    batch[i, j] = 0
-                else:
-                    batch[i, j] = start_idx
-                    start_idx += 1
-        return Variable(batch)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs

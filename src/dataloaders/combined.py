@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import torch
 import torch.utils.data
+from torch.autograd import Variable
 
 from src.utils.utils import reverse_dict, equalize_len, get_normalised_forms
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
@@ -136,10 +137,10 @@ class CombinedDataSet(object):
 
         return pad_tokens
 
-    def _getitem_only_prior(self, mask, examples, all_candidate_ids, token_type='word'):
+    def _getitem_only_prior(self, mask, examples, all_candidate_ids, token_type='word', include_pos=False):
         """getitem for only prior and only prior linear models with word or gram tokens."""
 
-        all_candidate_words, all_mention_words = self._init_tokens(flag=token_type)
+        all_candidate_tokens, all_mention_tokens = self._init_tokens(flag=token_type)
 
         for ent_idx, (mention, ent_str) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
@@ -148,13 +149,17 @@ class CombinedDataSet(object):
                 continue
 
             # Mention Word Tokens
-            all_mention_words[ent_idx] = self._get_tokens(mention, flag=token_type)
+            all_mention_tokens[ent_idx] = self._get_tokens(mention, flag=token_type)
 
             # Candidate Generation
             candidate_ids = self._get_candidates(ent_id, mention)
             all_candidate_ids[ent_idx] = candidate_ids
 
-        return mask, all_mention_words, all_candidate_ids
+        if include_pos:
+            all_mention_pos = get_absolute_pos(all_candidate_tokens)
+            return mask, all_mention_tokens, all_mention_pos, all_candidate_ids
+
+        return mask, all_mention_tokens, all_candidate_ids
 
     def _getitem_only_prior_regress(self, mask, examples, all_candidate_ids):
         """getitem for only prior with regression model."""
@@ -333,11 +338,11 @@ class CombinedDataSet(object):
 
         if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn',
                                'only_prior_position']:
-            return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='word')
+            return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='word', include_pos=False)
+        elif self.model_name == 'only_prior_position':
+            return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='word', include_pos=True)
         elif self.model_name == 'only_prior_conv':
-            return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='gram')
-        elif self.model_name == 'only_prior_full':
-            return self._getitem_only_prior_full(mask, example)
+            return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='gram', include_pos=False)
         elif self.model_name == 'only_prior_regress':
             return self._getitem_only_prior_regress(mask, examples, all_candidate_ids)
         elif self.model_name == 'include_word':
@@ -368,3 +373,16 @@ class CombinedDataSet(object):
                                            num_workers=num_workers,
                                            pin_memory=pin_memory,
                                            drop_last=drop_last)
+
+
+def get_absolute_pos(word_sequences):
+    batch = torch.zeros_like(word_sequences).long()
+    for i, word_seq in enumerate(word_sequences):
+        start_idx = 1
+        for j, pos in enumerate(word_seq):
+            if int(pos) == 0:
+                batch[i, j] = 0
+            else:
+                batch[i, j] = start_idx
+                start_idx += 1
+    return batch
