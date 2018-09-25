@@ -270,7 +270,7 @@ def yamada_validate_wrap(conll_validator=None,
 
 
 def get_absolute_pos(word_sequences):
-    batch = torch.zeros_like(word_sequences).long()
+    batch = np.zeros_like(word_sequences, dtype=np.int64)
     for i, word_seq in enumerate(word_sequences):
         start_idx = 1
         for j, pos in enumerate(word_seq):
@@ -279,4 +279,4 @@ def get_absolute_pos(word_sequences):
             else:
                 batch[i, j] = start_idx
                 start_idx += 1
-    return batch
+    return torch.from_numpy(batch)
