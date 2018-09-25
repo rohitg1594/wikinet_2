@@ -79,7 +79,7 @@ class OnlyPriorPosition(CombinedBase):
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Add pos embs / pass through linear
-            mention_embs_agg = self.position_lin(self.position(mention_embs))
+            mention_embs_agg = torch.mean(self.position_lin(self.position(mention_embs)), dim=1)
 
             # Normalize
             if self.args.norm_final:
@@ -100,7 +100,7 @@ class OnlyPriorPosition(CombinedBase):
 
             print('MENTION EMBS SHAPE : {}'.format(mention_embs.shape))
             # Sum the embeddings over the small and large tokens dimension
-            mention_embs_agg = self.position_lin(self.position(mention_embs))
+            mention_embs_agg = torch.mean(self.position_lin(self.position(mention_embs)), dim=1)
 
             # Normalize
             if self.args.norm_final:
