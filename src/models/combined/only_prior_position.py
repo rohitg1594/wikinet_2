@@ -3,6 +3,9 @@ import math
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
+from torch.autograd import Variable
+
+import numpy as np
 
 from src.models.combined.base import CombinedBase
 
@@ -32,7 +35,7 @@ class PositionalEncoding(nn.Module):
         self.dim = dim
 
     def forward(self, emb, step=None):
-        emb = emb * math.sqrt(self.dim)
+        # emb = emb * math.sqrt(self.dim)
         if step is None:
             emb = emb + self.pe[:emb.size(0)]
         else:
@@ -61,7 +64,20 @@ class OnlyPriorPosition(CombinedBase):
 
         # Positional Encoding
         self.position_lin = nn.Linear(mention_embs.shape[1], mention_embs.shape[1])
-        self.position = PositionalEncoding(self.args.dp, mention_embs.shape[1])
+        self.position_embs = nn.Embedding(self.args.max_word_size + 1, mention_embs.shape[1], padding_idx=0)
+
+    @staticmethod
+    def get_absolute_pos(word_sequences):
+        batch = torch.zeros_like(word_sequences).long()
+        for i, word_seq in enumerate(word_sequences):
+            start_idx = 1
+            for j, pos in enumerate(word_seq):
+                if int(pos) == 0:
+                    batch[i, j] = 0
+                else:
+                    batch[i, j] = start_idx
+                    start_idx += 1
+        return Variable(batch)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
@@ -79,7 +95,9 @@ class OnlyPriorPosition(CombinedBase):
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Add pos embs / pass through linear
-            mention_embs_agg = torch.mean(self.position_lin(self.position(mention_embs)), dim=1)
+            mention_pos_tokens = self.get_absolute_pos(mention_word_tokens)
+            mention_pos_embs = self.position_embs(mention_pos_tokens)
+            mention_embs_agg = torch.mean(self.position_lin(mention_embs + mention_pos_embs), dim=1)
 
             # Normalize
             if self.args.norm_final:
@@ -98,9 +116,10 @@ class OnlyPriorPosition(CombinedBase):
             mention_embs = self.mention_embs(mention_word_tokens)
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
-            print('MENTION EMBS SHAPE : {}'.format(mention_embs.shape))
-            # Sum the embeddings over the small and large tokens dimension
-            mention_embs_agg = torch.mean(self.position_lin(self.position(mention_embs)), dim=1)
+            # Add pos embs / pass through linear
+            mention_pos_tokens = self.get_absolute_pos(mention_word_tokens)
+            mention_pos_embs = self.position_embs(mention_pos_tokens)
+            mention_embs_agg = torch.mean(self.position_lin(mention_embs + mention_pos_embs), dim=1)
 
             # Normalize
             if self.args.norm_final:
