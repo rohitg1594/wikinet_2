@@ -180,8 +180,8 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             logger.info("Loading mention and ent mention embs from yamada pca at {}.".format(args.init_mention_model))
             with open(join(args.data_path, 'yamada', args.init_mention_model), 'rb') as f:
                 d = pickle.load(f)
-            mention_embs = d['word']
-            ent_mention_embs = d['ent']
+            mention_embs = torch.from_numpy(d['word'])
+            ent_mention_embs = torch.from_numpy(d['ent'])
 
         else:
             mention_embs = torch.Tensor(word_embs.shape[0], args.mention_word_dim)
