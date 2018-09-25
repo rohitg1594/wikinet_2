@@ -45,7 +45,6 @@ class OnlyPriorPosition(CombinedBase):
 
             # Add pos embs / pass through linear
             mention_pos_embs = self.position_embs(mention_pos_tokens)
-            print('MENTION EMBS : {}, POS EMBS : {}'.format(mention_embs.shape, mention_pos_embs.shape))
             mention_embs_agg = torch.mean(self.position_lin(mention_embs + mention_pos_embs), dim=1)
 
             # Normalize
@@ -67,7 +66,6 @@ class OnlyPriorPosition(CombinedBase):
 
             # Add pos embs / pass through linear
             mention_pos_embs = self.position_embs(mention_pos_tokens)
-            print('MENTION EMBS : {}, POS EMBS : {}'.format(mention_embs.shape, mention_pos_embs.shape))
             mention_embs_agg = torch.mean(self.position_lin(mention_embs + mention_pos_embs), dim=1)
 
             # Normalize
