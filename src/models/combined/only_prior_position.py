@@ -61,7 +61,7 @@ class OnlyPriorPosition(CombinedBase):
 
         # Positional Encoding
         self.position_lin = nn.Linear(mention_embs.shape[1], mention_embs.shape[1])
-        self.position = PositionalEncoding(self.args.dp, mention_embs.shape[1], max_len=self.args.max_word_size)
+        self.position = PositionalEncoding(self.args.dp, mention_embs.shape[1])
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
@@ -98,6 +98,7 @@ class OnlyPriorPosition(CombinedBase):
             mention_embs = self.mention_embs(mention_word_tokens)
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
+            print('MENTION EMBS SHAPE : {}'.format(mention_embs.shape))
             # Sum the embeddings over the small and large tokens dimension
             mention_embs_agg = self.position_lin(self.position(mention_embs))
 
