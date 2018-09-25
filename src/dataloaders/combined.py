@@ -156,7 +156,6 @@ class CombinedDataSet(object):
 
         if include_pos:
             all_mention_pos = get_absolute_pos(all_mention_tokens)
-            print('MENTION POS TOKENS : {}'.format(all_mention_pos))
             return mask, all_mention_tokens, all_mention_pos, all_candidate_ids
 
         return mask, all_mention_tokens, all_candidate_ids
@@ -339,7 +338,6 @@ class CombinedDataSet(object):
         if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
             return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='word', include_pos=False)
         elif self.model_name == 'only_prior_position':
-            print('USING GET ITEM FOR ONLY PRIOR POSITION')
             return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='word', include_pos=True)
         elif self.model_name == 'only_prior_conv':
             return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='gram', include_pos=False)
