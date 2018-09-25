@@ -22,6 +22,7 @@ from src.models.combined.only_prior_full import OnlyPriorFull
 from src.models.combined.only_prior_multi_linear import OnlyPriorMultiLinear
 from src.models.combined.only_prior_rnn import OnlyPriorRNN
 from src.models.combined.only_prior_conv import OnlyPriorConv
+from src.models.combined.only_prior_position import OnlyPriorPosition
 
 use_cuda = torch.cuda.is_available()
 RE_WS_PRE_PUCT = re.compile(u'\s+([^a-zA-Z\d])')
@@ -223,6 +224,8 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             model_type = OnlyPriorLinear
         elif model_name == 'only_prior_full':
             model_type = OnlyPriorFull
+        elif model_name == 'only_prior_position':
+            model_type = OnlyPriorPosition
         elif model_name == 'only_prior_conv':
             model_type = OnlyPriorConv
 

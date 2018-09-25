@@ -331,7 +331,8 @@ class CombinedDataSet(object):
         mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
         mask[:len(examples)] = 1
 
-        if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
+        if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn',
+                               'only_prior_position']:
             return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='word')
         elif self.model_name == 'only_prior_conv':
             return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='gram')

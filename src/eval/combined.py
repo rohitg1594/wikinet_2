@@ -214,7 +214,8 @@ class CombinedValidator:
             data = (gram_indices, context_indices, ent_gram_tokens, ent_indices)
         elif self.model_name == 'mention prior':
             data = (gram_indices, word_indices, context_indices, ent_gram_tokens, ent_indices)
-        elif self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
+        elif self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn',
+                                 'only_prior_position']:
             data = (word_indices, ent_indices)
         elif self.model_name == 'only_prior_conv':
             data = (gram_indices, ent_indices)
