@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.utils.data
 
-from src.utils.utils import reverse_dict, equalize_len, get_normalised_forms
+from src.utils.utils import reverse_dict, equalize_len, get_normalised_forms, get_absolute_pos
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
 
@@ -375,14 +375,4 @@ class CombinedDataSet(object):
                                            drop_last=drop_last)
 
 
-def get_absolute_pos(word_sequences):
-    batch = torch.zeros_like(word_sequences).long()
-    for i, word_seq in enumerate(word_sequences):
-        start_idx = 1
-        for j, pos in enumerate(word_seq):
-            if int(pos) == 0:
-                batch[i, j] = 0
-            else:
-                batch[i, j] = start_idx
-                start_idx += 1
-    return batch
+

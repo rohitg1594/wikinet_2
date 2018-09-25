@@ -12,7 +12,7 @@ from logging import getLogger
 import torch
 from torch.nn import DataParallel
 
-from src.utils.utils import reverse_dict, equalize_len
+from src.utils.utils import reverse_dict, equalize_len, get_absolute_pos
 from src.eval.utils import eval_ranking, check_errors
 from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
@@ -214,9 +214,11 @@ class CombinedValidator:
             data = (gram_indices, context_indices, ent_gram_tokens, ent_indices)
         elif self.model_name == 'mention prior':
             data = (gram_indices, word_indices, context_indices, ent_gram_tokens, ent_indices)
-        elif self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn',
-                                 'only_prior_position']:
+        elif self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
             data = (word_indices, ent_indices)
+        elif self.model_name == 'only_prior_position':
+            pos_indices = get_absolute_pos(word_indices)
+            data = (word_indices, pos_indices, ent_indices)
         elif self.model_name == 'only_prior_conv':
             data = (gram_indices, ent_indices)
         else:

@@ -267,3 +267,16 @@ def yamada_validate_wrap(conll_validator=None,
     wiki_perc = correct / mentions * 100
 
     return conll_perc, wiki_perc
+
+
+def get_absolute_pos(word_sequences):
+    batch = torch.zeros_like(word_sequences).long()
+    for i, word_seq in enumerate(word_sequences):
+        start_idx = 1
+        for j, pos in enumerate(word_seq):
+            if int(pos) == 0:
+                batch[i, j] = 0
+            else:
+                batch[i, j] = start_idx
+                start_idx += 1
+    return batch
