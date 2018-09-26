@@ -28,11 +28,6 @@ class Full(CombinedBase):
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
         self.ent_mention_embs.weight.requires_grad = self.args.train_mention
 
-        self.candidate_ids = torch.arange(1, len(self.ent_mention_embs.weight)).long()
-        if args.use_cuda:
-            if isinstance(self.args.device, int):
-                self.candidate_ids = self.candidate_ids.cuda(self.args.device)
-
     def forward(self, inputs):
         if len(inputs) == 2:
             labels, mention_word_tokens = inputs
@@ -53,6 +48,10 @@ class Full(CombinedBase):
             mention_embs_agg.unsqueeze_(1)
             candidate_embs.unsqueeze_(0)
             scores = (mention_embs_agg * candidate_embs).sum(dim=2)
+
+            print(scores.shape)
+            print(scores)
+            print('CANDIDAT EMB : {}'.format(candidate_embs[:20]))
 
             return scores, labels
 
