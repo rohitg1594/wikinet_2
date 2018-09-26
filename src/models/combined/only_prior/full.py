@@ -58,7 +58,8 @@ class Full(CombinedBase):
 
         else:
             mention_word_tokens = inputs
-
+            print(mention_word_tokens)
+            
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
             candidate_embs = self.ent_mention_embs(self.candidate_ids.cpu())
