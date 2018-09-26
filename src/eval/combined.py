@@ -110,10 +110,10 @@ class CombinedValidator:
         all_gold = []
 
         # For each abstract
-        for context_word_tokens, mentions in self.data:
+        for context_word_tokens, examples in self.data:
 
             # For each mention
-            for mention, ent_str in mentions:
+            for mention, ent_str in examples:
 
                 # Check if entity is relevant
                 if ent_str in self.ent_dict:
