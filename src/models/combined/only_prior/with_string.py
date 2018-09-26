@@ -58,7 +58,7 @@ class WithString(CombinedBase):
 
             # Pass through linear layer
             mention_embs_agg = self.lin(torch.cat((mention_embs, mention_gram_embs), dim=1))
-            candidate_embs_agg = self.lin(torch.cat((candidate_embs, candidate_gram_embs), dim=2), dim=2)
+            candidate_embs_agg = self.lin(torch.cat((candidate_embs, candidate_gram_embs), dim=2))
 
             # Normalize
             if self.args.norm_final:
@@ -73,9 +73,6 @@ class WithString(CombinedBase):
             return scores
 
         else:
-            print('MENTION GRAM TOKENS : {}'.format(mention_gram_tokens[:10, :10]))
-            print('CAND GRAM TOKENS : {}'.format(candidate_gram_tokens[4359:4370, :10]))
-
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
             mention_gram_embs = self.gram_embs(mention_gram_tokens)
@@ -87,10 +84,9 @@ class WithString(CombinedBase):
             mention_gram_embs = torch.mean(mention_gram_embs, dim=1)
             candidate_gram_embs = torch.mean(candidate_gram_embs, dim=1)
 
-            print(candidate_gram_embs.shape, mention_gram_embs.shape, mention_embs.shape, candidate_embs.shape)
             # Pass through linear layer
-            mention_embs_agg = self.lin(torch.cat((mention_embs, mention_gram_embs), dim=1), dim=1)
-            candidate_embs_agg = self.lin(torch.cat((candidate_embs, candidate_gram_embs), dim=1), dim=1)
+            mention_embs_agg = self.lin(torch.cat((mention_embs, mention_gram_embs), 1))
+            candidate_embs_agg = self.lin(torch.cat((candidate_embs, candidate_gram_embs), 1))
 
             # Normalize
             if self.args.norm_final:
