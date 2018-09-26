@@ -216,7 +216,7 @@ class CombinedDataSet(object):
 
         return mask, all_mention_words, all_candidate_ids, all_candidate_priors
 
-    def _getitem_only_prior_full(self, mask, example):
+    def _getitem_only_prior_full(self, example):
 
         assert len(example) == 1
         mention, ent_str = example

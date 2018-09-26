@@ -107,7 +107,7 @@ class Trainer(object):
         data, ymask, labels = self._get_next_batch(data)
         scores = self.model(data)
         if len(scores) > 1:
-            scores, _, _, labels = scores
+            scores, labels = scores
 
         if self.args.loss_func == 'cosine':
             loss = self._cosine_loss(scores, ymask)

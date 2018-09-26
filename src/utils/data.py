@@ -137,7 +137,7 @@ def load_wiki_data(data_type, args, yamada_model):
         test_data = []
 
     elif data_type == 'proto_mention':
-        logger.info("Loading Wikipedia proto training data.....")
+        logger.info("Loading Wikipedia proto mention training data.....")
         train_data, dev_data = pickle_load(join(args.data_path, 'training_files', 'proto_mention.pickle'))
         test_data = []
 
