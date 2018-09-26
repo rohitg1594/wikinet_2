@@ -228,8 +228,6 @@ class CombinedDataSet(object):
             mask = np.array([0], dtype=np.float32)
             label = 0
 
-        print('MASK : {}, LABEL : {}, MENTION : {}, ENT STR: {}'.format(mask, label, mention, ent_str))
-
         return mask, label, mention_word_tokens
 
     def _getitem_include_word(self, mask, examples, all_candidate_ids, all_context_words):
