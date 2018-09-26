@@ -25,7 +25,9 @@ class WithString(CombinedBase):
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
 
         # Linear
-        self.lin = nn.Linear(mention_embs.shape[1] + gram_embs.shape[1], mention_embs.shape[1] + gram_embs.shape[1])
+        self.lin = nn.Linear(mention_embs.shape[1] + gram_embs.shape[1], mention_embs.shape[1] + gram_embs.shape[1],
+                             bias=False)
+        torch.nn.init.eye(self.lin.weight)
 
     def forward(self, inputs):
         mention_word_tokens, mention_gram_tokens, candidate_gram_tokens, candidate_ids = inputs
@@ -71,7 +73,9 @@ class WithString(CombinedBase):
             return scores
 
         else:
-
+            print('MENTION GRAM TOKENS : {}'.format(mention_gram_tokens[:10, :10]))
+            print('CAND GRAM TOKENS : {}'.format(candidate_gram_tokens[:10, :10]))
+            
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
             mention_gram_embs = self.gram_embs(mention_gram_tokens)
