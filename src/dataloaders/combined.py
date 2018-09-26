@@ -219,7 +219,7 @@ class CombinedDataSet(object):
     def _getitem_only_prior_full(self, example):
 
         assert len(example) == 1
-        mention, ent_str = example
+        mention, ent_str = example[0]
         mention_word_tokens = self._get_tokens(mention, flag='word')
         if ent_str in self.ent2id:
             mask = np.array([1], dtype=np.int64)
