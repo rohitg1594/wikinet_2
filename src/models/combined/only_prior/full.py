@@ -34,7 +34,7 @@ class Full(CombinedBase):
                 self.candidate_ids = self.candidate_ids.cuda(self.args.device)
 
     def forward(self, inputs):
-        mention_word_tokens = inputs[0]
+        labels, mention_word_tokens = inputs
 
         num_abst, num_ent, num_word = mention_word_tokens.shape
 
@@ -58,4 +58,4 @@ class Full(CombinedBase):
         candidate_embs.unsqueeze_(0)
         scores = (mention_embs_agg * candidate_embs).sum(dim=2)
 
-        return scores
+        return scores, mention_embs_agg, candidate_embs, labels

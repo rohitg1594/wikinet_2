@@ -87,7 +87,7 @@ class CombinedDataSet(object):
         else:
             return candidate_ids, priors
 
-    def _init_context(self, index):
+    def _init_context(self, index, data_org='abst'):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
 
         context_word_tokens, examples = self.data[index]
@@ -216,20 +216,21 @@ class CombinedDataSet(object):
 
         return mask, all_mention_words, all_candidate_ids, all_candidate_priors
 
-    def _getitem_only_prior_full(self, mask, mentions):
+    def _getitem_only_prior_full(self, mask, example):
 
-        _, all_mention_words = self._init_tokens(flag='word')
+        assert len(example) == 1
+        mention, ent_str = example
+        mention_word_tokens = self._get_tokens(mention, flag='word')
+        if ent_str in self.ent2id:
+            mask = np.array([1], dtype=np.int64)
+            label = self.ent2id[ent_str]
+        else:
+            mask = np.array([0], dtype=np.int64)
+            label = self.ent2id[ent_str]
 
-        for ent_idx, (mention, ent_str) in enumerate(mentions[:self.args.max_ent_size]):
-            if ent_str in self.ent2id:
-                ent_id = self.ent2id[ent_str]
-            else:
-                continue
+        print('MASK : {}, LABEL : {}, MENTION : {}, ENT STR: {}')
 
-            # Mention Word Tokens
-            all_mention_words[ent_idx] = self._get_tokens(mention, flag='word')
-
-        return mask, all_mention_words
+        return mask, label, mention_word_tokens
 
     def _getitem_include_word(self, mask, examples, all_candidate_ids, all_context_words):
         """getitem for model which include mention and candidate words."""
@@ -377,8 +378,8 @@ class CombinedDataSet(object):
             return self._getitem_only_prior_word_or_gram(mask, examples, all_candidate_ids, token_type='gram', include_pos=False)
         elif self.model_name == 'only_prior_with_string':
             return self._getitem_only_prior_word_and_gram(mask, examples, all_candidate_ids)
-        elif self.model_name == 'only_prior_regress':
-            return self._getitem_only_prior_regress(mask, examples, all_candidate_ids)
+        elif self.model_name == 'only_prior_full':
+            return self._getitem_only_prior_full(mask, examples)
         elif self.model_name == 'include_word':
             return self._getitem_include_word(mask, examples, all_candidate_ids, all_context_tokens)
         elif self.model_name == 'mention_prior':
