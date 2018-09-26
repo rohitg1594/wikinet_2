@@ -109,42 +109,12 @@ class CombinedValidator:
         all_context_word_indices = []
         all_gold = []
 
-        if len(self.data[0]) == 2:
+        # For each abstract
+        for context_word_tokens, mentions in self.data:
 
-            # For each abstract
-            for context_word_tokens, mentions in self.data:
+            # For each mention
+            for mention, ent_str in mentions:
 
-                # For each mention
-                for mention, ent_str in mentions:
-
-                    # Check if entity is relevant
-                    if ent_str in self.ent_dict:
-                        ent_id = self.ent_dict[ent_str]
-                    else:
-                        continue
-
-                    # Gold
-                    all_gold.append(ent_id)
-
-                    # Mention Gram
-                    mention_gram_tokens = [token for token in self.gram_tokenizer(mention)]
-                    mention_gram_indices = [self.gram_dict.get(token, 0) for token in mention_gram_tokens]
-                    mention_gram_indices = equalize_len(mention_gram_indices, self.args.max_gram_size)
-                    all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
-
-                    # Mention Word
-                    mention_word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(mention)]
-                    mention_word_indices = [self.word_dict.get(token, 0) for token in mention_word_tokens]
-                    mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
-                    all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
-
-                    # Context Word
-                    context_word_indices = [self.word_dict.get(token, 0) for token in context_word_tokens]
-                    context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
-                    all_context_word_indices.append(np.array(context_word_indices).astype(np.int64))
-
-        else:
-            for context_word_tokens, mention, ent_str in self.data:
                 # Check if entity is relevant
                 if ent_str in self.ent_dict:
                     ent_id = self.ent_dict[ent_str]
