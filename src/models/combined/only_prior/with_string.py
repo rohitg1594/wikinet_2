@@ -71,7 +71,6 @@ class WithString(CombinedBase):
             return scores
 
         else:
-            num_examples, num_cand, num_gram = candidate_gram_tokens.shape
 
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
@@ -79,21 +78,18 @@ class WithString(CombinedBase):
             candidate_embs = self.ent_mention_embs(candidate_ids)
             candidate_gram_embs = self.gram_embs(candidate_gram_tokens)
 
-            # Reshape candidate gram embs
-            candidate_gram_embs = candidate_gram_embs.view(num_examples, num_cand, num_gram, -1)
-
             # Sum the embeddings over the small and large tokens dimension
             mention_embs = torch.mean(mention_embs, dim=1)
             mention_gram_embs = torch.mean(mention_gram_embs, dim=1)
-            candidate_gram_embs = torch.mean(candidate_gram_embs, dim=2)
+            candidate_gram_embs = torch.mean(candidate_gram_embs, dim=1)
 
             # Pass through linear layer
             mention_embs_agg = self.lin(torch.cat((mention_embs, mention_gram_embs), dim=1))
-            candidate_embs_agg = self.lin(torch.cat((candidate_embs, candidate_gram_embs), dim=2), dim=2)
+            candidate_embs_agg = self.lin(torch.cat((candidate_embs, candidate_gram_embs), dim=1), dim=1)
 
             # Normalize
             if self.args.norm_final:
-                candidate_embs_agg = F.normalize(candidate_embs_agg, dim=2)
+                candidate_embs_agg = F.normalize(candidate_embs_agg, dim=1)
                 mention_embs_agg = F.normalize(mention_embs_agg, dim=1)
 
             return candidate_embs_agg, mention_embs_agg
