@@ -223,10 +223,10 @@ class CombinedDataSet(object):
         mention_word_tokens = self._get_tokens(mention, flag='word')
         if ent_str in self.ent2id:
             mask = np.array([1], dtype=np.int64)
-            label = self.ent2id[ent_str]
+            label = np.array(self.ent2id[ent_str], dtype=np.float)
         else:
             mask = np.array([0], dtype=np.int64)
-            label = 0
+            label = 0.0
 
         print('MASK : {}, LABEL : {}, MENTION : {}, ENT STR: {}'.format(mask, label, mention, ent_str))
 
