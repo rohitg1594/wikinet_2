@@ -1,12 +1,12 @@
-# Only prior model with multiple linear layers
-import torch
+# Only prior model with LSTM
 import torch.nn.functional as F
 import torch.nn as nn
+import torch
 
 from src.models.combined.base import CombinedBase
 
 
-class OnlyPriorMultiLinear(CombinedBase):
+class RNN(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -16,25 +16,15 @@ class OnlyPriorMultiLinear(CombinedBase):
         ent_mention_embs = kwargs['ent_mention_embs']
 
         # Mention embeddings
-        self.mention_embs = nn.Embedding(mention_embs.shape[0], mention_embs.shape[1], padding_idx=0, sparse=self.args.sparse)
+        self.mention_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
         self.mention_embs.weight.data.copy_(mention_embs)
 
         # Entity mention embeddings
-        self.ent_mention_embs = nn.Embedding(ent_mention_embs.shape[0], ent_mention_embs.shape[1], padding_idx=0, sparse=self.args.sparse)
+        self.ent_mention_embs = nn.Embedding(*ent_mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
 
         # Mention linear
-        self.mention_linear1 = nn.Linear(ent_mention_embs.shape[1], 64)
-        torch.nn.init.eye(self.mention_linear1.weight)
-        torch.nn.init.constant(self.mention_linear1.bias, 0)
-
-        self.mention_linear2 = nn.Linear(64, 64)
-        torch.nn.init.eye(self.mention_linear2.weight)
-        torch.nn.init.constant(self.mention_linear2.bias, 0)
-
-        self.mention_linear3 = nn.Linear(64, ent_mention_embs.shape[1])
-        torch.nn.init.eye(self.mention_linear3.weight)
-        torch.nn.init.constant(self.mention_linear3.bias, 0)
+        self.lstm = nn.LSTM(mention_embs.shape[1], mention_embs.shape[1], 2, batch_first=True)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
@@ -47,19 +37,16 @@ class OnlyPriorMultiLinear(CombinedBase):
             mention_word_tokens = mention_word_tokens.view(-1, num_word)
             candidate_ids = candidate_ids.view(-1, num_cand)
 
+            # Mask for lstm
+            mask = (mention_word_tokens > 0).long().sum(1)
+
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Sum the embeddings over the small and large tokens dimension
-            mention_embs = torch.mean(mention_embs, dim=1)
-
-            # Transform with linear layers
-            mention_embs = self.mention_linear1(mention_embs)
-            mention_embs = F.relu(mention_embs)
-            mention_embs = self.mention_linear2(mention_embs)
-            mention_embs = F.relu(mention_embs)
-            mention_embs = self.mention_linear3(mention_embs)
+            mention_embs, _ = self.lstm(mention_embs)
+            mention_embs = mention_embs[torch.arange(mention_embs.shape[0]).long(), mask - 1]
 
             # Normalize
             if self.args.norm_final:
@@ -74,19 +61,16 @@ class OnlyPriorMultiLinear(CombinedBase):
             return scores
 
         else:
+            # Mask for lstm
+            mask = (mention_word_tokens > 0).long().sum(1)
+
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Sum the embeddings over the small and large tokens dimension
-            mention_embs = torch.mean(mention_embs, dim=1)
-
-            # Transform with linear layers
-            mention_embs = self.mention_linear1(mention_embs)
-            mention_embs = F.relu(mention_embs)
-            mention_embs = self.mention_linear2(mention_embs)
-            mention_embs = F.relu(mention_embs)
-            mention_embs = self.mention_linear3(mention_embs)
+            mention_embs, _ = self.lstm(mention_embs)
+            mention_embs = mention_embs[torch.arange(mention_embs.shape[0]).long(), mask - 1]
 
             # Normalize
             if self.args.norm_final:

@@ -2,12 +2,11 @@
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
-import sys
 
 from src.models.combined.base import CombinedBase
 
 
-class OnlyPriorConv(CombinedBase):
+class Conv(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

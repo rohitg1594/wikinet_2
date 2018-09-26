@@ -196,31 +196,33 @@ class CombinedValidator:
     def _get_data(self, data_type='wiki'):
 
         ent_gram_tokens = torch.from_numpy(self.ent_gram_indices).long()
-        ent_indices = torch.arange(0, len(self.ent_dict) + 1).long()
+        ent_ids = torch.arange(0, len(self.ent_dict) + 1).long()
 
         if data_type == 'wiki':
-            gram_indices = torch.from_numpy(self.wiki_mention_gram_indices[self.wiki_mask, :]).long()
-            word_indices = torch.from_numpy(self.wiki_mention_word_indices[self.wiki_mask, :]).long()
-            context_indices = torch.from_numpy(self.wiki_mention_context_indices[self.wiki_mask, :]).long()
+            gram_tokens = torch.from_numpy(self.wiki_mention_gram_indices[self.wiki_mask, :]).long()
+            word_tokens = torch.from_numpy(self.wiki_mention_word_indices[self.wiki_mask, :]).long()
+            context_tokens = torch.from_numpy(self.wiki_mention_context_indices[self.wiki_mask, :]).long()
         elif data_type == 'conll':
-            gram_indices = torch.from_numpy(self.conll_mention_gram_indices).long()
-            word_indices = torch.from_numpy(self.conll_mention_word_indices).long()
-            context_indices = torch.from_numpy(self.conll_mention_context_indices).long()
+            gram_tokens = torch.from_numpy(self.conll_mention_gram_indices).long()
+            word_tokens = torch.from_numpy(self.conll_mention_word_indices).long()
+            context_tokens = torch.from_numpy(self.conll_mention_context_indices).long()
         else:
             logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data_type))
             sys.exit(1)
 
         if self.model_name in ['include_gram', 'weigh_concat']:
-            data = (gram_indices, context_indices, ent_gram_tokens, ent_indices)
+            data = (gram_tokens, context_tokens, ent_gram_tokens, ent_ids)
         elif self.model_name == 'mention prior':
-            data = (gram_indices, word_indices, context_indices, ent_gram_tokens, ent_indices)
+            data = (gram_tokens, word_tokens, context_tokens, ent_gram_tokens, ent_ids)
         elif self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
-            data = (word_indices, ent_indices)
+            data = (word_tokens, ent_ids)
+        elif self.model_name == 'only_prior_with_string':
+            data = (word_tokens, gram_tokens, ent_gram_tokens, ent_ids)
         elif self.model_name == 'only_prior_position':
-            pos_indices = get_absolute_pos(word_indices)
-            data = (word_indices, pos_indices, ent_indices)
+            pos_indices = get_absolute_pos(word_tokens)
+            data = (word_tokens, pos_indices, ent_ids)
         elif self.model_name == 'only_prior_conv':
-            data = (gram_indices, ent_indices)
+            data = (gram_tokens, ent_ids)
         else:
             logger.error('model {} not implemented'.format(data_type))
             sys.exit(1)

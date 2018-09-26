@@ -1,14 +1,12 @@
-# Model that only tries to learn the prior probability through mention words
+# Only prior model with multiple linear layers
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-import sys
-
 from src.models.combined.base import CombinedBase
 
 
-class OnlyPriorLinear(CombinedBase):
+class MultiLinear(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -26,9 +24,17 @@ class OnlyPriorLinear(CombinedBase):
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
 
         # Mention linear
-        self.mention_linear = nn.Linear(ent_mention_embs.shape[1], ent_mention_embs.shape[1])
-        self.mention_linear.weight.data.copy_(kwargs['mention_linear_W'])
-        self.mention_linear.bias.data.copy_(kwargs['mention_linear_b'])
+        self.mention_linear1 = nn.Linear(ent_mention_embs.shape[1], 64)
+        torch.nn.init.eye(self.mention_linear1.weight)
+        torch.nn.init.constant(self.mention_linear1.bias, 0)
+
+        self.mention_linear2 = nn.Linear(64, 64)
+        torch.nn.init.eye(self.mention_linear2.weight)
+        torch.nn.init.constant(self.mention_linear2.bias, 0)
+
+        self.mention_linear3 = nn.Linear(64, ent_mention_embs.shape[1])
+        torch.nn.init.eye(self.mention_linear3.weight)
+        torch.nn.init.constant(self.mention_linear3.bias, 0)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
@@ -48,8 +54,12 @@ class OnlyPriorLinear(CombinedBase):
             # Sum the embeddings over the small and large tokens dimension
             mention_embs = torch.mean(mention_embs, dim=1)
 
-            # Transform with linear layer
-            mention_embs = self.mention_linear(mention_embs)
+            # Transform with linear layers
+            mention_embs = self.mention_linear1(mention_embs)
+            mention_embs = F.relu(mention_embs)
+            mention_embs = self.mention_linear2(mention_embs)
+            mention_embs = F.relu(mention_embs)
+            mention_embs = self.mention_linear3(mention_embs)
 
             # Normalize
             if self.args.norm_final:
@@ -71,12 +81,16 @@ class OnlyPriorLinear(CombinedBase):
             # Sum the embeddings over the small and large tokens dimension
             mention_embs = torch.mean(mention_embs, dim=1)
 
-            # Transform with linear layer
-            mention_embs = self.mention_linear(mention_embs)
+            # Transform with linear layers
+            mention_embs = self.mention_linear1(mention_embs)
+            mention_embs = F.relu(mention_embs)
+            mention_embs = self.mention_linear2(mention_embs)
+            mention_embs = F.relu(mention_embs)
+            mention_embs = self.mention_linear3(mention_embs)
 
             # Normalize
             if self.args.norm_final:
-                candidate_embs = F.normalize(candidate_embs, dim=2)
+                candidate_embs = F.normalize(candidate_embs, dim=1)
                 mention_embs = F.normalize(mention_embs, dim=1)
 
             return candidate_embs, mention_embs

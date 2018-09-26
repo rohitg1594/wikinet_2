@@ -1,12 +1,12 @@
-# Only prior model with LSTM
+# Model that only tries to learn the prior probability through mention words
+import torch
 import torch.nn.functional as F
 import torch.nn as nn
-import torch
 
 from src.models.combined.base import CombinedBase
 
 
-class OnlyPriorRNN(CombinedBase):
+class Linear(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -16,15 +16,17 @@ class OnlyPriorRNN(CombinedBase):
         ent_mention_embs = kwargs['ent_mention_embs']
 
         # Mention embeddings
-        self.mention_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
+        self.mention_embs = nn.Embedding(mention_embs.shape[0], mention_embs.shape[1], padding_idx=0, sparse=self.args.sparse)
         self.mention_embs.weight.data.copy_(mention_embs)
 
         # Entity mention embeddings
-        self.ent_mention_embs = nn.Embedding(*ent_mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
+        self.ent_mention_embs = nn.Embedding(ent_mention_embs.shape[0], ent_mention_embs.shape[1], padding_idx=0, sparse=self.args.sparse)
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
 
         # Mention linear
-        self.lstm = nn.LSTM(mention_embs.shape[1], mention_embs.shape[1], 2, batch_first=True)
+        self.mention_linear = nn.Linear(ent_mention_embs.shape[1], ent_mention_embs.shape[1])
+        self.mention_linear.weight.data.copy_(kwargs['mention_linear_W'])
+        self.mention_linear.bias.data.copy_(kwargs['mention_linear_b'])
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
@@ -37,16 +39,15 @@ class OnlyPriorRNN(CombinedBase):
             mention_word_tokens = mention_word_tokens.view(-1, num_word)
             candidate_ids = candidate_ids.view(-1, num_cand)
 
-            # Mask for lstm
-            mask = (mention_word_tokens > 0).long().sum(1)
-
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Sum the embeddings over the small and large tokens dimension
-            mention_embs, _ = self.lstm(mention_embs)
-            mention_embs = mention_embs[torch.arange(mention_embs.shape[0]).long(), mask - 1]
+            mention_embs = torch.mean(mention_embs, dim=1)
+
+            # Transform with linear layer
+            mention_embs = self.mention_linear(mention_embs)
 
             # Normalize
             if self.args.norm_final:
@@ -61,20 +62,19 @@ class OnlyPriorRNN(CombinedBase):
             return scores
 
         else:
-            # Mask for lstm
-            mask = (mention_word_tokens > 0).long().sum(1)
-
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Sum the embeddings over the small and large tokens dimension
-            mention_embs, _ = self.lstm(mention_embs)
-            mention_embs = mention_embs[torch.arange(mention_embs.shape[0]).long(), mask - 1]
+            mention_embs = torch.mean(mention_embs, dim=1)
+
+            # Transform with linear layer
+            mention_embs = self.mention_linear(mention_embs)
 
             # Normalize
             if self.args.norm_final:
-                candidate_embs = F.normalize(candidate_embs, dim=1)
+                candidate_embs = F.normalize(candidate_embs, dim=2)
                 mention_embs = F.normalize(mention_embs, dim=1)
 
             return candidate_embs, mention_embs

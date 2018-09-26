@@ -136,10 +136,11 @@ class CombinedDataSet(object):
 
         return pad_tokens
 
-    def _getitem_only_prior(self, mask, examples, all_candidate_ids, token_type='word', include_pos=False):
+    def _getitem_only_prior_word_or_gram(self, mask, examples, all_candidate_ids, token_type='word',
+                                         include_pos=False):
         """getitem for only prior and only prior linear models with word or gram tokens."""
 
-        all_candidate_tokens, all_mention_tokens = self._init_tokens(flag=token_type)
+        _, all_mention_tokens = self._init_tokens(flag=token_type)
 
         for ent_idx, (mention, ent_str) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
@@ -147,7 +148,7 @@ class CombinedDataSet(object):
             else:
                 continue
 
-            # Mention Word Tokens
+            # Mention Tokens
             all_mention_tokens[ent_idx] = self._get_tokens(mention, flag=token_type)
 
             # Candidate Generation
@@ -159,6 +160,39 @@ class CombinedDataSet(object):
             return mask, all_mention_tokens, all_mention_pos, all_candidate_ids
 
         return mask, all_mention_tokens, all_candidate_ids
+
+    def _getitem_only_prior_word_and_gram(self, mask, examples, all_candidate_ids):
+        """getitem for only prior and only prior linear models with word and gram tokens."""
+
+        all_candidate_gram_tokens, all_mention_gram_tokens = self._init_tokens(flag='gram')
+        _, all_mention_word_tokens = self._init_tokens(flag='word')
+
+        for ent_idx, (mention, ent_str) in enumerate(examples[:self.args.max_ent_size]):
+            if ent_str in self.ent2id:
+                ent_id = self.ent2id[ent_str]
+            else:
+                continue
+
+            # Mention Tokens
+            all_mention_gram_tokens[ent_idx] = self._get_tokens(mention, flag='gram')
+            all_mention_word_tokens[ent_idx] = self._get_tokens(mention, flag='word')
+
+            # Candidate Generation
+            candidate_ids = self._get_candidates(ent_id, mention)
+            all_candidate_ids[ent_idx] = candidate_ids
+
+            # Gram and word tokens for Candidates
+            candidate_gram_tokens = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
+
+            for cand_idx, candidate_id in enumerate(candidate_ids):
+                candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
+
+                # Candidate Gram Tokens
+                candidate_gram_tokens[cand_idx] = self._get_tokens(candidate_str, flag='gram')
+
+            all_candidate_gram_tokens[ent_idx] = candidate_gram_tokens
+
+        return mask, all_mention_word_tokens, all_mention_gram_tokens, all_candidate_gram_tokens, all_candidate_ids
 
     def _getitem_only_prior_regress(self, mask, examples, all_candidate_ids):
         """getitem for only prior with regression model."""
@@ -336,11 +370,13 @@ class CombinedDataSet(object):
         mask[:len(examples)] = 1
 
         if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
-            return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='word', include_pos=False)
+            return self._getitem_only_prior_word_or_gram(mask, examples, all_candidate_ids, token_type='word', include_pos=False)
         elif self.model_name == 'only_prior_position':
-            return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='word', include_pos=True)
+            return self._getitem_only_prior_word_or_gram(mask, examples, all_candidate_ids, token_type='word', include_pos=True)
         elif self.model_name == 'only_prior_conv':
-            return self._getitem_only_prior(mask, examples, all_candidate_ids, token_type='gram', include_pos=False)
+            return self._getitem_only_prior_word_or_gram(mask, examples, all_candidate_ids, token_type='gram', include_pos=False)
+        elif self.model_name == 'only_prior_with_string':
+            return self._getitem_only_prior_word_and_gram(mask, examples, all_candidate_ids)
         elif self.model_name == 'only_prior_regress':
             return self._getitem_only_prior_regress(mask, examples, all_candidate_ids)
         elif self.model_name == 'include_word':

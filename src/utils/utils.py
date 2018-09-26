@@ -16,13 +16,15 @@ from src.models.combined.include_gram import IncludeGram
 from src.models.combined.include_word import IncludeWord
 from src.models.combined.mention_prior import MentionPrior
 from src.models.combined.weigh_concat import WeighConcat
-from src.models.combined.only_prior import OnlyPrior
-from src.models.combined.only_prior_linear import OnlyPriorLinear
-from src.models.combined.only_prior_full import OnlyPriorFull
-from src.models.combined.only_prior_multi_linear import OnlyPriorMultiLinear
-from src.models.combined.only_prior_rnn import OnlyPriorRNN
-from src.models.combined.only_prior_conv import OnlyPriorConv
-from src.models.combined.only_prior_position import OnlyPriorPosition
+
+from src.models.combined.only_prior.average import Average
+from src.models.combined.only_prior.linear import Linear
+from src.models.combined.only_prior.full import Full
+from src.models.combined.only_prior.multi_linear import MultiLinear
+from src.models.combined.only_prior.rnn import RNN
+from src.models.combined.only_prior.conv import Conv
+from src.models.combined.only_prior.position import Position
+from src.models.combined.only_prior.with_string import WithString
 
 use_cuda = torch.cuda.is_available()
 RE_WS_PRE_PUCT = re.compile(u'\s+([^a-zA-Z\d])')
@@ -215,19 +217,21 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
         kwargs['ent_mention_embs'] = ent_mention_embs
 
         if model_name == 'only_prior':
-            model_type = OnlyPrior
+            model_type = Average
         elif model_name == 'only_prior_multi_linear':
-            model_type = OnlyPriorMultiLinear
+            model_type = MultiLinear
         elif model_name == 'only_prior_rnn':
-            model_type = OnlyPriorRNN
+            model_type = RNN
         elif model_name == 'only_prior_linear':
-            model_type = OnlyPriorLinear
+            model_type = Linear
         elif model_name == 'only_prior_full':
-            model_type = OnlyPriorFull
+            model_type = Full
         elif model_name == 'only_prior_position':
-            model_type = OnlyPriorPosition
+            model_type = Position
+        elif model_name == 'only_prior_with_string':
+            model_type = WithString
         elif model_name == 'only_prior_conv':
-            model_type = OnlyPriorConv
+            model_type = Conv
 
             if args.gram_type == 'bigram':
                 kernel = 2
