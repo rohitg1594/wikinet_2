@@ -33,7 +33,7 @@ def parse_args():
     # Data
     data = parser.add_argument_group('Data Settings.')
     data.add_argument('--data_path', type=str, help='location of data dir')
-    data.add_argument('--data_type', choices=['wiki', 'conll', 'proto'], type=str, help='dataset to train on.')
+    data.add_argument('--data_type', type=str, help='dataset to train on.')
     data.add_argument('--num_shards', type=int, help='number of shards of training file')
     data.add_argument('--train_size', type=int, help='number of training abstracts')
     data.add_argument('--query_size', type=int, help='number of queries during validation')
