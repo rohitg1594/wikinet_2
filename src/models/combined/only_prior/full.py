@@ -61,7 +61,7 @@ class Full(CombinedBase):
 
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
-            candidate_embs = self.ent_mention_embs(self.candidate_ids)
+            candidate_embs = self.ent_mention_embs(self.candidate_ids.cpu())
 
             # Sum the embeddings over the small and large tokens dimension
             mention_embs_agg = torch.mean(mention_embs, dim=1)
