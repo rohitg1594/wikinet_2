@@ -226,9 +226,9 @@ class CombinedDataSet(object):
             label = self.ent2id[ent_str]
         else:
             mask = np.array([0], dtype=np.int64)
-            label = self.ent2id[ent_str]
+            label = 0
 
-        print('MASK : {}, LABEL : {}, MENTION : {}, ENT STR: {}')
+        print('MASK : {}, LABEL : {}, MENTION : {}, ENT STR: {}'.format(mask, label, mention, ent_str))
 
         return mask, label, mention_word_tokens
 
