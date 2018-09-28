@@ -106,7 +106,7 @@ class Trainer(object):
     def step(self, data):
         data, ymask, labels = self._get_next_batch(data)
         scores = self.model(data)
-        if len(scores) > 1:
+        if isinstance(scores, tuple) > 1:
             scores, labels = scores
 
         if self.args.loss_func == 'cosine':
