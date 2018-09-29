@@ -231,7 +231,8 @@ def train():
                       validator=validator,
                       model=model,
                       model_dir=model_dir,
-                      model_type='combined')
+                      model_type='combined',
+                      profile=True)
     logger.info("Starting Training")
     trainer.train()
     logger.info("Finished Training")
