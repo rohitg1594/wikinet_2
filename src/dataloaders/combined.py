@@ -180,14 +180,9 @@ class CombinedDataSet(object):
             candidate_ids = self._get_candidates(ent_id, mention)
             all_candidate_ids[ent_idx] = candidate_ids
 
-            # Gram and word tokens for Candidates
-            candidate_gram_tokens = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
-
-            for cand_idx, candidate_id in enumerate(candidate_ids):
-                candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
-
-                # Candidate Gram Tokens
-                candidate_gram_tokens[cand_idx] = self._get_tokens(candidate_str, flag='gram')
+            # Candidate Gram Tokens
+            candidate_strs = [self.id2ent.get(candidate_id, '').replace('_', ' ') for candidate_id in candidate_ids]
+            candidate_gram_tokens = np.array([self._get_tokens(candidate_str, flag='gram') for candidate_str in candidate_strs])
 
             all_candidate_gram_tokens[ent_idx] = candidate_gram_tokens
 
