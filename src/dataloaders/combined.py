@@ -136,8 +136,7 @@ class CombinedDataSet(object):
 
         return pad_tokens
 
-    def _getitem_only_prior_word_or_gram(self, mask, examples, all_candidate_ids, token_type='word',
-                                         include_pos=False):
+    def _getitem_only_prior_word_or_gram(self, mask, examples, all_candidate_ids, token_type='word', include_pos=False):
         """getitem for only prior and only prior linear models with word or gram tokens."""
 
         _, all_mention_tokens = self._init_tokens(flag=token_type)

@@ -12,13 +12,15 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from src.utils.data import save_checkpoint
 from src.utils.utils import yamada_validate_wrap
 
+import cProfile
+
 logger = logging.getLogger()
 
 
 class Trainer(object):
 
     def __init__(self, loader=None, args=None, model=None, validator=None, model_dir=None, model_type=None,
-                 result_dict=None, result_key=None):
+                 result_dict=None, result_key=None, profile=False):
         self.loader = loader
         self.args = args
         self.model = model
@@ -29,6 +31,7 @@ class Trainer(object):
         self.patience = self.args.patience
         self.result_dict = result_dict
         self.result_key = result_key
+        self.profile = profile
 
         if isinstance(validator, tuple):
             self.conll_validator, self.wiki_validator = validator
@@ -165,6 +168,20 @@ class Trainer(object):
             batch_verbose = True
         else:
             batch_verbose = False
+
+        if self.profile:
+            logger.info('Starting profiling of dataloader.....')
+            pr = cProfile.Profile()
+            pr.enable()
+
+            for _, _ in enumerate(self.loader, 0):
+                pass
+
+            pr.disable()
+            pr.dump_stats(join(self.args.data_path, 'stats.prof'))
+            pr.print_stats(sort='time')
+
+            sys.exit()
 
         for epoch in range(self.num_epochs):
             self.model = self.model.train()
