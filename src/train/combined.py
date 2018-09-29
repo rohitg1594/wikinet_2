@@ -110,9 +110,10 @@ def parse_args():
     train_selection.add_argument('--train_mention', type=str2bool, help='whether to train mention word embeddings')
     train_selection.add_argument('--train_linear', type=str2bool, help='whether to train linear layer')
 
-    # cuda
+    # cuda and profiler
     parser.add_argument("--device", type=str, help="cuda device")
     parser.add_argument("--use_cuda", type=str2bool, help="use gpu or not")
+    parser.add_argument("--profile", type=str2bool, help="whether to run profiler on dataloader and exit")
 
     args = parser.parse_args()
     logger = get_logger(args)
@@ -232,7 +233,7 @@ def train():
                       model=model,
                       model_dir=model_dir,
                       model_type='combined',
-                      profile=True)
+                      profile=args.profile)
     logger.info("Starting Training")
     trainer.train()
     logger.info("Finished Training")
