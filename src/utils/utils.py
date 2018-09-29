@@ -252,7 +252,7 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
     model = model_type(**kwargs)
     if args.use_cuda:
         if isinstance(args.device, tuple):
-            model = model.cuda(args.device[0])
+            # model = model.cuda(args.device[0])
             model = DataParallel(model, args.device)
         else:
             model = model.cuda(args.device)
