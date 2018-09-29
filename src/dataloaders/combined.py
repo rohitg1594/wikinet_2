@@ -87,7 +87,7 @@ class CombinedDataSet(object):
         else:
             return candidate_ids, priors
 
-    def _init_context(self, index, data_org='abst'):
+    def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
 
         context_word_tokens, examples = self.data[index]

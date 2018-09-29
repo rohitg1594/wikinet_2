@@ -20,9 +20,9 @@ mention_word_dim:128
 
 # Max padding
 max_word_size:5
-max_gram_size:40
+max_gram_size:35
 max_context_size:100
-max_ent_size:60
+max_ent_size:35
 
 # Model types
 init_yamada:True
