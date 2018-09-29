@@ -267,7 +267,7 @@ class CombinedValidator:
 
     def validate(self, model=None, error=True):
         model.eval()
-        model.cpu()
+        model = model.cpu()
 
         input_wiki = self._get_data(data_type='wiki')
         _, wiki_mention_combined_embs = model(input_wiki)
