@@ -17,8 +17,10 @@ np.warnings.filterwarnings('ignore')
 
 def grid_search():
     param_grid = {
-                  'lr': [0.01, 0.001, 0.005],
-                  'wd': [1e-5, 1e-6, 1e-7],
+                  'lr': [0.001, 0.005],
+                  'wd': [0, 1e-6, 1e-7],
+                  'gram_dim': [128, 256],
+                  'optim': ['adam', 'adagrad', 'rmsprop']
                   }
     results = {}
 
