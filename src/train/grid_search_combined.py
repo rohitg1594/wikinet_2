@@ -69,7 +69,7 @@ def grid_search():
         with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
             pickle.dump(results, f)
 
-        del model
+        del model, trainer, validator
         torch.cuda.empty_cache()
         gc.collect()
 
