@@ -133,20 +133,20 @@ def load_wiki_data(data_type, args, yamada_model):
     """
     if data_type == 'proto':
         logger.info("Loading Wikipedia proto training data.....")
-        train_data, dev_data = pickle_load(join(args.data_path, 'training_files', 'proto.pickle'))
+        train_data, dev_data = pickle_load(join(args.data_path, 'training_files', 'proto', 'proto.pickle'))
         train_data = train_data[:args.train_size]
         test_data = []
 
     elif data_type == 'proto_mention':
         logger.info("Loading Wikipedia proto mention training data.....")
-        train_data, dev_data = pickle_load(join(args.data_path, 'training_files', 'proto_mention.pickle'))
+        train_data, dev_data = pickle_load(join(args.data_path, 'training_files', 'proto', 'proto_mention.pickle'))
         test_data = []
 
     elif data_type == 'wiki':
         logger.info("Loading Wikipedia orig training data.....")
         data = []
         for i in range(args.num_shards):
-            data.extend(pickle_load(join(args.data_path, 'training_files', 'data_{}.pickle'.format(i))))
+            data.extend(pickle_load(join(args.data_path, 'training_files', 'splits', 'data_{}.pickle'.format(i))))
 
         train_data = []
         dev_data = []
