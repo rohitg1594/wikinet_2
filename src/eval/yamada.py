@@ -1,6 +1,7 @@
 # Validator class for yamada model
 import numpy as np
 from torch.autograd import Variable
+from torch.nn import DataParallel
 from logging import getLogger
 
 from src.utils.utils import reverse_dict
@@ -39,6 +40,7 @@ class YamadaValidator:
 
     def validate(self, model):
         model = model.eval()
+        model.cpu()
 
         total_correct = 0
         total_mention = 0
@@ -47,14 +49,19 @@ class YamadaValidator:
         for batch_no, data in enumerate(self.loader, 0):
             data, ymask, labels = self._get_next_batch(data)
 
-            context, word = data[:2]
+            context, candidates = data[:2]
+            context, candidates = context.data.numpy(), candidates.data.numpy()
+
             scores = model(data)
-            scores = scores.cpu().data.numpy()
+            scores = scores.data.numpy()
 
             preds = np.argmax(scores, axis=1)
+            print(f'PREDS : {preds}')
             correct = (np.equal(preds, labels) * ymask).sum()
+            print(f'CORRECT : {correct}')
             inc = np.not_equal(preds, labels) * ymask
             inc_ids = np.where(inc)
+            print(f'INCORRECT IDS : {inc_ids}')
 
             context_str = ''
             pred_str = ''
@@ -69,6 +76,13 @@ class YamadaValidator:
             mention = ymask.sum()
             total_correct += correct
             total_mention += mention
+
+        if self.args.use_cuda:
+            if isinstance(self.args.device, tuple):
+                model.cuda(self.args.device[0])
+                DataParallel(model, self.args.device)
+            else:
+                model.cuda(self.args.device)
 
         return total_correct, total_mention
 
