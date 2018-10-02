@@ -1,6 +1,6 @@
 # General
 seed:-1
-exp_name:only_prior
+exp_name:yamada_wiki
 debug:False
 
 # Data
@@ -11,7 +11,7 @@ num_shards:0
 train_size:0
 
 # Padding
-max_ent_size:60
+max_ent_size:35
 max_context_size:100
 
 # Model types
