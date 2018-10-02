@@ -88,6 +88,7 @@ def parse_args():
     # cuda
     parser.add_argument("--device", type=str, help="cuda device")
     parser.add_argument("--use_cuda", type=str2bool, help="use gpu or not")
+    parser.add_argument("--profile", type=str2bool, help="whether to run profiler on dataloader and exit")
 
     args = parser.parse_args()
     logger = get_logger(args)

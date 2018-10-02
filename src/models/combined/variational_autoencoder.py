@@ -1,4 +1,4 @@
-# This model takes into account all information - context, word and grams
+# This model implements conditional variational autoencoder, conditioned on aggregated context embeddings
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -10,16 +10,14 @@ class VAE(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        in_size = self.args.max_word_size * self.args.mention_word_dim + self.args.max_gram_size*self.args.gram_dim
+        in_size = self.args.mention_word_dim + self.args.max_gram_size + 300
         print('IN SIZE : {}'.format(in_size))
 
         self.fc1 = nn.Linear(in_size, in_size // 2)
         self.fc2 = nn.Linear(in_size // 2, in_size // 4)
         self.fc31 = nn.Linear(in_size // 4, 20)
         self.fc32 = nn.Linear(in_size // 4, 20)
-        self.fc4 = nn.Linear(20, in_size // 4)
-        self.fc5 = nn.Linear(in_size // 4, in_size // 2)
-        self.fc6 = nn.Linear(in_size // 2, in_size)
+        self.fc4 = nn.Linear(20 + 300, 300)
 
         # Unpack args
         mention_embs = kwargs['mention_embs']
@@ -61,9 +59,9 @@ class VAE(CombinedBase):
         return self.decode(z), mu, logvar
 
     def forward(self, inputs):
-        mention_gram_tokens, mention_word_tokens, context_word_tokens,  candidate_gram_tokens,  candidate_ids = inputs
+        mention_gram_tokens, mention_word_tokens, context_word_tokens = inputs
 
-        num_abst, num_ent, num_cand, num_gram = candidate_gram_tokens.shape
+        num_abst, num_ent, num_gram = mention_gram_tokens.shape
         num_abst, num_ent, num_word = mention_word_tokens.shape
         num_abst, num_ent, num_context = context_word_tokens.shape
 
@@ -71,53 +69,21 @@ class VAE(CombinedBase):
         mention_gram_tokens = mention_gram_tokens.view(-1, num_gram)
         mention_word_tokens = mention_word_tokens.view(-1, num_word)
         context_word_tokens = context_word_tokens.view(-1, num_context)
-        candidate_gram_tokens = candidate_gram_tokens.view(-1, num_gram)
-        candidate_ids = candidate_ids.view(-1, num_cand)
 
         # Get the embeddings
         mention_gram_embs = self.gram_embs(mention_gram_tokens)
-        candidate_gram_embs = self.gram_embs(candidate_gram_tokens)
         mention_word_embs = self.word_embs(mention_word_tokens)
         context_word_embs = self.word_embs(context_word_tokens)
-        candidate_ent_embs = self.ent_embs(candidate_ids)
-
-        # Reshape to original shape
-        candidate_gram_embs = candidate_gram_embs.view(num_abst * num_ent, num_cand, num_gram, -1)
 
         # Sum the embeddings over the small and large tokens dimension
-        mention_gram_embs = torch.mean(mention_gram_embs, dim=1)
-        candidate_gram_embs = torch.mean(candidate_gram_embs, dim=2)
+        mention_gram_agg = torch.mean(mention_gram_embs, dim=1)
+        mention_word_agg = torch.mean(mention_word_embs, dim=1)
+        context_word_agg = self.orig_linear(torch.mean(context_word_embs, dim=1))
 
-        # if self.args.norm_gram:
-        #     mention_gram_embs = F.normalize(mention_gram_embs, dim=1)
-        #     candidate_gram_embs = F.normalize(candidate_gram_embs, dim=2)
+        # Pass through autoencoder
+        encoder_input = torch.cat((mention_gram_agg, mention_word_agg, context_word_agg), dim=1)
+        mu, logvar = self.encode(encoder_input)
+        z = self.reparameterize(mu, logvar)
+        ent_embs = self.decode(torch.cat([z, context_word_agg], dim=1))
 
-        mention_word_embs = torch.mean(mention_word_embs, dim=1)
-        mention_word_embs = self.orig_linear(mention_word_embs)
-
-        candidate_word_embs = torch.mean(candidate_word_embs, dim=2)
-        candidate_word_embs = self.orig_linear(candidate_word_embs)
-
-        if self.args.norm_word:
-            mention_word_embs = F.normalize(mention_word_embs, dim=1)
-            candidate_word_embs = F.normalize(candidate_word_embs, dim=2)
-
-        context_word_embs = torch.mean(context_word_embs, dim=1)
-        context_word_embs = self.orig_linear(context_word_embs)
-
-        if self.args.norm_context:
-            context_word_embs = F.normalize(context_word_embs, dim=1)
-
-        # Concatenate word / gram embeddings
-        combined_ent = torch.cat((candidate_ent_embs, candidate_gram_embs, candidate_word_embs), dim=2)
-        combined_mention = torch.cat((context_word_embs, mention_gram_embs, mention_word_embs), dim=1)
-
-        if self.args.norm_final:
-            combined_ent = F.normalize(combined_ent, dim=2)
-            combined_mention = F.normalize(combined_mention, dim=1)
-        combined_mention.unsqueeze_(1)
-
-        # Dot product over last dimension
-        scores = (combined_mention * combined_ent).sum(dim=2)
-
-        return scores
+        return ent_embs

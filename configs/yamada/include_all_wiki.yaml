@@ -45,3 +45,4 @@ loss_func:cross_entropy
 # Cuda
 use_cuda:True
 device:0
+profile:False
