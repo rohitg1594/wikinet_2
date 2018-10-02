@@ -50,7 +50,7 @@ class YamadaValidator:
             data, ymask, labels = self._get_next_batch(data)
 
             context, candidates = data[:2]
-            context, candidates = context.data.numpy(), candidates.data.numpy()
+            context, candidates = context.cpu().data.numpy(), candidates.cpu().data.numpy()
 
             scores = model(data)
             scores = scores.data.numpy()
