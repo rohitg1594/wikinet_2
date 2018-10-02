@@ -180,8 +180,10 @@ def setup(args, logger):
     logger.info("Data loaders created.There will be {} batches.".format(len(train_loader)))
 
     logger.info("Creating validators.....")
-    conll_validator = YamadaValidator(loader=conll_dev_loader, args=args)
-    wiki_validator = YamadaValidator(loader=wiki_dev_loader, args=args)
+    conll_validator = YamadaValidator(loader=conll_dev_loader, args=args,
+                                      word_dict=yamada_model['word_dict'], ent_dict=yamada_model['ent_dict'])
+    wiki_validator = YamadaValidator(loader=wiki_dev_loader, args=args,
+                                     word_dict=yamada_model['word_dict'], ent_dict=yamada_model['ent_dict'])
     logger.info("Validators created.")
 
     return train_loader, conll_validator, wiki_validator, yamada_model
