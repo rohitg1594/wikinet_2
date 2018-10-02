@@ -40,7 +40,6 @@ class YamadaValidator:
 
     def validate(self, model):
         model = model.eval()
-        model.cpu()
 
         total_correct = 0
         total_mention = 0
@@ -76,13 +75,6 @@ class YamadaValidator:
             mention = ymask.sum()
             total_correct += correct
             total_mention += mention
-
-        if self.args.use_cuda:
-            if isinstance(self.args.device, tuple):
-                model.cuda(self.args.device[0])
-                DataParallel(model, self.args.device)
-            else:
-                model.cuda(self.args.device)
 
         return total_correct, total_mention
 
