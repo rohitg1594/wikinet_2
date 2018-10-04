@@ -1,10 +1,14 @@
 import gensim
 import sys
 import logging
+import argparse
 sys.path.append('/home/rogupta/wikinet_2/')
 
 from src.utils.data import *
 from src.utils.utils import *
+
+parser = argparse.ArgumentParser(description='Training Gensim')
+parser.add_argument('--data_path', required=True, type=str, help='config file path')
 
 logger = logging.getLogger()
 log_formatter = logging.Formatter(fmt='%(levelname)s:%(asctime)s:%(message)s', datefmt='%I:%M:%S %p')
@@ -27,15 +31,15 @@ class RegexpTokenizer(object):
         else:
             return [text[o.start():o.end()] for o in self._rule.finditer(text)]
 
-
+args = parser.parse_args()
 tokenizer = RegexpTokenizer()
 WIKI_DIR = '/home/rogupta/enwiki-latest-wikiextractor-2/'
-DATA_PATH = '../data/'
+DATA_PATH = args.data_path
 NUM_WORKERS = 20
 EMB_SIZE = 300
 
 logger.info("Loading Training data.....")
-train_data = pickle_load('../data/w2v/training.pickle')
+train_data = pickle_load(join(DATA_PATH, 'w2v/training.pickle'))
 logger.info("Training data loaded.")
 
 logger.info("Tokenizing Training data.....")
