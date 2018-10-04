@@ -146,8 +146,7 @@ def load_wiki_data(data_type, args, yamada_model):
         logger.info("Loading Wikipedia orig training data.....")
         data = []
         for i in range(args.num_shards):
-            data.extend(pickle_load(join(args.data_path, 'training_files', 'splits', 'splits_wo_spans',
-                                         'data_{}.pickle'.format(i))))
+            data.extend(pickle_load(join(args.data_path, 'training_files', 'splits_wo_spans', 'data_{}.pickle'.format(i))))
 
         train_data = []
         dev_data = []
