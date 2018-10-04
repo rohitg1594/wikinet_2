@@ -26,7 +26,7 @@ def grid_search():
         if param_dict['mention_word_dim'] == 256:
             args.__dict__['batch_size'] = 24
         else:
-            args.__dict__['batch_size'] = 32
+            args.__dict__['batch_size'] = 48
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
