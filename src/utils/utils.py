@@ -284,3 +284,11 @@ def get_absolute_pos(word_sequences):
                 batch[i, j] = start_idx
                 start_idx += 1
     return torch.from_numpy(batch)
+
+
+def probe(d, n=10):
+
+    for i, (k, v) in enumerate(d.items()):
+        if i == n:
+            break
+        print(k, v)
