@@ -31,3 +31,15 @@ def get_logger(args):
     logger.level = 10
 
     return logger
+
+
+def get_notebook_logger():
+    logger = logging.getLogger()
+    log_formatter = logging.Formatter(fmt='%(levelname)s:%(asctime)s:%(message)s', datefmt='%I:%M:%S %p')
+
+    console_handler = logging.StreamHandler(stream=sys.stdout)
+    console_handler.setFormatter(log_formatter)
+    logger.addHandler(console_handler)
+    logger.level = 10
+
+    return logger
