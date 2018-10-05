@@ -30,8 +30,8 @@ class SmallContext(CombinedBase):
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
 
         # Linear
-        self.linear = nn.Linear(2 * mention_embs.shape[1], ent_mention_embs.shape[1])
-        nn.init.eye(self.linear.weight)
+        self.combine_linear = nn.Linear(2 * mention_embs.shape[1], ent_mention_embs.shape[1])
+        #nn.init.eye(self.combine_linear.weight)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
@@ -57,7 +57,7 @@ class SmallContext(CombinedBase):
 
             # Cat the embs / pass through linear layer
             mention_cat = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
-            mention_repr = self.linear(mention_cat)
+            mention_repr = self.combine_linear(mention_cat)
 
             # Normalize
             if self.args.norm_final:
@@ -83,7 +83,7 @@ class SmallContext(CombinedBase):
 
             # Cat the embs
             mention_cat = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
-            mention_repr = self.linear(mention_cat)
+            mention_repr = self.combine_linear(mention_cat)
 
             # Normalize
             if self.args.norm_final:
