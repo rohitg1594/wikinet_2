@@ -69,8 +69,6 @@ class SmallContext(CombinedBase):
             # Dot product over last dimension
             scores = (mention_repr * candidate_embs).sum(dim=2)
 
-            print(f'LINEAR : {self.linear.weight[:10]}')
-
             return scores
 
         else:
