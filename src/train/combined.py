@@ -53,6 +53,7 @@ def parse_args():
     padding.add_argument('--max_context_size', type=int, help='max number of context')
     padding.add_argument('--max_gram_size', type=int, help='max number of grams')
     padding.add_argument('--max_ent_size', type=int, help='max number of entities considered in abstract')
+    padding.add_argument('--context_window', type=int, help='context window size for small context model.')
 
     # Model Type
     model_selection = parser.add_argument_group('Type of model to train.')

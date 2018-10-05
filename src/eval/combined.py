@@ -49,12 +49,14 @@ class CombinedValidator:
         (wiki_all_gold,
          wiki_mention_gram_indices_l,
          wiki_mention_word_indices_l,
-         wiki_mention_context_indices_l) = self._get_wiki_mention_tokens()
+         wiki_context_indices_l,
+         wiki_small_context_indices_l) = self._get_wiki_mention_tokens()
 
         # Create numpy arrays
         self.wiki_mention_gram_indices = np.vstack(wiki_mention_gram_indices_l).astype(np.int32)
         self.wiki_mention_word_indices = np.vstack(wiki_mention_word_indices_l).astype(np.int32)
-        self.wiki_mention_context_indices = np.vstack(wiki_mention_context_indices_l).astype(np.int32)
+        self.wiki_context_indices = np.vstack(wiki_context_indices_l).astype(np.int32)
+        self.wiki_small_context_indices = np.vstack(wiki_small_context_indices_l).astype(np.int32)
         self.wiki_all_gold = np.array(wiki_all_gold).astype(np.int32)
 
         # Mask to select wiki mention queries
@@ -64,12 +66,14 @@ class CombinedValidator:
         (conll_all_gold,
          conll_mention_gram_indices_l,
          conll_mention_word_indices_l,
-         conll_mention_context_indices_l) = self._get_conll_mention_tokens()
+         conll_context_indices_l,
+         conll_small_context_indices_l) = self._get_conll_mention_tokens()
 
         # Create numpy arrays
         self.conll_mention_gram_indices = np.vstack(conll_mention_gram_indices_l).astype(np.int32)
         self.conll_mention_word_indices = np.vstack(conll_mention_word_indices_l).astype(np.int32)
-        self.conll_mention_context_indices = np.vstack(conll_mention_context_indices_l).astype(np.int32)
+        self.conll_context_indices = np.vstack(conll_context_indices_l).astype(np.int32)
+        self.conll_small_context_indices = np.vstack(conll_small_context_indices_l).astype(np.int32)
         self.conll_all_gold = np.array(conll_all_gold).astype(np.int32)
 
     def _get_ent_tokens(self):
@@ -92,7 +96,7 @@ class CombinedValidator:
             ent_gram_tokens[ent_id] = gram_indices
 
             # Word tokens
-            word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(ent_str)]
+            word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(ent_str)]
             word_indices = [self.word_dict.get(token, 0) for token in word_tokens]
             word_indices = equalize_len(word_indices, self.args.max_word_size)
             ent_word_tokens[ent_id] = word_indices
@@ -107,13 +111,29 @@ class CombinedValidator:
         all_mention_gram_indices = []
         all_mention_word_indices = []
         all_context_word_indices = []
+        all_small_context_indices = []
         all_gold = []
+
+        window = self.args.context_window
+        # Check for len of examples
+        _, examples = self.data[0]
+        example = examples[0]
+        if len(example) == 2:
+            len_flag = True
+        else:
+            len_flag = False
 
         # For each abstract
         for context_word_tokens, examples in self.data:
 
             # For each mention
-            for mention, ent_str in examples:
+            for example in examples:
+
+                if len_flag:
+                    mention, ent_str = example
+                else:
+                    mention, ent_str, mention_char_span, small_context_tokens = example
+                    context_small_tokens = np.zeros(2 * window, dtype=np.int64)
 
                 # Check if entity is relevant
                 if ent_str in self.ent_dict:
@@ -131,7 +151,7 @@ class CombinedValidator:
                 all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
 
                 # Mention Word
-                mention_word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(mention)]
+                mention_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(mention)]
                 mention_word_indices = [self.word_dict.get(token, 0) for token in mention_word_tokens]
                 mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
                 all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
@@ -141,7 +161,10 @@ class CombinedValidator:
                 context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
                 all_context_word_indices.append(np.array(context_word_indices).astype(np.int64))
 
-        return all_gold, all_mention_gram_indices, all_mention_word_indices, all_context_word_indices
+                # Small Context
+                all_small_context_indices.append(small_context_tokens)
+
+        return all_gold, all_mention_gram_indices, all_mention_word_indices, all_context_word_indices, all_small_context_indices
 
     def _get_conll_mention_tokens(self):
         """Function for CONLL data. Creates list of numpy arrays containing gram and word token ids
@@ -151,7 +174,10 @@ class CombinedValidator:
         all_mention_gram_indices = []
         all_mention_word_indices = []
         all_context_word_indices = []
+        all_small_context_indices = []
         all_gold = []
+
+        window = self.args.context_window
 
         # train / dev / test split
         if self.args.conll_split == 'train':
@@ -168,9 +194,18 @@ class CombinedValidator:
         for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
 
             # Context
-            context_word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(text)]
+            context_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(text)]
             context_word_indices = [self.word_dict.get(token, 0) for token in context_word_tokens]
             context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
+
+            # Create dictionaries of token char span to token span
+            tokens = self.word_tokenizer.tokenizer.tokenize(text.lower())
+            start2idx = {}
+            end2idx = {}
+            for token_idx, token in enumerate(tokens):
+                start, end = token.span
+                start2idx[start] = token_idx
+                end2idx[end] = token_idx
 
             # For each mention
             for ent_str, (begin, end) in gold_ents:
@@ -179,6 +214,26 @@ class CombinedValidator:
                     all_gold.append(self.ent_dict[ent_str])
                     all_context_word_indices.append(context_word_indices)
 
+                    # Small Context
+                    small_context_tokens = np.zeros(2 * self.args.context_window, dtype=np.int64)
+                    if begin not in start2idx:
+                        begin = min(start2idx, key=lambda x: abs(x - begin))
+                    if end not in end2idx:
+                        end = min(end2idx, key=lambda x: abs(x - end))
+                    start_token_idx = start2idx[begin]
+                    end_token_idx = end2idx[end]
+
+                    if start_token_idx > window:
+                        small_context_tokens[:window] = context_word_tokens[start_token_idx - window:start_token_idx]
+                    else:
+                        small_context_tokens[:start_token_idx] = context_word_tokens[:start_token_idx]
+
+                    if len(context_word_tokens) - end_token_idx > window:
+                        small_context_tokens[window:] = context_word_tokens[end_token_idx:end_token_idx + window]
+                    else:
+                        small_context_tokens[window:window + len(context_word_tokens) - end_token_idx] = context_word_tokens[end_token_idx:]
+                    all_small_context_indices.append(small_context_tokens)
+
                     # Mention Gram
                     mention_gram_tokens = [token for token in self.gram_tokenizer(mention)]
                     mention_gram_indices = [self.gram_dict.get(token, 0) for token in mention_gram_tokens]
@@ -186,12 +241,13 @@ class CombinedValidator:
                     all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
 
                     # Mention Word
-                    mention_word_tokens = [token.lower() for token in self.word_tokenizer.tokenize(mention)]
+                    mention_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(mention)]
                     mention_word_indices = [self.word_dict.get(token, 0) for token in mention_word_tokens]
                     mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
                     all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
 
-        return all_gold, all_mention_gram_indices, all_mention_word_indices, all_context_word_indices
+        all_small_context_indices = np.vstack(all_small_context_indices)
+        return all_gold, all_mention_gram_indices, all_mention_word_indices, all_context_word_indices, all_small_context_indices
 
     def _get_data(self, data_type='wiki'):
 
@@ -201,11 +257,13 @@ class CombinedValidator:
         if data_type == 'wiki':
             gram_tokens = torch.from_numpy(self.wiki_mention_gram_indices[self.wiki_mask, :]).long()
             word_tokens = torch.from_numpy(self.wiki_mention_word_indices[self.wiki_mask, :]).long()
-            context_tokens = torch.from_numpy(self.wiki_mention_context_indices[self.wiki_mask, :]).long()
+            context_tokens = torch.from_numpy(self.wiki_context_indices[self.wiki_mask, :]).long()
+            small_context_tokens = torch.from_numpy(self.wiki_small_context_indices[self.wiki_mask, :]).long()
         elif data_type == 'conll':
             gram_tokens = torch.from_numpy(self.conll_mention_gram_indices).long()
             word_tokens = torch.from_numpy(self.conll_mention_word_indices).long()
-            context_tokens = torch.from_numpy(self.conll_mention_context_indices).long()
+            context_tokens = torch.from_numpy(self.conll_context_indices).long()
+            small_context_tokens = torch.from_numpy(self.conll_small_context_indices[self.wiki_mask, :]).long()
         else:
             logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data_type))
             sys.exit(1)
@@ -218,6 +276,8 @@ class CombinedValidator:
             data = (word_tokens, ent_ids)
         elif self.model_name == 'only_prior_with_string':
             data = (word_tokens, gram_tokens, ent_gram_tokens, ent_ids)
+        elif self.model_name == 'prior_small_context':
+            data = (word_tokens, ent_ids, small_context_tokens)
         elif self.model_name == 'only_prior_position':
             pos_indices = get_absolute_pos(word_tokens)
             data = (word_tokens, pos_indices, ent_ids)
@@ -236,12 +296,12 @@ class CombinedValidator:
         if data == 'wiki':
             gram_indices = self.wiki_mention_gram_indices[self.wiki_mask, :]
             word_indices = self.wiki_mention_word_indices[self.wiki_mask, :]
-            context_indices = self.wiki_mention_context_indices[self.wiki_mask, :]
+            context_indices = self.wiki_context_indices[self.wiki_mask, :]
             gold = self.wiki_all_gold[self.wiki_mask]
         elif data == 'conll':
             gram_indices = self.conll_mention_gram_indices
             word_indices = self.conll_mention_word_indices
-            context_indices = self.conll_mention_context_indices
+            context_indices = self.conll_context_indices
             gold = self.conll_all_gold
         else:
             logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data))

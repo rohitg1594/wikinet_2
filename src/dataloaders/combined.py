@@ -188,6 +188,38 @@ class CombinedDataSet(object):
 
         return mask, all_mention_word_tokens, all_mention_gram_tokens, all_candidate_gram_tokens, all_candidate_ids
 
+    def _getitem_small_context(self, mask, examples, all_candidate_ids, context=None, window=5):
+        """getitem for prior with small context window."""
+
+        _, all_mention_word_tokens = self._init_tokens(flag='word')
+        context_tokens = np.zeros((self.args.max_ent_size, 2*window))
+
+        for ent_idx, (mention, ent_str, span, (start_idx, end_idx)) in enumerate(examples[:self.args.max_ent_size]):
+            if ent_str in self.ent2id:
+                ent_id = self.ent2id[ent_str]
+            else:
+                continue
+
+            # Mention Tokens
+            all_mention_word_tokens[ent_idx] = self._get_tokens(mention, flag='word')
+
+            # Candidate Generation
+            candidate_ids = self._get_candidates(ent_id, mention)
+            all_candidate_ids[ent_idx] = candidate_ids
+
+            # Context
+            if start_idx > window:
+                context_tokens[ent_idx][:window] = context[start_idx - window:start_idx]
+            else:
+                context_tokens[ent_idx][:start_idx] = context[:start_idx]
+
+            if len(context) - end_idx > window:
+                context_tokens[ent_idx][window:] = context[end_idx:end_idx + window]
+            else:
+                context_tokens[ent_idx][window:window + len(context) - end_idx] = context[end_idx:]
+
+        return mask, all_mention_word_tokens, all_candidate_ids, context_tokens
+
     def _getitem_only_prior_regress(self, mask, examples, all_candidate_ids):
         """getitem for only prior with regression model."""
 
@@ -370,6 +402,9 @@ class CombinedDataSet(object):
             return self._getitem_only_prior_word_or_gram(mask, examples, all_candidate_ids, token_type='gram', include_pos=False)
         elif self.model_name == 'only_prior_with_string':
             return self._getitem_only_prior_word_and_gram(mask, examples, all_candidate_ids)
+        elif self.model_name == 'prior_with_small_context':
+            return self._getitem_small_context(mask, examples, all_candidate_ids, context=all_context_tokens[0],
+                                               window=self.args.context_window)
         elif self.model_name == 'only_prior_full':
             return self._getitem_only_prior_full(examples)
         elif self.model_name == 'include_word':
