@@ -192,9 +192,9 @@ class CombinedDataSet(object):
         """getitem for prior with small context window."""
 
         _, all_mention_word_tokens = self._init_tokens(flag='word')
-        context_tokens = np.zeros((self.args.max_ent_size, 2*window))
+        all_small_context = np.zeros((self.args.max_ent_size, 2 * window))
 
-        for ent_idx, (mention, ent_str, span, (start_idx, end_idx)) in enumerate(examples[:self.args.max_ent_size]):
+        for ent_idx, (mention, ent_str, span, small_context) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
                 ent_id = self.ent2id[ent_str]
             else:
@@ -208,17 +208,9 @@ class CombinedDataSet(object):
             all_candidate_ids[ent_idx] = candidate_ids
 
             # Context
-            if start_idx > window:
-                context_tokens[ent_idx][:window] = context[start_idx - window:start_idx]
-            else:
-                context_tokens[ent_idx][:start_idx] = context[:start_idx]
+            all_small_context[ent_idx] = small_context
 
-            if len(context) - end_idx > window:
-                context_tokens[ent_idx][window:] = context[end_idx:end_idx + window]
-            else:
-                context_tokens[ent_idx][window:window + len(context) - end_idx] = context[end_idx:]
-
-        return mask, all_mention_word_tokens, all_candidate_ids, context_tokens
+        return mask, all_mention_word_tokens, all_candidate_ids, all_small_context
 
     def _getitem_only_prior_regress(self, mask, examples, all_candidate_ids):
         """getitem for only prior with regression model."""
