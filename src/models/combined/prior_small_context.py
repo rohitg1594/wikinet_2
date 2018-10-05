@@ -23,7 +23,6 @@ class SmallContext(CombinedBase):
 
         # Context embeddings
         self.context_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        # self.context_embs.weight.data.copy_(mention_embs)
 
         # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(*ent_mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
@@ -31,8 +30,7 @@ class SmallContext(CombinedBase):
 
         # Linear
         self.combine_linear = nn.Linear(2 * mention_embs.shape[1], ent_mention_embs.shape[1])
-        self.combine_linear.requires_grad = True
-        nn.init.eye(self.combine_linear.weight)
+        #nn.init.eye(self.combine_linear.weight)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
