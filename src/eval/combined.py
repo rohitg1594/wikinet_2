@@ -288,7 +288,7 @@ class CombinedValidator:
         elif self.model_name == 'only_prior_full':
             data = word_tokens
         else:
-            logger.error('model {} not implemented'.format(data_type))
+            logger.error(f'model {data_type} not implemented')
             sys.exit(1)
 
         return data
