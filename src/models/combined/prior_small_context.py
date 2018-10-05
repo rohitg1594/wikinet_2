@@ -73,6 +73,10 @@ class SmallContext(CombinedBase):
             return scores
 
         else:
+            print(f'MENTION WORD TOKENS : {mention_word_tokens[:20]}')
+            print(f'CONTEXT TOKENS : {context_tokens[:20]}')
+            print(f'CANDIDATE IDS : {candidate_ids[:20]}')
+
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
             context_embs = self.context_embs(context_tokens)
