@@ -176,6 +176,7 @@ def setup(args, logger):
     logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
 
     # Validation
+    logger.info("Creating validator.....")
     validator = CombinedValidator(gram_dict=gram_dict,
                                   gram_tokenizer=gram_tokenizer,
                                   yamada_model=yamada_model,
@@ -184,6 +185,7 @@ def setup(args, logger):
     logger.info("Validator created.")
 
     # Dataset
+    logger.info("Creating Dataset.....")
     train_dataset = CombinedDataSet(gram_tokenizer=gram_tokenizer,
                                     gram_dict=gram_dict,
                                     word_dict=yamada_model['word_dict'],

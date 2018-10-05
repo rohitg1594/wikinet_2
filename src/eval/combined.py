@@ -199,7 +199,7 @@ class CombinedValidator:
             context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
 
             # Create dictionaries of token char span to token span
-            tokens = self.word_tokenizer.tokenizer.tokenize(text.lower())
+            tokens = self.word_tokenizer.tokenize(text.lower())
             start2idx = {}
             end2idx = {}
             for token_idx, token in enumerate(tokens):
