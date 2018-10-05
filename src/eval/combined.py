@@ -215,7 +215,7 @@ class CombinedValidator:
                     all_context_word_indices.append(context_word_indices)
 
                     # Small Context
-                    small_context_tokens = np.zeros(2 * self.args.context_window, dtype=np.int64)
+                    # Create dictionaries of token id to positions
                     if begin not in start2idx:
                         begin = min(start2idx, key=lambda x: abs(x - begin))
                     if end not in end2idx:
@@ -223,15 +223,17 @@ class CombinedValidator:
                     start_token_idx = start2idx[begin]
                     end_token_idx = end2idx[end]
 
+                    context_word_token_ids = [self.rev_word_dict.get(token, 0) for token in context_word_tokens]
+                    small_context_tokens = np.zeros(2 * self.args.context_window, dtype=np.int64)
                     if start_token_idx > window:
-                        small_context_tokens[:window] = context_word_tokens[start_token_idx - window:start_token_idx]
+                        small_context_tokens[:window] = context_word_token_ids[start_token_idx - window:start_token_idx]
                     else:
-                        small_context_tokens[:start_token_idx] = context_word_tokens[:start_token_idx]
+                        small_context_tokens[:start_token_idx] = context_word_token_ids[:start_token_idx]
 
-                    if len(context_word_tokens) - end_token_idx > window:
-                        small_context_tokens[window:] = context_word_tokens[end_token_idx:end_token_idx + window]
+                    if len(context_word_token_ids) - end_token_idx > window:
+                        small_context_tokens[window:] = context_word_token_ids[end_token_idx:end_token_idx + window]
                     else:
-                        small_context_tokens[window:window + len(context_word_tokens) - end_token_idx] = context_word_tokens[end_token_idx:]
+                        small_context_tokens[window:window + len(context_word_token_ids) - end_token_idx] = context_word_token_ids[end_token_idx:]
                     all_small_context_indices.append(small_context_tokens)
 
                     # Mention Gram
