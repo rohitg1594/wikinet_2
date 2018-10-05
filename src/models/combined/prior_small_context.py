@@ -35,16 +35,7 @@ class SmallContext(CombinedBase):
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
-        print('MENTION WORD TOKENS')
-        print(mention_word_tokens[:10])
 
-        print('CANDIDATE IDS')
-        print(candidate_ids[:10])
-
-        print('CONTEXT TOKENS')
-        print(context_tokens[:10])
-        sys.exit(1)
-        
         if len(mention_word_tokens.shape) == 3:
             num_abst, num_ent, num_word = mention_word_tokens.shape
             num_abst, num_ent, num_cand = candidate_ids.shape
