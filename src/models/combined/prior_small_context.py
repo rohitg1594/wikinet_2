@@ -31,6 +31,7 @@ class SmallContext(CombinedBase):
 
         # Linear
         self.combine_linear = nn.Linear(2 * mention_embs.shape[1], ent_mention_embs.shape[1])
+        self.combine_linear.requires_grad = True
         #nn.init.eye(self.combine_linear.weight)
 
     def forward(self, inputs):

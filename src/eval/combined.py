@@ -328,7 +328,7 @@ class CombinedValidator:
         return s
 
     def validate(self, model=None, error=True):
-        model.eval()
+        model = model.eval()
         model = model.cpu()
 
         input_wiki = self._get_data(data_type='wiki')
@@ -368,9 +368,9 @@ class CombinedValidator:
 
         if self.args.use_cuda:
             if isinstance(self.args.device, tuple):
-                model.cuda(self.args.device[0])
+                model = model.cuda(self.args.device[0])
                 DataParallel(model, self.args.device)
             else:
-                model.cuda(self.args.device)
+                model = model.cuda(self.args.device)
 
         return top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll
