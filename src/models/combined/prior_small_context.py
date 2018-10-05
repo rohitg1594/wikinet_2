@@ -45,7 +45,7 @@ class SmallContext(CombinedBase):
 
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
-            context_embs = self.word_embs(context_tokens)
+            context_embs = self.context_embs(context_tokens)
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Sum the embeddings over the small and large tokens dimension
@@ -71,7 +71,7 @@ class SmallContext(CombinedBase):
         else:
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
-            context_embs = self.word_embs(context_tokens)
+            context_embs = self.context_embs(context_tokens)
             candidate_embs = self.ent_mention_embs(candidate_ids)
 
             # Sum the embeddings over the small and large tokens dimension
@@ -81,7 +81,7 @@ class SmallContext(CombinedBase):
             # Cat the embs
             mention_cat = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
             mention_repr = self.linear(mention_cat)
-            
+
             # Normalize
             if self.args.norm_final:
                 candidate_embs = F.normalize(candidate_embs, dim=1)
