@@ -120,18 +120,15 @@ class CombinedDataSet(object):
         """Tokenize mention based on flag and then pad them."""
 
         if flag == 'gram':
-            tokenizer = self.gram_tokenizer
+            tokens = [self.gram_dict.get(token, 0) for token in self.gram_tokenizer(mention)]
             max_size = self.args.max_gram_size
-            vocab_dict = self.gram_dict
         elif flag == 'word':
-            tokenizer = self.word_tokenizer.tokenize
+            tokens = [self.word_dict.get(token.text, 0) for token in self.word_tokenizer.tokenize(mention)]
             max_size = self.args.max_word_size
-            vocab_dict = self.word_dict
         else:
             self.logger.error("flag {} not recognized, choose one of (gram, word)".format(flag))
             sys.exit(1)
 
-        tokens = [vocab_dict.get(token, 0) for token in tokenizer(mention)]
         pad_tokens = np.array(equalize_len(tokens, max_size), dtype=np.int64)
 
         return pad_tokens
