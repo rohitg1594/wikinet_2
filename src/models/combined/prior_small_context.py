@@ -79,7 +79,7 @@ class SmallContext(CombinedBase):
             print(f'LINEAR : {self.combine_linear.weight[:10, :10]}')
             print(f'MENTION EMBS : {self.mention_embs.weight[:10, :10]}')
             print(f'CONTEXT EMBS : {self.context_embs.weight[:10, :10]}')
-            print(f'CANDIDATE EMBS : {self.candidate_embs.weight[:10, :10]}')
+            print(f'CANDIDATE EMBS : {self.ent_mention_embs.weight[:10, :10]}')
 
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
