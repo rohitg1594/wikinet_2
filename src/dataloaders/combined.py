@@ -188,11 +188,11 @@ class CombinedDataSet(object):
 
         return mask, all_mention_word_tokens, all_mention_gram_tokens, all_candidate_gram_tokens, all_candidate_ids
 
-    def _getitem_small_context(self, mask, examples, all_candidate_ids, context=None, window=5):
+    def _getitem_small_context(self, mask, examples, all_candidate_ids, window=5):
         """getitem for prior with small context window."""
 
         _, all_mention_word_tokens = self._init_tokens(flag='word')
-        all_small_context = np.zeros((self.args.max_ent_size, 2 * window))
+        all_small_context = np.zeros((self.args.max_ent_size, 2 * window), dtype=np.int64)
 
         for ent_idx, (mention, ent_str, span, small_context) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
