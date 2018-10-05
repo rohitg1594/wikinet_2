@@ -208,6 +208,7 @@ class CombinedValidator:
                 end2idx[end] = token_idx
 
             # For each mention
+            context_word_token_ids = [self.word_dict.get(token, 0) for token in context_word_tokens]
             for ent_str, (begin, end) in gold_ents:
                 if ent_str in self.ent_dict:
                     mention = text[begin:end]
@@ -223,13 +224,12 @@ class CombinedValidator:
                     start_token_idx = start2idx[begin]
                     end_token_idx = end2idx[end]
 
-                    context_word_token_ids = [self.rev_word_dict.get(token, 0) for token in context_word_tokens]
                     small_context_tokens = np.zeros(2 * self.args.context_window, dtype=np.int64)
                     if start_token_idx > window:
                         small_context_tokens[:window] = context_word_token_ids[start_token_idx - window:start_token_idx]
                     else:
                         small_context_tokens[:start_token_idx] = context_word_token_ids[:start_token_idx]
-
+                    end_token_idx += 1
                     if len(context_word_token_ids) - end_token_idx > window:
                         small_context_tokens[window:] = context_word_token_ids[end_token_idx:end_token_idx + window]
                     else:
