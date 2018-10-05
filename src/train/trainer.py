@@ -188,7 +188,7 @@ class Trainer(object):
             for batch_no, data in enumerate(self.loader, 0):
                 if batch_no % 1000 == 0 and batch_verbose:
                     logger.info("Now on batch - {}".format(batch_no))
-                    print(f'LINEAR : {self.model.combine.weight[:10]}')
+                    print(f'LINEAR : {self.model.combine_linear.weight[:10]}')
                 loss = self.step(data)
                 training_losses.append(loss)
 
