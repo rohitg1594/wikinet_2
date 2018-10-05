@@ -265,7 +265,7 @@ class CombinedValidator:
             gram_tokens = torch.from_numpy(self.conll_mention_gram_indices).long()
             word_tokens = torch.from_numpy(self.conll_mention_word_indices).long()
             context_tokens = torch.from_numpy(self.conll_context_indices).long()
-            small_context_tokens = torch.from_numpy(self.conll_small_context_indices[self.wiki_mask, :]).long()
+            small_context_tokens = torch.from_numpy(self.conll_small_context_indices).long()
         else:
             logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data_type))
             sys.exit(1)
