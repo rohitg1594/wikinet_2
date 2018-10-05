@@ -7,7 +7,7 @@ debug:False
 data_path:/home/rogupta/wikinet_2/data
 data_type:splits_w_small_context
 num_shards:100
-train_size:100000
+train_size:1000000
 query_size:5000
 conll_split:dev
 yamada_model:yamada_model.pickle
