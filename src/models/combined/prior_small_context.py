@@ -23,7 +23,7 @@ class SmallContext(CombinedBase):
 
         # Context embeddings
         self.context_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.context_embs.weight.data.copy_(mention_embs)
+        # self.context_embs.weight.data.copy_(mention_embs)
 
         # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(*ent_mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
@@ -68,6 +68,8 @@ class SmallContext(CombinedBase):
 
             # Dot product over last dimension
             scores = (mention_repr * candidate_embs).sum(dim=2)
+
+            print(f'LINEAR : {self.linear.weight[:10]}')
 
             return scores
 
