@@ -242,7 +242,9 @@ class CombinedValidator:
                 index.add(ent_combined_embs)
                 flag = True
 
+            logger.info(f"Searching in index with query size : {mention_combined_embs.shape}.....")
             _, i = index.search(mention_combined_embs.astype(np.float32), 100)
+            logger.info("Search complete.")
 
             # Evaluate rankings
             gold = self.numpy_data[data_type]['gold']
