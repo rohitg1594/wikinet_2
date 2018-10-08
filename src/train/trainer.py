@@ -127,24 +127,13 @@ class Trainer(object):
         return loss.data[0]
 
     def combined_validate(self, epoch):
-        top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = self.validator.validate(
-            model=self.model)
+        results = self.validator.validate(model=self.model)
         if self.result_dict is not None:
-            self.result_dict[self.result_key]['Wikipedia'].append((top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-            self.result_dict[self.result_key]['Conll'].append((top1_conll, top10_conll, top100_conll, mrr_conll))
-        logger.info(
-            "Wikipedia: Epoch {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
-                                                                                                         top1_wiki,
-                                                                                                         top10_wiki,
-                                                                                                         top100_wiki,
-                                                                                                         mrr_wiki))
-        logger.info(
-            "Conll: Epoch {} Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(epoch,
-                                                                                                     top1_conll,
-                                                                                                     top10_conll,
-                                                                                                     top100_conll,
-                                                                                                     mrr_conll))
-        return mrr_conll
+            for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
+                self.result_dict[self.result_key][data_type].append((tuple(results[data_type].values())))
+                logger.info(f"{data_type}: Epoch {epoch}, {tuple(results[data_type].items())}")
+
+        return results['conll']['top1']
 
     def yamada_validate(self, epoch):
         conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=self.conll_validator,

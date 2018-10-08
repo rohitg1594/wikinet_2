@@ -13,6 +13,7 @@ import torch
 from torch.nn import DataParallel
 
 from src.utils.utils import reverse_dict, equalize_len, get_absolute_pos
+from src.utils.data import pickle_load
 from src.eval.utils import eval_ranking, check_errors
 from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
@@ -45,36 +46,16 @@ class CombinedValidator:
         # Get entity tokens
         self.ent_gram_indices, self.ent_word_indices = self._get_ent_tokens()
 
-        # Get wiki mention tokens
-        (wiki_all_gold,
-         wiki_mention_gram_indices_l,
-         wiki_mention_word_indices_l,
-         wiki_context_indices_l,
-         wiki_small_context_indices_l) = self._get_wiki_mention_tokens()
-
-        # Create numpy arrays
-        self.wiki_mention_gram_indices = np.vstack(wiki_mention_gram_indices_l).astype(np.int32)
-        self.wiki_mention_word_indices = np.vstack(wiki_mention_word_indices_l).astype(np.int32)
-        self.wiki_context_indices = np.vstack(wiki_context_indices_l).astype(np.int32)
-        self.wiki_small_context_indices = np.vstack(wiki_small_context_indices_l).astype(np.int32)
-        self.wiki_all_gold = np.array(wiki_all_gold).astype(np.int32)
+        # Get wiki, msnbc, ace2004 and conll mention tokens
+        self.numpy_data = {}
+        self.numpy_data['wiki'] = self._numpify_data(data_type='wiki')
+        self.numpy_data['msnbc'] = self._numpify_data(data_type='msnbc')
+        self.numpy_data['ace2004'] = self._numpify_data(data_type='ace2004')
+        self.numpy_data['conll'] = self._numpify_data(data_type='conll')
 
         # Mask to select wiki mention queries
-        self.wiki_mask = np.random.choice(np.arange(len(self.wiki_mention_gram_indices)),
+        self.wiki_mask = np.random.choice(np.arange(len(self.numpy_data['wiki']['mention_gram'])),
                                           size=self.args.query_size).astype(np.int32)
-        # Get conll mention tokens
-        (conll_all_gold,
-         conll_mention_gram_indices_l,
-         conll_mention_word_indices_l,
-         conll_context_indices_l,
-         conll_small_context_indices_l) = self._get_conll_mention_tokens()
-
-        # Create numpy arrays
-        self.conll_mention_gram_indices = np.vstack(conll_mention_gram_indices_l).astype(np.int32)
-        self.conll_mention_word_indices = np.vstack(conll_mention_word_indices_l).astype(np.int32)
-        self.conll_context_indices = np.vstack(conll_context_indices_l).astype(np.int32)
-        self.conll_small_context_indices = np.vstack(conll_small_context_indices_l).astype(np.int32)
-        self.conll_all_gold = np.array(conll_all_gold).astype(np.int32)
 
     def _get_ent_tokens(self):
         """Creates numpy arrays containing gram and word token ids for each entity."""
@@ -103,7 +84,7 @@ class CombinedValidator:
 
         return ent_gram_tokens, ent_word_tokens
 
-    def _get_wiki_mention_tokens(self):
+    def _numpify_data(self, data_type='wiki'):
         """Function for wikipedia data. Creates list of numpy arrays containing gram and word token ids
            for each mention and word tokens for context in abstract. Also output gold entity labels."""
 
@@ -114,26 +95,22 @@ class CombinedValidator:
         all_small_context_indices = []
         all_gold = []
 
-        window = self.args.context_window
-        # Check for len of examples
-        _, examples = self.data[0]
-        example = examples[0]
-        if len(example) == 2:
-            len_flag = True
-        else:
-            len_flag = False
+        if data_type == 'wiki':
+            data = self.data
+        elif data_type == 'msnbc':
+            data = pickle_load(join(self.args.data_path, 'training_files', 'msnbc.pickle'))
+        elif data_type == 'ace2004':
+            data = pickle_load(join(self.args.data_path, 'training_files', 'ace2004.pickle'))
+        elif data_type == 'conll':
+            return self._numpify_data_conll()
 
         # For each abstract
-        for context_word_tokens, examples in self.data:
+        for context_word_tokens, examples in data:
 
             # For each mention
             for example in examples:
 
-                if len_flag:
-                    mention, ent_str = example
-                else:
-                    mention, ent_str, mention_char_span, small_context_tokens = example
-                    context_small_tokens = np.zeros(2 * window, dtype=np.int64)
+                mention, ent_str, mention_char_span, small_context_tokens = example
 
                 # Check if entity is relevant
                 if ent_str in self.ent_dict:
@@ -164,9 +141,16 @@ class CombinedValidator:
                 # Small Context
                 all_small_context_indices.append(small_context_tokens)
 
-        return all_gold, all_mention_gram_indices, all_mention_word_indices, all_context_word_indices, all_small_context_indices
+        output = {'gold': np.array(all_gold).astype(np.int32),
+                  'mention_gram': np.vstack(all_mention_gram_indices).astype(np.int32),
+                  'mention_word': np.vstack(all_mention_word_indices).astype(np.int32),
+                  'context': np.vstack(all_context_word_indices).astype(np.int32),
+                  'small_context': np.vstack(all_small_context_indices).astype(np.int32)
+                  }
 
-    def _get_conll_mention_tokens(self):
+        return output
+
+    def _numpify_data_conll(self):
         """Function for CONLL data. Creates list of numpy arrays containing gram and word token ids
            for each mention and word tokens for context in abstract. Also output gold entity labels."""
 
@@ -248,77 +232,71 @@ class CombinedValidator:
                     mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
                     all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
 
-        all_small_context_indices = np.vstack(all_small_context_indices)
-        return all_gold, all_mention_gram_indices, all_mention_word_indices, all_context_word_indices, all_small_context_indices
+        output = {'gold': np.array(all_gold).astype(np.int32),
+                  'mention_gram': np.vstack(all_mention_gram_indices).astype(np.int32),
+                  'mention_word': np.vstack(all_mention_word_indices).astype(np.int32),
+                  'context': np.vstack(all_context_word_indices).astype(np.int32),
+                  'small_context': np.vstack(all_small_context_indices).astype(np.int32)
+                  }
+        return output
 
     def _get_data(self, data_type='wiki'):
 
-        ent_gram_tokens = torch.from_numpy(self.ent_gram_indices).long()
+        ent_gram = torch.from_numpy(self.ent_gram_indices).long()
         ent_ids = torch.arange(0, len(self.ent_dict) + 1).long()
 
+        mention_gram = torch.from_numpy(self.numpy_data[data_type]['mention_gram']).long()
+        mention_word = torch.from_numpy(self.numpy_data[data_type]['mention_word']).long()
+        context = torch.from_numpy(self.numpy_data[data_type]['context']).long()
+        small_context = torch.from_numpy(self.numpy_data[data_type]['small_context']).long()
+
         if data_type == 'wiki':
-            gram_tokens = torch.from_numpy(self.wiki_mention_gram_indices[self.wiki_mask, :]).long()
-            word_tokens = torch.from_numpy(self.wiki_mention_word_indices[self.wiki_mask, :]).long()
-            context_tokens = torch.from_numpy(self.wiki_context_indices[self.wiki_mask, :]).long()
-            small_context_tokens = torch.from_numpy(self.wiki_small_context_indices[self.wiki_mask, :]).long()
-        elif data_type == 'conll':
-            gram_tokens = torch.from_numpy(self.conll_mention_gram_indices).long()
-            word_tokens = torch.from_numpy(self.conll_mention_word_indices).long()
-            context_tokens = torch.from_numpy(self.conll_context_indices).long()
-            small_context_tokens = torch.from_numpy(self.conll_small_context_indices).long()
-        else:
-            logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data_type))
-            sys.exit(1)
+            mention_gram = mention_gram[self.wiki_mask, :]
+            mention_word = mention_word[self.wiki_mask, :]
+            context = context[self.wiki_mask, :]
+            small_context = small_context[self.wiki_mask, :]
 
         if self.model_name in ['include_gram', 'weigh_concat']:
-            data = (gram_tokens, context_tokens, ent_gram_tokens, ent_ids)
+            data = (mention_gram, context, ent_gram, ent_ids)
         elif self.model_name == 'mention prior':
-            data = (gram_tokens, word_tokens, context_tokens, ent_gram_tokens, ent_ids)
+            data = (mention_gram, mention_word, context, ent_gram, ent_ids)
         elif self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
-            data = (word_tokens, ent_ids)
+            data = (mention_word, ent_ids)
         elif self.model_name == 'only_prior_with_string':
-            data = (word_tokens, gram_tokens, ent_gram_tokens, ent_ids)
+            data = (mention_word, mention_gram, ent_gram, ent_ids)
         elif self.model_name == 'prior_small_context':
-            data = (word_tokens, ent_ids, small_context_tokens)
+            data = (mention_word, ent_ids, small_context)
         elif self.model_name == 'only_prior_position':
-            pos_indices = get_absolute_pos(word_tokens)
-            data = (word_tokens, pos_indices, ent_ids)
+            pos_indices = get_absolute_pos(mention_word)
+            data = (mention_word, pos_indices, ent_ids)
         elif self.model_name == 'only_prior_conv':
-            data = (gram_tokens, ent_ids)
+            data = (mention_gram, ent_ids)
         elif self.model_name == 'only_prior_full':
-            data = word_tokens
+            data = mention_word
         else:
             logger.error(f'model {data_type} not implemented')
             sys.exit(1)
 
         return data
 
-    def _get_debug_string(self, I=None, data='wiki', result=False):
+    def _get_debug_string(self, I=None, data_type='wiki', result=False):
 
-        if data == 'wiki':
-            gram_indices = self.wiki_mention_gram_indices[self.wiki_mask, :]
-            word_indices = self.wiki_mention_word_indices[self.wiki_mask, :]
-            context_indices = self.wiki_context_indices[self.wiki_mask, :]
-            gold = self.wiki_all_gold[self.wiki_mask]
-        elif data == 'conll':
-            gram_indices = self.conll_mention_gram_indices
-            word_indices = self.conll_mention_word_indices
-            context_indices = self.conll_context_indices
-            gold = self.conll_all_gold
-        else:
-            logger.error('Dataset {} not implemented, choose between wiki and conll'.format(data))
-            sys.exit(1)
+        mention_gram = self.numpy_data[data_type]['mention_gram']
+        mention_word = self.numpy_data[data_type]['mention_word']
+        context = self.numpy_data[data_type]['context']
+        small_context = self.numpy_data[data_type]['small_context']
+        gold = self.numpy_data[data_type]['gold']
 
         s = ''
         for i in range(10):
             if self.args.include_gram:
-                m_g = gram_indices[i]
+                m_g = mention_gram[i]
                 s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
             if self.args.include_word:
-                m_w = word_indices[i]
+                m_w = mention_word[i]
                 s += ' '.join([self.rev_word_dict[token] for token in m_w if token in self.rev_word_dict]) + '|'
             if self.args.include_context:
-                c_w = context_indices[i][:20]
+                c_w = context[i][:20]
                 s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
             s += self.rev_ent_dict[gold[i]] + '|'
             if result:
@@ -330,47 +308,49 @@ class CombinedValidator:
     def validate(self, model=None, error=True):
         model = model.eval()
         model = model.cpu()
+        flag = False
+        results = {}
 
-        input_wiki = self._get_data(data_type='wiki')
-        _, wiki_mention_combined_embs = model(input_wiki)
-        input_conll = self._get_data(data_type='conll')
-        ent_combined_embs, conll_mention_combined_embs = model(input_conll)
+        for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
+            input = self._get_data(data_type=data_type)
+            ent_combined_embs, mention_combined_embs = model(input)
 
-        ent_combined_embs = ent_combined_embs.detach().numpy()
-        wiki_mention_combined_embs = wiki_mention_combined_embs.detach().numpy()
-        conll_mention_combined_embs = conll_mention_combined_embs.detach().numpy()
+            ent_combined_embs = ent_combined_embs.detach().numpy()
+            mention_combined_embs = mention_combined_embs.detach().numpy()
 
-        # Create / search in Faiss Index
-        if self.args.measure == 'ip':
-            index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
-            logger.info("Using IndexFlatIP")
-        else:
-            index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
-            logger.info("Using IndexFlatL2")
-        index.add(ent_combined_embs)
+            if not flag:
+                # Create / search in Faiss Index
+                if self.args.measure == 'ip':
+                    index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
+                    logger.info("Using IndexFlatIP")
+                else:
+                    index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
+                    logger.info("Using IndexFlatL2")
+                index.add(ent_combined_embs)
+                flag = True
 
-        D_wiki, I_wiki = index.search(wiki_mention_combined_embs.astype(np.float32), 100)
-        D_conll, I_conll = index.search(conll_mention_combined_embs.astype(np.float32), 100)
+            _, i = index.search(mention_combined_embs.astype(np.float32), 100)
 
-        # Evaluate rankings
-        top1_wiki, top10_wiki, top100_wiki, mrr_wiki = eval_ranking(I_wiki, self.wiki_all_gold[self.wiki_mask], [1, 10, 100])
-        top1_conll, top10_conll, top100_conll, mrr_conll = eval_ranking(I_conll, self.conll_all_gold, [1, 10, 100])
+            # Evaluate rankings
+            gold = self.numpy_data['gold']
+            gold = gold[self.wiki_mask] if data_type == 'wiki' else gold
+            top1, top10, top100, mrr = eval_ranking(i, gold, [1, 10, 100])
+            results[data_type] = {'top1': top1,
+                                  'top10': top10,
+                                  'top100': top100,
+                                  'mrr': mrr}
 
-        # Error analysis
-        if error:
-            print('Wiki Errors')
-            check_errors(I_wiki, self.wiki_all_gold[self.wiki_mask], self.wiki_mention_gram_indices[self.wiki_mask, :],
-                         self.rev_ent_dict, self.rev_gram_dict, [1, 10, 100])
-            print('\n\n\n')
-            print('Conll Errors')
-            check_errors(I_conll, self.conll_all_gold, self.conll_mention_gram_indices,
-                         self.rev_ent_dict, self.rev_gram_dict, [1, 10, 100])
+            # Error analysis
+            if error:
+                mention_gram = self.numpy_data[data_type]
+                mention_gram = mention_gram[self.wiki_mask, :] if data_type == 'wiki' else mention_gram
+                check_errors(i, gold, mention_gram, self.rev_ent_dict, self.rev_gram_dict, [1, 10, 100])
 
         if self.args.use_cuda:
             if isinstance(self.args.device, tuple):
                 model = model.cuda(self.args.device[0])
                 DataParallel(model, self.args.device)
             else:
-                model = model.cuda(self.args.device)
+                model.cuda(self.args.device)
 
-        return top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll
+        return results
