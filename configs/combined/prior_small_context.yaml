@@ -23,7 +23,6 @@ max_word_size:5
 max_gram_size:35
 max_context_size:100
 max_ent_size:35
-context_window:5
 
 # Model types
 init_yamada:True
