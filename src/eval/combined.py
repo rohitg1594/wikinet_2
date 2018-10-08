@@ -15,7 +15,6 @@ from torch.nn import DataParallel
 from src.utils.utils import reverse_dict, equalize_len, get_absolute_pos
 from src.utils.data import pickle_load
 from src.eval.utils import eval_ranking, check_errors
-from src.conll.iter_docs import is_dev_doc, is_test_doc, is_training_doc, iter_docs
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
 logger = getLogger(__name__)
@@ -48,10 +47,9 @@ class CombinedValidator:
 
         # Get wiki, msnbc, ace2004 and conll mention tokens
         self.numpy_data = {}
-        self.numpy_data['wiki'] = self._numpify_data(data_type='wiki')
-        self.numpy_data['msnbc'] = self._numpify_data(data_type='msnbc')
-        self.numpy_data['ace2004'] = self._numpify_data(data_type='ace2004')
-        self.numpy_data['conll'] = self._numpify_data(data_type='conll')
+        data_types = ['wiki', 'msnbc', 'conll', 'ace2004']
+        for data_type in data_types:
+            self.numpy_data[data_type] = self._numpify_data(data_type=data_type)
 
         # Mask to select wiki mention queries
         self.wiki_mask = np.random.choice(np.arange(len(self.numpy_data['wiki']['mention_gram'])),
@@ -102,7 +100,10 @@ class CombinedValidator:
         elif data_type == 'ace2004':
             data = pickle_load(join(self.args.data_path, 'training_files', 'ace2004.pickle'))
         elif data_type == 'conll':
-            return self._numpify_data_conll()
+            data = pickle_load(join(self.args.data_path, 'training_files', f'conll-{self.args.conll_split}.pickle'))
+        else:
+            logger.info('Data type not understood, choose one of msnbc, wiki, ace2004 and conll')
+            sys.exit(1)
 
         # For each abstract
         for context_word_tokens, examples in data:
@@ -148,96 +149,6 @@ class CombinedValidator:
                   'small_context': np.vstack(all_small_context_indices).astype(np.int32)
                   }
 
-        return output
-
-    def _numpify_data_conll(self):
-        """Function for CONLL data. Creates list of numpy arrays containing gram and word token ids
-           for each mention and word tokens for context in abstract. Also output gold entity labels."""
-
-        # Init lists
-        all_mention_gram_indices = []
-        all_mention_word_indices = []
-        all_context_word_indices = []
-        all_small_context_indices = []
-        all_gold = []
-
-        window = self.args.context_window
-
-        # train / dev / test split
-        if self.args.conll_split == 'train':
-            func = is_training_doc
-        elif self.args.conll_split == 'dev':
-            func = is_dev_doc
-        elif self.args.conll_split == 'test':
-            func = is_test_doc
-        else:
-            logger.error("Conll split {} not recognized, choose one of train, dev, test".format(self.args.conll_split))
-            sys.exit(1)
-
-        # For each doc
-        for text, gold_ents, _, _, _ in iter_docs(join(self.args.data_path, 'Conll', 'AIDA-YAGO2-dataset.tsv'), func):
-
-            # Context
-            context_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(text)]
-            context_word_indices = [self.word_dict.get(token, 0) for token in context_word_tokens]
-            context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
-
-            # Create dictionaries of token char span to token span
-            tokens = self.word_tokenizer.tokenize(text.lower())
-            start2idx = {}
-            end2idx = {}
-            for token_idx, token in enumerate(tokens):
-                start, end = token.span
-                start2idx[start] = token_idx
-                end2idx[end] = token_idx
-
-            # For each mention
-            context_word_token_ids = [self.word_dict.get(token, 0) for token in context_word_tokens]
-            for ent_str, (begin, end) in gold_ents:
-                if ent_str in self.ent_dict:
-                    mention = text[begin:end]
-                    all_gold.append(self.ent_dict[ent_str])
-                    all_context_word_indices.append(context_word_indices)
-
-                    # Small Context
-                    # Create dictionaries of token id to positions
-                    if begin not in start2idx:
-                        begin = min(start2idx, key=lambda x: abs(x - begin))
-                    if end not in end2idx:
-                        end = min(end2idx, key=lambda x: abs(x - end))
-                    start_token_idx = start2idx[begin]
-                    end_token_idx = end2idx[end]
-
-                    small_context_tokens = np.zeros(2 * self.args.context_window, dtype=np.int64)
-                    if start_token_idx > window:
-                        small_context_tokens[:window] = context_word_token_ids[start_token_idx - window:start_token_idx]
-                    else:
-                        small_context_tokens[:start_token_idx] = context_word_token_ids[:start_token_idx]
-                    end_token_idx += 1
-                    if len(context_word_token_ids) - end_token_idx > window:
-                        small_context_tokens[window:] = context_word_token_ids[end_token_idx:end_token_idx + window]
-                    else:
-                        small_context_tokens[window:window + len(context_word_token_ids) - end_token_idx] = context_word_token_ids[end_token_idx:]
-                    all_small_context_indices.append(small_context_tokens)
-
-                    # Mention Gram
-                    mention_gram_tokens = [token for token in self.gram_tokenizer(mention)]
-                    mention_gram_indices = [self.gram_dict.get(token, 0) for token in mention_gram_tokens]
-                    mention_gram_indices = equalize_len(mention_gram_indices, self.args.max_gram_size)
-                    all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
-
-                    # Mention Word
-                    mention_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(mention)]
-                    mention_word_indices = [self.word_dict.get(token, 0) for token in mention_word_tokens]
-                    mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
-                    all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
-
-        output = {'gold': np.array(all_gold).astype(np.int32),
-                  'mention_gram': np.vstack(all_mention_gram_indices).astype(np.int32),
-                  'mention_word': np.vstack(all_mention_word_indices).astype(np.int32),
-                  'context': np.vstack(all_context_word_indices).astype(np.int32),
-                  'small_context': np.vstack(all_small_context_indices).astype(np.int32)
-                  }
         return output
 
     def _get_data(self, data_type='wiki'):
@@ -332,7 +243,7 @@ class CombinedValidator:
             _, i = index.search(mention_combined_embs.astype(np.float32), 100)
 
             # Evaluate rankings
-            gold = self.numpy_data['gold']
+            gold = self.numpy_data[data_type]['gold']
             gold = gold[self.wiki_mask] if data_type == 'wiki' else gold
             top1, top10, top100, mrr = eval_ranking(i, gold, [1, 10, 100])
             results[data_type] = {'top1': top1,
