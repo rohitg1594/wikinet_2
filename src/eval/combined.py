@@ -49,7 +49,9 @@ class CombinedValidator:
         self.numpy_data = {}
         self.data_types = ['wiki', 'msnbc', 'conll', 'ace2004']
         for data_type in self.data_types:
+            logger.info(f'Numpifying {data_type} dataset.....')
             self.numpy_data[data_type] = self._numpify_data(data_type=data_type)
+            logger.info('Numpified.')
 
         # Mask to select wiki mention queries
         self.wiki_mask = np.random.choice(np.arange(len(self.numpy_data['wiki']['mention_gram'])),
@@ -253,7 +255,7 @@ class CombinedValidator:
 
             # Error analysis
             if error:
-                mention_gram = self.numpy_data[data_type]
+                mention_gram = self.numpy_data[data_type]['mention_gram']
                 mention_gram = mention_gram[self.wiki_mask, :] if data_type == 'wiki' else mention_gram
                 check_errors(i, gold, mention_gram, self.rev_ent_dict, self.rev_gram_dict, [1, 10, 100])
 
