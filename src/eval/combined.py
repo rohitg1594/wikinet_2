@@ -47,8 +47,8 @@ class CombinedValidator:
 
         # Get wiki, msnbc, ace2004 and conll mention tokens
         self.numpy_data = {}
-        data_types = ['wiki', 'msnbc', 'conll', 'ace2004']
-        for data_type in data_types:
+        self.data_types = ['wiki', 'msnbc', 'conll', 'ace2004']
+        for data_type in self.data_types:
             self.numpy_data[data_type] = self._numpify_data(data_type=data_type)
 
         # Mask to select wiki mention queries
@@ -222,7 +222,7 @@ class CombinedValidator:
         flag = False
         results = {}
 
-        for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
+        for data_type in self.data_types:
             input = self._get_data(data_type=data_type)
             ent_combined_embs, mention_combined_embs = model(input)
 
