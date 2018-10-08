@@ -154,26 +154,28 @@ def setup(args=None, logger=None):
 
     # Gram Embeddings
     gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
-    logger.info("Using gram tokenizer {}".format(gram_tokenizer.__name__))
+    logger.info(f"Using gram tokenizer {gram_tokenizer.__name__}")
     gram_dict = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_type + '.tsv'), plus_one=True)
-    logger.info("Gram dictionary loaded of length: {}".format(len(gram_dict)))
+    logger.info(f"Gram dictionary loaded of length: {len(gram_dict)}")
     gram_embs = normal_initialize(len(gram_dict) + 1, args.gram_dim)
-    logger.info("Gram embeddings created of shape: {}".format(gram_embs.shape))
+    logger.info(f"Gram embeddings created of shape: {gram_embs.shape}")
 
     # Word and Entity Embeddings
     if not args.init_yamada:
-        logger.info("Initializing word and entity embeddings randomly...")
+        logger.info("Initializing word and entity embeddings randomly.....")
         word_embs = normal_initialize(yamada_model['word_emb'].shape[0], yamada_model['word_emb'].shape[1])
         ent_embs = normal_initialize(yamada_model['ent_emb'].shape[0], yamada_model['ent_emb'].shape[1])
+        logger.info("Embeddings initialized.")
     else:
         logger.info("Using pre-trained word and entity embeddings from Yamada.")
         ent_embs = yamada_model['ent_emb']
         word_embs = yamada_model['word_emb']
 
     # Training Data
+    logger.info("Loading training data.....")
     train_data, dev_data, test_data = load_wiki_data(args.data_type, args, yamada_model)
     logger.info("Training data loaded.")
-    logger.info("Train : {}, Dev : {}, Test :{}".format(len(train_data), len(dev_data), len(test_data)))
+    logger.info(f"Train : {len(train_data)}, Dev : {len(dev_data)}, Test :{len(test_data)}")
 
     # Validation
     logger.info("Creating validator.....")
@@ -196,9 +198,8 @@ def setup(args=None, logger=None):
                                             shuffle=False,
                                             num_workers=args.num_workers,
                                             drop_last=True)
-
     logger.info("Dataset created.")
-    logger.info("There will be {} batches.".format(len(train_dataset) // args.batch_size + 1))
+    logger.info(f"There will be {len(train_dataset) // args.batch_size + 1} batches.")
 
     return train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs
 
@@ -240,7 +241,7 @@ def train(args=None,
                       model_dir=model_dir,
                       model_type='combined',
                       profile=args.profile)
-    logger.info("Starting Training")
+    logger.info("Training.....")
     trainer.train()
     logger.info("Finished Training")
 

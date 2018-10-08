@@ -142,7 +142,7 @@ class CombinedDataSet(object):
 
         _, all_mention_tokens = self._init_tokens(flag=token_type)
 
-        for ent_idx, (mention, ent_str) in enumerate(examples[:self.args.max_ent_size]):
+        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
                 ent_id = self.ent2id[ent_str]
             else:
@@ -167,7 +167,7 @@ class CombinedDataSet(object):
         all_candidate_gram_tokens, all_mention_gram_tokens = self._init_tokens(flag='gram')
         _, all_mention_word_tokens = self._init_tokens(flag='word')
 
-        for ent_idx, (mention, ent_str) in enumerate(examples[:self.args.max_ent_size]):
+        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
                 ent_id = self.ent2id[ent_str]
             else:
@@ -219,7 +219,7 @@ class CombinedDataSet(object):
         all_candidate_words, all_mention_words = self._init_tokens(flag='word')
         all_candidate_priors = np.zeros_like(all_candidate_ids)
 
-        for ent_idx, (mention, ent_str) in enumerate(examples[:self.args.max_ent_size]):
+        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
                 ent_id = self.ent2id[ent_str]
             else:
@@ -259,7 +259,7 @@ class CombinedDataSet(object):
         all_candidate_words, all_mention_words = self._init_tokens(flag='word')
 
         # For each mention
-        for ent_idx, (mention, ent_str) in enumerate(examples[:self.args.max_ent_size]):
+        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
                 ent_id = self.ent2id[ent_str]
             else:
@@ -308,7 +308,7 @@ class CombinedDataSet(object):
         all_candidate_words, all_mention_words = self._init_tokens(flag='word')
 
         # For each mention
-        for ent_idx, (mention, ent_str) in enumerate(examples[:self.args.max_ent_size]):
+        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
                 ent_id = self.ent2id[ent_str]
             else:
@@ -347,7 +347,7 @@ class CombinedDataSet(object):
         # Init Grams
         all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
 
-        for ent_idx, (mention, ent_str) in enumerate(examples[:self.args.max_ent_size]):
+        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
             if ent_str in self.ent2id:
                 ent_id = self.ent2id[ent_str]
             else:
