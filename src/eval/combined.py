@@ -43,7 +43,9 @@ class CombinedValidator:
         self.model_name = self.args.model_name
 
         # Get entity tokens
+        logger.info('Creating ent tokens.....')
         self.ent_gram_indices, self.ent_word_indices = self._get_ent_tokens()
+        logger.info('Created ent tokens.')
 
         # Get wiki, msnbc, ace2004 and conll mention tokens
         self.numpy_data = {}

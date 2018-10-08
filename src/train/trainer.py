@@ -127,12 +127,13 @@ class Trainer(object):
         return loss.data[0]
 
     def combined_validate(self, epoch):
-        results = self.validator.validate(model=self.model)
-        if self.result_dict is not None:
-            for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
-                self.result_dict[self.result_key][data_type].append((tuple(results[data_type].values())))
-                logger.info(f"{data_type}: Epoch {epoch}, {tuple(results[data_type].items())}")
+        results = self.validator.validate(model=self.model, error=self.args.error)
 
+        for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
+            logger.info(f"{data_type}: Epoch {epoch}, {tuple(results[data_type].items())}")
+            if self.result_dict is not None:
+                self.result_dict[self.result_key][data_type].append((tuple(results[data_type].values())))
+                
         return results['conll']['top1']
 
     def yamada_validate(self, epoch):

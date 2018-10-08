@@ -28,7 +28,8 @@ def parse_args():
     general.add_argument('--my-config', required=True, is_config_file=True, help='config file path')
     general.add_argument('--seed', type=int, default=-1, help="Initialization seed")
     general.add_argument('--exp_name', type=str, default="debug", help="Experiment name")
-    general.add_argument("--debug", type=str2bool, default=True, help="whether to debug")
+    general.add_argument('--debug', type=str2bool, default=True, help="whether to debug")
+    general.add_argument('--error', type=str2bool, default=True, help="whether to print out errors after every epoch.")
 
     # Data
     data = parser.add_argument_group('Data Settings.')
@@ -53,7 +54,6 @@ def parse_args():
     padding.add_argument('--max_context_size', type=int, help='max number of context')
     padding.add_argument('--max_gram_size', type=int, help='max number of grams')
     padding.add_argument('--max_ent_size', type=int, help='max number of entities considered in abstract')
-    padding.add_argument('--context_window', type=int, help='context window size for small context model.')
 
     # Model Type
     model_selection = parser.add_argument_group('Type of model to train.')
@@ -228,7 +228,7 @@ def train(args=None,
             model = model.cuda(args.device)
 
     logger.info("Validating untrained model.....")
-    results = validator.validate(model=model)
+    results = validator.validate(model=model, error=args.error)
     for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
         logger.info(f"{data_type}:, Untrained, {tuple(results[data_type].items())}")
     logger.info("Done validating.")
