@@ -84,18 +84,18 @@ def parse_args():
     candidate.add_argument("--num_candidates", type=int, default=32, help="Number of candidates")
 
     # Training
-    train = parser.add_argument_group("Training parameters.")
-    train.add_argument("--num_epochs", type=int, default=5, help="Number of epochs")
-    train.add_argument("--bold_driver", type=str2bool, default=False,
-                       help="whether to use bold driver heuristic to adjust lr")
-    train.add_argument("--save_every", type=int, default=5, help="how often to checkpoint")
-    train.add_argument("--patience", type=int, default=5, help="Patience for early stopping")
-    train.add_argument("--batch_size", type=int, default=32, help="Batch size")
-    train.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
-    train.add_argument('--lr', type=float, help='learning rate')
-    train.add_argument('--wd', type=float, help='weight decay')
-    train.add_argument('--optim', type=str, choices=['adagrad', 'adam', 'rmsprop'], help='optimizer')
-    train.add_argument('--sparse', type=str2bool, help='sparse gradients')
+    train_params = parser.add_argument_group("Training parameters.")
+    train_params.add_argument("--num_epochs", type=int, default=5, help="Number of epochs")
+    train_params.add_argument("--bold_driver", type=str2bool, default=False,
+                              help="whether to use bold driver heuristic to adjust lr")
+    train_params.add_argument("--save_every", type=int, default=5, help="how often to checkpoint")
+    train_params.add_argument("--patience", type=int, default=5, help="Patience for early stopping")
+    train_params.add_argument("--batch_size", type=int, default=32, help="Batch size")
+    train_params.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
+    train_params.add_argument('--lr', type=float, help='learning rate')
+    train_params.add_argument('--wd', type=float, help='weight decay')
+    train_params.add_argument('--optim', type=str, choices=['adagrad', 'adam', 'rmsprop'], help='optimizer')
+    train_params.add_argument('--sparse', type=str2bool, help='sparse gradients')
 
     # Loss
     loss = parser.add_argument_group('Type of loss.')
@@ -145,7 +145,7 @@ def parse_args():
     return args, logger, model_dir
 
 
-def setup(args, logger):
+def setup(args=None, logger=None):
     # Yamada model
     print()
     logger.info("Loading Yamada model.")
@@ -203,7 +203,15 @@ def setup(args, logger):
     return train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs
 
 
-def train():
+def train(args=None,
+          yamada_model=None,
+          ent_embs=None,
+          word_embs=None,
+          gram_embs=None,
+          validator=None,
+          logger=None,
+          train_loader=None,
+          model_dir=None):
     # Model
     model = get_model(args,
                       yamada_model=yamada_model,
@@ -218,16 +226,11 @@ def train():
         else:
             model = model.cuda(args.device)
 
-    logger.info("Starting validation for untrained model.")
-    top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
-    logger.info('Dev Validation')
-    logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki,
-                                                                                                              top10_wiki, top100_wiki,
-                                                                                                              mrr_wiki))
-    logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll,
-                                                                                                          top10_conll,
-                                                                                                          top100_conll,
-                                                                                                          mrr_conll))
+    logger.info("Validating untrained model.....")
+    results = validator.validate(model=model)
+    for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
+        logger.info(f"{data_type}:, Untrained, {tuple(results[data_type].items())}")
+    logger.info("Done validating.")
 
     # Train
     trainer = Trainer(loader=train_loader,
@@ -243,6 +246,14 @@ def train():
 
 
 if __name__ == '__main__':
-    args, logger, model_dir = parse_args()
-    train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs = setup(args, logger)
-    train()
+    Args, Logger, Model_dir = parse_args()
+    Train_loader, Validator, Yamada_model, Ent_embs, Word_embs, Gram_embs = setup(args=Args, logger=Logger)
+    train(args=Args,
+          yamada_model=Yamada_model,
+          ent_embs=Ent_embs,
+          word_embs=Word_embs,
+          gram_embs=Gram_embs,
+          validator=Validator,
+          logger=Logger,
+          train_loader=Train_loader,
+          model_dir=Model_dir)

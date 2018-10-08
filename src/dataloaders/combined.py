@@ -11,6 +11,8 @@ import torch.utils.data
 from src.utils.utils import reverse_dict, equalize_len, get_normalised_forms, get_absolute_pos
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
+logger = getLogger(__name__)
+
 
 class CombinedDataSet(object):
 
@@ -44,8 +46,10 @@ class CombinedDataSet(object):
 
         # Candidates
         if not self.args.cand_gen_rand:
+            logger.info(f'Loading necounts candidate generation dict.....')
             with open(join(self.args.data_path, 'necounts', 'normal_necounts.pickle'), 'rb') as f:
                 self.necounts = pickle.load(f)
+            logger.info('necounts loaded.')
 
     def _get_candidates(self, ent_id, mention, prior=False):
         """Candidate generation step, can be random or based on necounts."""
