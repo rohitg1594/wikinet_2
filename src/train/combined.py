@@ -230,7 +230,10 @@ def train(args=None,
     logger.info("Validating untrained model.....")
     results = validator.validate(model=model, error=args.error)
     for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
-        logger.info(f"{data_type}:, Untrained, {tuple(results[data_type].items())}")
+        res_str = ""
+        for k, v in results[data_type].items():
+            res_str += k.upper() + ': {:.3},'.format(v)
+        logger.info(f"{data_type}: Untrained," + res_str[:-1])
     logger.info("Done validating.")
 
     # Train

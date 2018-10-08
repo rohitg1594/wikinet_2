@@ -396,7 +396,7 @@ class CombinedDataSet(object):
         elif self.model_name == 'only_prior_with_string':
             return self._getitem_only_prior_word_and_gram(mask, examples, all_candidate_ids)
         elif self.model_name == 'prior_small_context':
-            return self._getitem_small_context(mask, examples, all_candidate_ids, window=self.args.context_window)
+            return self._getitem_small_context(mask, examples, all_candidate_ids)
         elif self.model_name == 'only_prior_full':
             return self._getitem_only_prior_full(examples)
         elif self.model_name == 'include_word':

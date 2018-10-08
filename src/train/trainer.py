@@ -130,7 +130,10 @@ class Trainer(object):
         results = self.validator.validate(model=self.model, error=self.args.error)
 
         for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
-            logger.info(f"{data_type}: Epoch {epoch}, {tuple(results[data_type].items())}")
+            res_str = ""
+            for k, v in results[data_type].items():
+                res_str += k.upper() + ': {:.3},'.format(v)
+            logger.info(f"{data_type}: Epoch {epoch}," + res_str[:-1])
             if self.result_dict is not None:
                 self.result_dict[self.result_key][data_type].append((tuple(results[data_type].values())))
 
