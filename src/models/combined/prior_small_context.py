@@ -16,7 +16,7 @@ class SmallContext(CombinedBase):
         # Unpack args
         mention_embs = kwargs['mention_embs']
         ent_mention_embs = kwargs['ent_mention_embs']
-        print(f"menttion shape : {mention_embs.shape}, ent mention shape : {ent_mention_embs.shape}")
+        print(f"mention shape : {mention_embs.shape}, ent mention shape : {ent_mention_embs.shape}")
 
         # Mention embeddings
         self.mention_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
