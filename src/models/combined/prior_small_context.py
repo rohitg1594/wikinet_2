@@ -24,6 +24,8 @@ class SmallContext(CombinedBase):
 
         # Context embeddings
         self.context_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
+        self.context_embs.weight.data.normal_(0, 0.01)
+        self.context_embs.weight.data[0] = 0
 
         # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(*ent_mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
