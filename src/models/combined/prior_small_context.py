@@ -30,7 +30,6 @@ class SmallContext(CombinedBase):
 
         # Linear
         self.combine_linear = nn.Linear(2 * mention_embs.shape[1], ent_mention_embs.shape[1])
-        #nn.init.eye(self.combine_linear.weight)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
