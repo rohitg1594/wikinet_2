@@ -189,7 +189,7 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
 
         else:
             mention_embs = torch.Tensor(word_embs.shape[0], args.mention_word_dim)
-            ent_mention_embs = torch.Tensor(ent_embs.shape[0], args.mention_word_dim)
+            ent_mention_embs = torch.Tensor(ent_embs.shape[0], args.ent_mention_dim)
 
             # Initialization
             if init == 'normal':

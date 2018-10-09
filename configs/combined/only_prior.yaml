@@ -17,6 +17,7 @@ gram_type:trigram
 gram_lower:True
 gram_dim:64
 mention_word_dim:128
+ent_mention_dim:128
 
 # Max padding
 max_word_size:5
