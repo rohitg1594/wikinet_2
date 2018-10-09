@@ -229,7 +229,7 @@ class CombinedValidator:
         for data_type in self.data_types:
             input = self._get_data(data_type=data_type)
             ent_combined_embs, mention_combined_embs = model(input)
-
+            print(f"ENT COMBINED EMBS SHAPE {ent_combined_embs.shape}, MENTION SHAPE {mention_combined_embs.shape}")
             ent_combined_embs = ent_combined_embs.detach().numpy()
             mention_combined_embs = mention_combined_embs.detach().numpy()
 
