@@ -16,6 +16,7 @@ class SmallContext(CombinedBase):
         # Unpack args
         mention_embs = kwargs['mention_embs']
         ent_mention_embs = kwargs['ent_mention_embs']
+        print(f"menttion shape : {mention_embs.shape}, ent mention shape : {ent_mention_embs.shape}")
 
         # Mention embeddings
         self.mention_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
@@ -30,6 +31,7 @@ class SmallContext(CombinedBase):
 
         # Linear
         self.combine_linear = nn.Linear(2 * mention_embs.shape[1], ent_mention_embs.shape[1])
+        print(f"linear shape {self.combine_linear.weight.shape}")
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
