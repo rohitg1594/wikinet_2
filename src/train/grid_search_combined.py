@@ -13,6 +13,7 @@ from src.utils.utils import get_model
 from src.train.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
+DATA_TYPES = ['wiki', 'conll', 'msnbc', 'ace2004']
 
 
 def grid_search():
@@ -23,17 +24,12 @@ def grid_search():
     results = {}
 
     for param_dict in list(ParameterGrid(param_grid)):
-        if param_dict['mention_word_dim'] == 256:
-            args.__dict__['batch_size'] = 24
-        else:
-            args.__dict__['batch_size'] = 32
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())
-        results[result_key] = {'Wikipedia': [],
-                               'Conll': []}
+        results[result_key] = {data_type: [] for data_type in DATA_TYPES}
         # Model
         model = get_model(args,
                           yamada_model=yamada_model,
@@ -42,13 +38,15 @@ def grid_search():
                           gram_embs=gram_embs,
                           init=args.init_mention)
 
-        logger.info("Starting validation for untrained model.")
-        top1_wiki, top10_wiki, top100_wiki, mrr_wiki, top1_conll, top10_conll, top100_conll, mrr_conll = validator.validate(model=model)
-        results[result_key]['Wikipedia'].append((top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-        results[result_key]['Conll'].append((top1_conll, top10_conll, top100_conll, mrr_conll))
-        logger.info('Dev Validation')
-        logger.info("Wikipedia, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_wiki, top10_wiki, top100_wiki, mrr_wiki))
-        logger.info("Conll, Untrained Top 1 - {:.4f}, Top 10 - {:.4f}, Top 100 - {:.4f}, MRR - {:.4f}".format(top1_conll, top10_conll, top100_conll, mrr_conll))
+        logger.info("Validating untrained model.....")
+        result = validator.validate(model=model, error=args.error)
+        for data_type in DATA_TYPES:
+            res_str = ""
+            for k, v in result[data_type].items():
+                res_str += k.upper() + ': {:.3},'.format(v)
+            logger.info(f"{data_type}: Untrained, {res_str[:-1]}")
+            results[result_key][data_type].append((tuple(result[data_type].values())))
+        logger.info("Done validating.")
 
         trainer = Trainer(loader=train_loader,
                           args=args,
