@@ -194,7 +194,7 @@ class CombinedValidator:
 
         return data
 
-    def _get_debug_string(self, I=None, data_type='wiki', result=False):
+    def _get_debug_string(self, preds=None, data_type='wiki', result=False):
 
         mention_gram = self.numpy_data[data_type]['mention_gram']
         mention_word = self.numpy_data[data_type]['mention_word']
@@ -204,18 +204,17 @@ class CombinedValidator:
 
         s = ''
         for i in range(10):
-            if self.args.include_gram:
-                m_g = mention_gram[i]
-                s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
-            if self.args.include_word:
-                m_w = mention_word[i]
-                s += ' '.join([self.rev_word_dict[token] for token in m_w if token in self.rev_word_dict]) + '|'
-            if self.args.include_context:
-                c_w = context[i][:20]
-                s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
+            # m_g = mention_gram[i]
+            # s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
+            m_w = mention_word[i]
+            s += ' '.join([self.rev_word_dict[token] for token in m_w if token in self.rev_word_dict]) + '|'
+            c_w = small_context[i][:20]
+            s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
+            # c_w = context[i][:20]
+            # s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
             s += self.rev_ent_dict[gold[i]] + '|'
             if result:
-                s += ','.join([self.rev_ent_dict[ent_id] for ent_id in I[i][:10] if ent_id in self.rev_ent_dict])
+                s += ','.join([self.rev_ent_dict[ent_id] for ent_id in preds[i][:10] if ent_id in self.rev_ent_dict])
             s += '\n'
 
         return s
@@ -248,13 +247,13 @@ class CombinedValidator:
                 flag = True
 
             logger.info(f"Searching in index with query size : {mention_combined_embs.shape}.....")
-            _, i = index.search(mention_combined_embs.astype(np.float32), 100)
+            _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
             logger.info("Search complete.")
 
             # Evaluate rankings
             gold = self.numpy_data[data_type]['gold']
             gold = gold[self.wiki_mask] if data_type == 'wiki' else gold
-            top1, top10, top100, mrr = eval_ranking(i, gold, [1, 10, 100])
+            top1, top10, top100, mrr = eval_ranking(preds, gold, [1, 10, 100])
             results[data_type] = {'top1': top1,
                                   'top10': top10,
                                   'top100': top100,
@@ -265,8 +264,12 @@ class CombinedValidator:
                 print(f'{data_type.upper()}\n')
                 mention_gram = self.numpy_data[data_type]['mention_gram']
                 mention_gram = mention_gram[self.wiki_mask, :] if data_type == 'wiki' else mention_gram
-                check_errors(i, gold, mention_gram, self.rev_ent_dict, self.rev_gram_dict, [1, 10, 100])
+                check_errors(preds, gold, mention_gram, self.rev_ent_dict, self.rev_gram_dict, [1, 10, 100])
                 print()
+
+            # Debug
+            debug_str = self._get_debug_string(preds=preds, data_type=data_type)
+            print(debug_str)
 
         if self.args.use_cuda:
             if isinstance(self.args.device, tuple):
