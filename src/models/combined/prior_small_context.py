@@ -69,7 +69,7 @@ class SmallContext(CombinedBase):
             mention_repr.unsqueeze_(1)
 
             # Dot product over last dimension
-            scores = (mention_repr * candidate_embs).sum(dim=2)
+            scores = torch.matmul(mention_repr, candidate_embs.transpose(1, 2)).squeeze(1)
 
             return scores
 
