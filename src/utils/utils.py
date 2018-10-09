@@ -194,7 +194,7 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             # Initialization
             if init == 'normal':
                 mention_embs = torch.from_numpy(normal_initialize(word_embs.shape[0], args.mention_word_dim))
-                ent_mention_embs = torch.from_numpy(normal_initialize(ent_embs.shape[0], args.mention_word_dim))
+                ent_mention_embs = torch.from_numpy(normal_initialize(ent_embs.shape[0], args.ent_mention_dim))
             elif init == 'xavier_uniform':
                 nn.init.xavier_uniform(mention_embs)
                 nn.init.xavier_uniform(ent_mention_embs)
