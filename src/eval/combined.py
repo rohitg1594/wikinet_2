@@ -179,7 +179,7 @@ class CombinedValidator:
             data = (mention_word, ent_ids)
         elif self.model_name == 'only_prior_with_string':
             data = (mention_word, mention_gram, ent_gram, ent_ids)
-        elif self.model_name == 'prior_small_context':
+        elif self.model_name in ['prior_small_context', 'prior_simple_small_context']:
             data = (mention_word, ent_ids, small_context)
         elif self.model_name == 'only_prior_position':
             pos_indices = get_absolute_pos(mention_word)

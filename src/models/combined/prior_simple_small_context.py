@@ -1,4 +1,4 @@
-# Mention words and small context around mention with a combining linear layer
+# Mention words and small context around mention with only concatenation
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -8,7 +8,7 @@ import sys
 from src.models.combined.base import CombinedBase
 
 
-class SmallContext(CombinedBase):
+class SimpleSmallContext(CombinedBase):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -30,10 +30,6 @@ class SmallContext(CombinedBase):
         # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(*ent_mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
         self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
-
-        # Linear
-        self.combine_linear = nn.Linear(2 * mention_embs.shape[1], ent_mention_embs.shape[1])
-        print(f"linear shape {self.combine_linear.weight.shape}")
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
@@ -58,8 +54,7 @@ class SmallContext(CombinedBase):
             context_embs_agg = torch.mean(context_embs, dim=1)
 
             # Cat the embs / pass through linear layer
-            mention_cat = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
-            mention_repr = self.combine_linear(mention_cat)
+            mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
 
             # Normalize
             if self.args.norm_final:
@@ -93,8 +88,7 @@ class SmallContext(CombinedBase):
             context_embs_agg = torch.mean(context_embs, dim=1)
 
             # Cat the embs
-            mention_cat = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
-            mention_repr = self.combine_linear(mention_cat)
+            mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
 
             # Normalize
             if self.args.norm_final:
