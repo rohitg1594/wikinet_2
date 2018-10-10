@@ -12,8 +12,6 @@ import torch
 from torch.nn import DataParallel
 import torch.nn as nn
 
-from src.models.combined.include_gram import IncludeGram
-from src.models.combined.include_word import IncludeWord
 from src.models.combined.mention_prior import MentionPrior
 from src.models.combined.weigh_concat import WeighConcat
 
@@ -163,15 +161,11 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
               'b': yamada_model['b']}
     model_name = args.model_name
 
-    if model_name == 'include_word':
-        model_type = IncludeWord
-    elif model_name == 'weigh_concat':
+    if model_name == 'weigh_concat':
         weighing_linear = torch.Tensor(ent_embs.shape[1] + gram_embs.shape[1], 1)
         torch.nn.init.eye(weighing_linear)
         kwargs['weighing_linear'] = weighing_linear
         model_type = WeighConcat
-    elif model_name == 'include_gram':
-        model_type = IncludeGram
     elif 'prior' in model_name:
 
         if init == 'pre_trained':
@@ -189,29 +183,10 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
             ent_mention_embs = torch.from_numpy(d['ent'])
 
         else:
-            mention_embs = torch.Tensor(word_embs.shape[0], args.mention_word_dim)
-            ent_mention_embs = torch.Tensor(ent_embs.shape[0], args.ent_mention_dim)
-
-            # Initialization
-            if init == 'normal':
-                mention_embs = torch.from_numpy(normal_initialize(word_embs.shape[0], args.mention_word_dim))
-                ent_mention_embs = torch.from_numpy(normal_initialize(ent_embs.shape[0], args.ent_mention_dim))
-            elif init == 'xavier_uniform':
-                nn.init.xavier_uniform(mention_embs)
-                nn.init.xavier_uniform(ent_mention_embs)
-            elif init == 'xavier_normal':
-                nn.init.xavier_normal(mention_embs)
-                nn.init.xavier_normal(ent_mention_embs)
-            elif init == 'kaiming_uniform':
-                nn.init.kaiming_uniform(mention_embs)
-                nn.init.kaiming_uniform(ent_mention_embs)
-            elif init == 'kaiming_normal':
-                nn.init.kaiming_normal(mention_embs)
-                nn.init.kaiming_normal(ent_mention_embs)
-            else:
-                logger.error("No argument to initialize mention embeddings, exiting....")
-                sys.exit(1)
-
+            mention_embs = torch.from_numpy(np.random.normal(loc=0, scale=args.init_stdv,
+                                                             size=(word_embs.shape[0], args.mention_word_dim)))
+            ent_mention_embs = torch.from_numpy(np.random.normal(loc=0, scale=args.init_stdv,
+                                                                 size=(ent_embs.shape[0], args.ent_word_dim)))
             mention_embs[0] = 0
             ent_mention_embs[0] = 0
 

@@ -17,11 +17,13 @@ class Average(CombinedBase):
 
         # Mention embeddings
         self.mention_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.mention_embs.weight.data.copy_(mention_embs)
+        self.mention_embs.weight.data.normal_(0, self.args.stdv)
+        self.mention_embs.weight.data[0] = 0
 
         # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(*ent_mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
+        self.ent_mention_embs.weight.data.normal_(0, self.args.stdv)
+        self.ent_mention_embs.weight.data[0] = 0
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
