@@ -40,7 +40,7 @@ class CombinedDataSet(object):
         self.word_tokenizer = RegexpTokenizer(lower=self.args.gram_lower)
         self.model_name = self.args.model_name
 
-        self.candidate_generation = self.args.num_candidates // 2
+        self.num_cand_gen = self.args.num_candidates // 2
         self.data = data
         self.logger = getLogger(__name__)
 
@@ -59,18 +59,16 @@ class CombinedDataSet(object):
                                             np.random.randint(1, self.len_ent + 1, size=self.args.num_candidates - 1)))
         else:
             nfs = get_normalised_forms(mention)
-            candidates = []
+            candidate_ids = []
             for nf in nfs:
                 if nf in self.necounts:
-                    candidates.extend(self.necounts[nf])
-
-            candidate_ids = [self.ent2id[candidate] for candidate in candidates if candidate in self.ent2id]
+                    candidate_ids.extend(self.necounts[nf])
 
             if ent_id in candidate_ids: candidate_ids.remove(ent_id)  # Remove if true entity is part of candidates
 
-            if len(candidate_ids) > self.candidate_generation:
-                cand_generation = np.random.choice(np.array(candidate_ids), replace=False, size=self.candidate_generation)
-                cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - self.candidate_generation - 1)
+            if len(candidate_ids) > self.num_cand_gen:
+                cand_generation = np.random.choice(np.array(candidate_ids), replace=False, size=self.num_cand_gen)
+                cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - self.num_cand_gen - 1)
             else:
                 cand_generation = np.array(candidate_ids)
                 cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - len(candidate_ids) - 1)
