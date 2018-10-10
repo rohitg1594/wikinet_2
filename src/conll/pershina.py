@@ -29,7 +29,7 @@ class PershinaExamples(object):
                                    'AIDA-YAGO2-dataset.tsv'), func)):
                 doc_id = int(RE_DOCID.match(doc_id_str).group(0))
                 tokens = self.tokenizer.tokenize(text)
-                docid2tokens[doc_id] = [self.word_dict.get(token.lower(), 0) for token in tokens]
+                docid2tokens[doc_id] = [self.word_dict.get(token.text.lower(), 0) for token in tokens]
 
         return docid2tokens
 

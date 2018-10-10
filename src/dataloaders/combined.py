@@ -209,15 +209,15 @@ class CombinedDataSet(object):
             # Context
             all_small_context[ent_idx] = small_context
 
-        for mention, cand, context in zip(all_mention_word_tokens[:5], all_candidate_ids[:5], all_small_context[:5]):
-            men_str = " ".join([self.id2word.get(word_id, "") for word_id in mention])
-            cand_str = "|".join([self.id2ent.get(ent_id, " ") for ent_id in cand[:10]])
-            context_str = " ".join([self.id2word.get(word_id, " ") for word_id in context])
-            print(men_str)
-            print(cand_str)
-            print(context_str)
-            print()
-        sys.exit(1)
+        # for mention, cand, context in zip(all_mention_word_tokens[:5], all_candidate_ids[:5], all_small_context[:5]):
+        #     men_str = " ".join([self.id2word.get(word_id, "") for word_id in mention])
+        #     cand_str = "|".join([self.id2ent.get(ent_id, " ") for ent_id in cand[:10]])
+        #     context_str = " ".join([self.id2word.get(word_id, " ") for word_id in context])
+        #     print(men_str)
+        #     print(cand_str)
+        #     print(context_str)
+        #     print()
+        # sys.exit(1)
 
         return mask, all_mention_word_tokens, all_candidate_ids, all_small_context
 
