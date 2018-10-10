@@ -152,7 +152,7 @@ def str2bool(v):
         return False
 
 
-def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=None, init='xavier_normal'):
+def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=None, init=None):
     """Based on parameters in args, initialize and return appropriate model."""
 
     kwargs = {'args': args,

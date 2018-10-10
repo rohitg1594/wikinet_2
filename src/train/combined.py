@@ -224,8 +224,7 @@ def train(args=None,
                       yamada_model=yamada_model,
                       ent_embs=ent_embs,
                       word_embs=word_embs,
-                      gram_embs=gram_embs,
-                      init=args.init_mention)
+                      gram_embs=gram_embs)
     if args.use_cuda:
         if isinstance(args.device, tuple):
             model = model.cuda(args.device[0])
