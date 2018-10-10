@@ -403,7 +403,7 @@ class CombinedDataSet(object):
             return self._getitem_only_prior_word_or_gram(mask, examples, all_candidate_ids, token_type='gram', include_pos=False)
         elif self.model_name == 'only_prior_with_string':
             return self._getitem_only_prior_word_and_gram(mask, examples, all_candidate_ids)
-        elif self.model_name in ['prior_small_context', 'prior_simple_small_context']:
+        elif self.model_name in ['prior_small_context']:
             return self._getitem_small_context(mask, examples, all_candidate_ids)
         elif self.model_name == 'only_prior_full':
             return self._getitem_only_prior_full(examples)

@@ -68,6 +68,8 @@ def grid_search():
 
         pd_results.append({**param_dict, **best_results})
         print('PD RESULTS: {}'.format(pd_results))
+        df = pd.DataFrame(pd_results)
+        df.to_csv(join(model_dir, 'hyper_df.csv'))
 
         with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
             pickle.dump(results, f)

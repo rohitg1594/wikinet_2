@@ -71,7 +71,9 @@ def parse_args():
     model_params.add_argument('--ent_mention_dim', type=int, help='dimension of mention entity embeddings')
     model_params.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
     model_params.add_argument('--dp', type=float, help='drop out')
-    model_params.add_argument('--init_stdv', type=float, help='standard deviation to initialize embeddings in small context')
+    model_params.add_argument('--init_stdv', type=float,
+                              help='standard deviation to initialize embeddings in small context')
+    model_params.add_argument('--linear', type=str2bool, help='whether to have a combining linear layer in small context model')
 
     # Normalization
     normal = parser.add_argument_group('Which embeddings to normalize?')

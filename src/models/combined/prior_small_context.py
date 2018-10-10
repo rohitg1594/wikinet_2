@@ -32,8 +32,9 @@ class SmallContext(CombinedBase):
         self.ent_mention_embs.weight.data[0] = 0
 
         # Linear
-        self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim,
-                                        self.args.ent_mention_dim)
+        if self.args.linear:
+            self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim,
+                                            self.args.ent_mention_dim)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
@@ -58,8 +59,9 @@ class SmallContext(CombinedBase):
             context_embs_agg = torch.mean(context_embs, dim=1)
 
             # Cat the embs / pass through linear layer
-            mention_cat = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
-            mention_repr = self.combine_linear(mention_cat)
+            mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
+            if self.args.linear:
+                mention_repr = self.combine_linear(mention_repr)
 
             # Normalize
             if self.args.norm_final:
@@ -74,15 +76,6 @@ class SmallContext(CombinedBase):
             return scores
 
         else:
-
-            # print(f'MENTION WORD TOKENS : {mention_word_tokens[:20]}')
-            # print(f'CONTEXT TOKENS : {context_tokens[:20]}')
-            # print(f'CANDIDATE IDS : {candidate_ids[:20]}')
-            # print(f'LINEAR : {self.combine_linear.weight[:10, :10]}')
-            # print(f'MENTION EMBS : {self.mention_embs.weight[:10, :10]}')
-            # print(f'CONTEXT EMBS : {self.context_embs.weight[:10, :10]}')
-            # print(f'CANDIDATE EMBS : {self.ent_mention_embs.weight[:10, :10]}')
-
             # Get the embeddings
             mention_embs = self.mention_embs(mention_word_tokens)
             context_embs = self.context_embs(context_tokens)
@@ -93,8 +86,9 @@ class SmallContext(CombinedBase):
             context_embs_agg = torch.mean(context_embs, dim=1)
 
             # Cat the embs
-            mention_cat = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
-            mention_repr = self.combine_linear(mention_cat)
+            mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
+            if self.args.linear:
+                mention_repr = self.combine_linear(mention_repr)
 
             # Normalize
             if self.args.norm_final:

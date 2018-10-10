@@ -26,7 +26,7 @@ from src.models.combined.only_prior.conv import Conv
 from src.models.combined.only_prior.position import Position
 from src.models.combined.only_prior.with_string import WithString
 from src.models.combined.prior_small_context import SmallContext
-from src.models.combined.prior_simple_small_context import SimpleSmallContext
+
 
 use_cuda = torch.cuda.is_available()
 RE_WS_PRE_PUCT = re.compile(u'\s+([^a-zA-Z\d])')
@@ -221,9 +221,7 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
         if model_name == 'only_prior':
             model_type = Average
         elif model_name == 'prior_small_context':
-            model_type = SimpleSmallContext
-        elif model_name == 'prior_simple_small_context':
-            model_type = SimpleSmallContext
+            model_type = SmallContext
         elif model_name == 'only_prior_multi_linear':
             model_type = MultiLinear
         elif model_name == 'only_prior_rnn':
