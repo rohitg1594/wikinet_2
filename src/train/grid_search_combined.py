@@ -34,6 +34,9 @@ def grid_search():
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
+        if not param_dict['combined_linear']:
+            param_dict['context_word_dim'] == param_dict['ent_mention_dim'] // 2
+            param_dict['mention_word_dim'] == param_dict['ent_mention_dim'] // 2
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())
         results[result_key] = {data_type: [] for data_type in DATA_TYPES}
