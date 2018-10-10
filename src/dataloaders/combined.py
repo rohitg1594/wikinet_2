@@ -35,6 +35,7 @@ class CombinedDataSet(object):
 
         self.gram_dict = gram_dict
         self.word_dict = word_dict
+        self.id2word = reverse_dict(self.word_dict)
         self.gram_tokenizer = gram_tokenizer
         self.args = args
         self.word_tokenizer = RegexpTokenizer(lower=self.args.gram_lower)
@@ -96,7 +97,6 @@ class CombinedDataSet(object):
         context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
         context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
 
-        # TODO - maybe this is too expensive
         context_word_tokens_array = np.zeros((self.args.max_ent_size, self.args.max_context_size), dtype=np.int64)
         context_word_tokens_array[:len(examples)] = context_word_tokens
 
@@ -208,6 +208,16 @@ class CombinedDataSet(object):
 
             # Context
             all_small_context[ent_idx] = small_context
+
+        for mention, cand, context in zip(all_mention_word_tokens[:5], all_candidate_ids[:5], all_small_context[:5]):
+            men_str = " ".join([self.id2word.get(word_id, "") for word_id in mention])
+            cand_str = "|".join([self.id2ent.get(ent_id, " ") for ent_id in cand[:10]])
+            context_str = " ".join([self.id2word.get(word_id, " ") for word_id in context])
+            print(men_str)
+            print(cand_str)
+            print(context_str)
+            print()
+        sys.exit(1)
 
         return mask, all_mention_word_tokens, all_candidate_ids, all_small_context
 
