@@ -32,6 +32,7 @@ class Trainer(object):
         self.result_dict = result_dict
         self.result_key = result_key
         self.profile = profile
+        self.data_types = ['wiki', 'conll', 'msnbc', 'ace2004']
 
         if isinstance(validator, tuple):
             self.conll_validator, self.wiki_validator = validator
@@ -129,7 +130,7 @@ class Trainer(object):
     def combined_validate(self, epoch):
         results = self.validator.validate(model=self.model, error=self.args.error)
 
-        for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
+        for data_type in self.data_types:
             res_str = ""
             for k, v in results[data_type].items():
                 res_str += k.upper() + ': {:.3},'.format(v)
@@ -137,7 +138,7 @@ class Trainer(object):
             if self.result_dict is not None:
                 self.result_dict[self.result_key][data_type].append((tuple(results[data_type].values())))
 
-        return results['conll']['top1']
+        return results
 
     def yamada_validate(self, epoch):
         conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=self.conll_validator,
@@ -156,6 +157,7 @@ class Trainer(object):
         best_model = self.model
         wait = 0
         best_valid_metric = 0
+        best_results = {k:0 for k in self.data_types}
         num_batches = len(self.loader)
         if num_batches > 1000:
             batch_verbose = True
@@ -192,7 +194,12 @@ class Trainer(object):
                     'optimizer': self.optimizer.state_dict()}, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
 
             if self.model_type == 'combined':
-                valid_metric = self.combined_validate(epoch)
+                results = self.combined_validate(epoch)
+                valid_metric = results['conll']['top1']
+                for data_type, result in results.items():
+                    top1 = result['top1']
+                    if top1 > best_results[data_type]:
+                        best_results[data_type] = top1
             elif self.model_type == 'yamada':
                 valid_metric = self.yamada_validate(epoch)
             else:
@@ -215,4 +222,4 @@ class Trainer(object):
             'state_dict': best_model.state_dict(),
             'optimizer': self.optimizer.state_dict()}, filename=join(self.model_dir, 'best_model.ckpt'))
 
-        return best_model
+        return best_model, best_results

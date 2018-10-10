@@ -4,9 +4,10 @@ from os.path import join
 import gc
 
 import numpy as np
-from sklearn.model_selection import ParameterGrid
+from sklearn.model_selection import ParameterGrid, ParameterSampler
 
 import torch
+import pandas
 
 from src.train.combined import parse_args, setup
 from src.utils.utils import get_model
@@ -18,12 +19,17 @@ DATA_TYPES = ['wiki', 'conll', 'msnbc', 'ace2004']
 
 def grid_search():
     param_grid = {
-                  'lr': [1e-3, 1e-2],
-                  'wd': [1e-6, 1e-5, 1e-4],
+                  'lr': [5e-2, 1e-2, 5e-3, 1e-3],
+                  'weight_decay': [1e-5, 1e-6, 1e-7],
+                  'mention_word_dim': [64, 128, 256],
+                  'context_word_dim': [128, 256],
+                  'ent_mention_dim': [128, 256],
+                  'init_stdv': [1e-2, 1e-3, 1e-4],
                   }
     results = {}
+    pd_results = list()
 
-    for param_dict in list(ParameterGrid(param_grid)):
+    for param_dict in list(ParameterSampler(param_grid, n_iter=10)):
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
@@ -57,8 +63,11 @@ def grid_search():
                           result_dict=results,
                           result_key=result_key)
         logger.info("Starting Training")
-        trainer.train()
+        best_model, best_results = trainer.train()
         logger.info("Finished Training")
+
+        pd_results.append({**param_dict, **best_results})
+        print('PD RESULTS: {}'.format(pd_results))
 
         for k, v in results.items():
             print(k)

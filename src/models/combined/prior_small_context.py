@@ -13,27 +13,27 @@ class SmallContext(CombinedBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # Unpack args
-        mention_embs = kwargs['mention_embs']
-        ent_mention_embs = kwargs['ent_mention_embs']
-        print(f"mention shape : {mention_embs.shape}, ent mention shape : {ent_mention_embs.shape}")
-
         # Mention embeddings
-        self.mention_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.mention_embs.weight.data.copy_(mention_embs)
+        self.mention_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.mention_word_dim,
+                                         padding_idx=0, sparse=self.args.sparse)
+        self.mention_embs.weight.data.normal_(0, self.args.stdv)
+        self.mention_embs.weight.data[0] = 0
 
         # Context embeddings
-        self.context_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.context_embs.weight.data.normal_(0, 0.01)
+        self.context_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.context_word_dim,
+                                         padding_idx=0, sparse=self.args.sparse)
+        self.context_embs.weight.data.normal_(0, self.args.stdv)
         self.context_embs.weight.data[0] = 0
 
         # Entity mention embeddings
-        self.ent_mention_embs = nn.Embedding(*ent_mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
+        self.ent_mention_embs = nn.Embedding(self.ent_embs.weight.shape[0], self.args.ent_mention_dim,
+                                             padding_idx=0, sparse=self.args.sparse)
+        self.ent_mention_embs.weight.data.normal_(0, self.args.stdv)
+        self.ent_mention_embs.weight.data[0] = 0
 
         # Linear
-        self.combine_linear = nn.Linear(2 * mention_embs.shape[1], ent_mention_embs.shape[1])
-        print(f"linear shape {self.combine_linear.weight.shape}")
+        self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim,
+                                        self.args.ent_mention_dim)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
