@@ -32,7 +32,7 @@ class SmallContext(CombinedBase):
         self.ent_mention_embs.weight.data[0] = 0
 
         # Linear
-        if self.args.linear:
+        if self.args.combined_linear:
             self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim,
                                             self.args.ent_mention_dim)
 
@@ -60,7 +60,7 @@ class SmallContext(CombinedBase):
 
             # Cat the embs / pass through linear layer
             mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
-            if self.args.linear:
+            if self.args.combined_linear:
                 mention_repr = self.combine_linear(mention_repr)
 
             # Normalize
@@ -87,7 +87,7 @@ class SmallContext(CombinedBase):
 
             # Cat the embs
             mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
-            if self.args.linear:
+            if self.args.combine_linear:
                 mention_repr = self.combine_linear(mention_repr)
 
             # Normalize
