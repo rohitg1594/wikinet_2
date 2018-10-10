@@ -21,11 +21,11 @@ def grid_search():
     param_grid = {
                   'lr': [5e-2, 1e-2, 5e-3, 1e-3],
                   'wd': [1e-5, 1e-6, 1e-7],
-                  'mention_word_dim': [64, 128, 256],
-                  'context_word_dim': [128, 256],
+                  'mention_word_dim': [64, 128],
+                  'context_word_dim': [64, 128],
                   'ent_mention_dim': [128, 256],
                   'init_stdv': [1e-2, 1e-3, 1e-4],
-                  'combined_linear': [True, False],
+                  'combined_linear': [False],
                   }
     results = {}
     pd_results = list()

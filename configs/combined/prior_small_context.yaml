@@ -29,7 +29,7 @@ max_ent_size:35
 # Model types
 init_yamada:True
 model_name:prior_small_context
-init_mention:normal
+init_stdv:0.001
 
 # Model Params
 measure:ip
