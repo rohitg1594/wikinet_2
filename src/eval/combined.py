@@ -232,8 +232,8 @@ class CombinedValidator:
             ent_combined_embs = ent_combined_embs.detach().numpy()
             mention_combined_embs = mention_combined_embs.detach().numpy()
 
-            print(f"Ent Combined Embs {ent_combined_embs[:10, :10]}")
-            print(f"Mention Embs {mention_combined_embs[:10, :10]}")
+            # print(f"Ent Combined Embs {ent_combined_embs[:10, :10]}")
+            # print(f"Mention Embs {mention_combined_embs[:10, :10]}")
 
             if not flag:
                 # Create / search in Faiss Index
@@ -269,7 +269,7 @@ class CombinedValidator:
 
             # Debug
             debug_str = self._get_debug_string(preds=preds, data_type=data_type)
-            print(debug_str)
+            # print(debug_str)
 
         if self.args.use_cuda:
             if isinstance(self.args.device, tuple):
