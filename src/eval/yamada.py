@@ -1,7 +1,6 @@
 # Validator class for yamada model
 import numpy as np
 from torch.autograd import Variable
-from torch.nn import DataParallel
 from logging import getLogger
 
 from src.utils.utils import reverse_dict

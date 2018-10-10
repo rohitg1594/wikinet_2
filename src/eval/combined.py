@@ -12,9 +12,8 @@ from logging import getLogger
 import torch
 from torch.nn import DataParallel
 
-from src.utils.utils import reverse_dict, equalize_len, get_absolute_pos
+from src.utils.utils import reverse_dict, equalize_len, get_absolute_pos, eval_ranking, check_errors
 from src.utils.data import pickle_load
-from src.eval.utils import eval_ranking, check_errors
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
 logger = getLogger(__name__)
