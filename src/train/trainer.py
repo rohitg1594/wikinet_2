@@ -40,15 +40,18 @@ class Trainer(object):
             self.validator = validator
 
         if args.optim == 'adagrad':
-            self.optimizer = torch.optim.Adagrad(filter(lambda p: p.requires_grad, self.model.parameters()), lr=args.lr, weight_decay=args.wd)
+            optimizer_type = torch.optim.Adagrad
         elif args.optim == 'adam':
-            self.optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=args.lr, weight_decay=args.wd)
+            optimizer_type = torch.optim.Adam
         elif args.optim == 'rmsprop':
-            self.optimizer = torch.optim.RMSprop(filter(lambda p: p.requires_grad, self.model.parameters()), lr=args.lr,
-                                          weight_decay=args.wd)
+            optimizer_type = torch.optim.RMSprop
         else:
             logger.error("Optimizer {} not recognized, choose between adam, adagrad, rmsprop".format(args.optim))
             sys.exit(1)
+
+        self.optimizer = optimizer_type(filter(lambda p: p.requires_grad, self.model.parameters()),
+                                        lr=args.lr,
+                                        weight_decay=args.wd)
 
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', verbose=True, patience=5)
         self.loader_index = 0

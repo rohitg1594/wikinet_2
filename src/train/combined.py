@@ -67,9 +67,11 @@ def parse_args():
     # Model params
     model_params = parser.add_argument_group("Parameters for chosen model.")
     model_params.add_argument('--mention_word_dim', type=int, help='dimension of mention word embeddings')
+    model_params.add_argument('--context_word_dim', type=int, help='dimension of mention word embeddings')
     model_params.add_argument('--ent_mention_dim', type=int, help='dimension of mention entity embeddings')
     model_params.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
     model_params.add_argument('--dp', type=float, help='drop out')
+    model_params.add_argument('--stdv', type=float, help='standard deviation to initialize embeddings in small context')
 
     # Normalization
     normal = parser.add_argument_group('Which embeddings to normalize?')
