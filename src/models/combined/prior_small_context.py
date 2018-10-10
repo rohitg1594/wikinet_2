@@ -16,19 +16,19 @@ class SmallContext(CombinedBase):
         # Mention embeddings
         self.mention_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.mention_word_dim,
                                          padding_idx=0, sparse=self.args.sparse)
-        self.mention_embs.weight.data.normal_(0, self.args.stdv)
+        self.mention_embs.weight.data.normal_(0, self.args.init_stdv)
         self.mention_embs.weight.data[0] = 0
 
         # Context embeddings
         self.context_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.context_word_dim,
                                          padding_idx=0, sparse=self.args.sparse)
-        self.context_embs.weight.data.normal_(0, self.args.stdv)
+        self.context_embs.weight.data.normal_(0, self.args.init_stdv)
         self.context_embs.weight.data[0] = 0
 
         # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(self.ent_embs.weight.shape[0], self.args.ent_mention_dim,
                                              padding_idx=0, sparse=self.args.sparse)
-        self.ent_mention_embs.weight.data.normal_(0, self.args.stdv)
+        self.ent_mention_embs.weight.data.normal_(0, self.args.init_stdv)
         self.ent_mention_embs.weight.data[0] = 0
 
         # Linear
