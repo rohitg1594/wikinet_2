@@ -25,6 +25,7 @@ def grid_search():
                   'context_word_dim': [128, 256],
                   'ent_mention_dim': [128, 256],
                   'init_stdv': [1e-2, 1e-3, 1e-4],
+                  'combined_linear': [True, False],
                   }
     results = {}
     pd_results = list()

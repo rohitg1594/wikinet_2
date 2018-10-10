@@ -257,56 +257,6 @@ class CombinedDataSet(object):
 
         return mask, label, mention_word_tokens
 
-    def _getitem_include_word(self, mask, examples, all_candidate_ids, all_context_words):
-        """getitem for model which include mention and candidate words."""
-
-        # Init Grams
-        all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
-
-        # Init Words
-        all_candidate_words, all_mention_words = self._init_tokens(flag='word')
-
-        # For each mention
-        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
-            if ent_str in self.ent2id:
-                ent_id = self.ent2id[ent_str]
-            else:
-                continue
-
-            # Mention Gram Tokens
-            all_mention_grams[ent_idx] = self._get_tokens(mention, flag='gram')
-
-            # Mention Word Tokens
-            all_mention_words[ent_idx] = self._get_tokens(mention, flag='word')
-
-            # Candidate Generation
-            candidate_ids = self._get_candidates(ent_id, mention)
-            all_candidate_ids[ent_idx] = candidate_ids
-
-            # Gram and word tokens for Candidates
-            candidate_gram_tokens = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
-            candidate_word_tokens = np.zeros((self.args.num_candidates, self.args.max_word_size)).astype(np.int64)
-
-            for cand_idx, candidate_id in enumerate(candidate_ids):
-                candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
-
-                # Candidate Gram Tokens
-                candidate_gram_tokens[cand_idx] = self._get_tokens(candidate_str, flag='gram')
-
-                # Candidate Word Tokens
-                candidate_word_tokens[cand_idx] = self._get_tokens(candidate_str, flag='word')
-
-            all_candidate_grams[ent_idx] = candidate_gram_tokens
-            all_candidate_words[ent_idx] = candidate_word_tokens
-
-        return (mask,
-                all_mention_grams,
-                all_mention_words,
-                all_context_words,
-                all_candidate_grams,
-                all_candidate_words,
-                all_candidate_ids)
-
     def _getitem_mention_prior(self, mask, examples, all_candidate_ids, all_context_words):
 
         # Init Grams
@@ -407,8 +357,6 @@ class CombinedDataSet(object):
             return self._getitem_small_context(mask, examples, all_candidate_ids)
         elif self.model_name == 'only_prior_full':
             return self._getitem_only_prior_full(examples)
-        elif self.model_name == 'include_word':
-            return self._getitem_include_word(mask, examples, all_candidate_ids, all_context_tokens)
         elif self.model_name == 'mention_prior':
             return self._getitem_mention_prior(mask, examples, all_candidate_ids, all_context_tokens)
         elif self.model_name in ['include_gram', 'weigh_concat']:
