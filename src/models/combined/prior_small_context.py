@@ -87,7 +87,7 @@ class SmallContext(CombinedBase):
 
             # Cat the embs
             mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
-            if self.args.combine_linear:
+            if self.args.combined_linear:
                 mention_repr = self.combine_linear(mention_repr)
 
             # Normalize
