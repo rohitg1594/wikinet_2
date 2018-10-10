@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.model_selection import ParameterGrid, ParameterSampler
 
 import torch
-import pandas
+import pandas as pd
 
 from src.train.combined import parse_args, setup
 from src.utils.utils import get_model
@@ -69,12 +69,6 @@ def grid_search():
         pd_results.append({**param_dict, **best_results})
         print('PD RESULTS: {}'.format(pd_results))
 
-        for k, v in results.items():
-            print(k)
-            print('WIKI')
-            print(v['Wikipedia'])
-            print('CONLL')
-            print(v['Conll'])
         with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
             pickle.dump(results, f)
 
@@ -82,11 +76,13 @@ def grid_search():
         torch.cuda.empty_cache()
         gc.collect()
 
-    return results
+    return results, pd_results
 
 
 if __name__ == '__main__':
 
     args, logger, model_dir = parse_args()
     train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs = setup(args, logger)
-    result_dict = grid_search()
+    result_dict, pd_dict = grid_search()
+    df = pd.DataFrame(pd_dict)
+    df.to_csv(join(model_dir, 'hyper_df.csv'))
