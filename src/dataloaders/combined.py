@@ -192,7 +192,7 @@ class CombinedDataSet(object):
         #     print()
         # sys.exit(1)
 
-        return mention_word_tokens, cand_ids, small_context
+        return mention_word_tokens.astype(np.int64), cand_ids.astype(np.int64), small_context.astype(np.int64)
 
     def __getitem__(self, index):
         """Main getitem function, this calls other getitems based on model type params in self.args."""
