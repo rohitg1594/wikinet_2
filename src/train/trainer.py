@@ -59,7 +59,6 @@ class Trainer(object):
 
     def _get_next_batch(self, data):
         data = list(data)
-        data = data[1:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
 
