@@ -33,6 +33,7 @@ class Trainer(object):
         self.result_key = result_key
         self.profile = profile
         self.data_types = ['wiki', 'conll', 'msnbc', 'ace2004']
+        self.batch_size = args.batch_size
 
         if isinstance(validator, tuple):
             self.conll_validator, self.wiki_validator = validator
@@ -58,27 +59,21 @@ class Trainer(object):
 
     def _get_next_batch(self, data):
         data = list(data)
-        ymask = data[0]
-        b, e = ymask.shape
         data = data[1:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
 
-        ymask = ymask.view(b * e)
-        ymask = Variable(ymask)
-        labels = Variable(torch.zeros(b * e).type(torch.LongTensor), requires_grad=False)
+        labels = Variable(torch.zeros(self.args.batch_size).type(torch.LongTensor), requires_grad=False)
 
         if self.args.use_cuda:
             if isinstance(self.args.device, int):
                 for i in range(len(data)):
                     data[i] = data[i].cuda(self.args.device)
-                ymask = ymask.cuda(self.args.device)
                 labels = labels.cuda(self.args.device)
             else:
-                ymask = ymask.cuda(self.args.device[0])
                 labels = labels.cuda(self.args.device[0])
 
-        return tuple(data), ymask, labels
+        return tuple(data), labels
 
     def _cosine_loss(self, scores, ymask):
         zeros_2d = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size, self.args.num_candidates - 1))
@@ -104,22 +99,22 @@ class Trainer(object):
         return loss
 
     @staticmethod
-    def _cross_entropy(scores, ymask, labels):
-        loss = F.cross_entropy(scores, labels) * ymask
-        loss = loss.sum() / ymask.sum()
+    def _cross_entropy(scores, labels):
+        loss = F.cross_entropy(scores, labels)
+        loss = loss.sum()
 
         return loss
 
     def step(self, data):
-        data, ymask, labels = self._get_next_batch(data)
+        data, labels = self._get_next_batch(data)
         scores = self.model(data)
         if isinstance(scores, tuple) > 1:
             scores, labels = scores
 
         if self.args.loss_func == 'cosine':
-            loss = self._cosine_loss(scores, ymask)
+            loss = self._cosine_loss(scores)
         elif self.args.loss_func == 'cross_entropy':
-            loss = self._cross_entropy(scores, ymask, labels)
+            loss = self._cross_entropy(scores, labels)
         else:
             logger.error("Loss function {} not recognized, choose one of cosine, cross_entropy")
             sys.exit(1)
