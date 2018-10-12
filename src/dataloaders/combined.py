@@ -175,7 +175,7 @@ class CombinedDataSet(object):
 
         _, mention_word_tokens = self._init_tokens(flag='word')
         mention, ent_str, span, small_context = example
-        cand_ids = np.zeros(self.args.num_candidates)
+        cand_ids = np.zeros(self.args.num_candidates).astype(np.int64)
 
         if ent_str in self.ent2id:
             ent_id = self.ent2id[ent_str]

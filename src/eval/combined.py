@@ -86,8 +86,8 @@ class CombinedValidator:
         return ent_gram_tokens, ent_word_tokens
 
     def _numpify_data(self, data_type='wiki'):
-        """Function for wikipedia data. Creates list of numpy arrays containing gram and word token ids
-           for each mention and word tokens for context in abstract. Also output gold entity labels."""
+        """ Creates numpy arrays containing gram and word token ids or each mention and
+        word tokens for context in abstract. Also output gold entity labels. Out put is a dictionary."""
 
         # Init lists
         all_mention_gram_indices = []
