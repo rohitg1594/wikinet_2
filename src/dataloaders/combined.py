@@ -93,14 +93,11 @@ class CombinedDataSet(object):
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
 
-        context_word_tokens, examples = self.data[index]
+        context_word_tokens, example = self.data[index]
         context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
         context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
 
-        context_word_tokens_array = np.zeros((self.args.max_ent_size, self.args.max_context_size), dtype=np.int64)
-        context_word_tokens_array[:len(examples)] = context_word_tokens
-
-        return context_word_tokens_array, examples
+        return context_word_tokens, example
 
     def _init_tokens(self, flag='gram'):
         """Initialize numpy array that will hold all mention gram and candidate gram tokens."""
@@ -113,8 +110,8 @@ class CombinedDataSet(object):
             self.logger.error("flag {} not recognized, choose one of (gram, word)".format(flag))
             sys.exit(1)
 
-        cand_tokens = np.zeros((self.args.max_ent_size, self.args.num_candidates, max_size)).astype(np.int64)
-        mention_tokens = np.zeros((self.args.max_ent_size, max_size)).astype(np.int64)
+        cand_tokens = np.zeros((self.args.num_candidates, max_size)).astype(np.int64)
+        mention_tokens = np.zeros(max_size).astype(np.int64)
 
         return cand_tokens, mention_tokens
 
@@ -135,79 +132,55 @@ class CombinedDataSet(object):
 
         return pad_tokens
 
-    def _getitem_only_prior_word_or_gram(self, mask, examples, all_candidate_ids, token_type='word', include_pos=False):
+    def _getitem_only_prior_word_or_gram(self, example, token_type='word', include_pos=False):
         """getitem for only prior and only prior linear models with word or gram tokens."""
 
-        _, all_mention_tokens = self._init_tokens(flag=token_type)
+        _, mention_tokens = self._init_tokens(flag=token_type)
+        mention, ent_str, _, _ = example
+        cand_ids = np.zeros(self.args.num_candidates).astype(np.int64)
 
-        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
-            if ent_str in self.ent2id:
-                ent_id = self.ent2id[ent_str]
-            else:
-                continue
-
-            # Mention Tokens
-            all_mention_tokens[ent_idx] = self._get_tokens(mention, flag=token_type)
-
-            # Candidate Generation
-            candidate_ids = self._get_candidates(ent_id, mention)
-            all_candidate_ids[ent_idx] = candidate_ids
+        if ent_str in self.ent2id:
+            mention_tokens = self._get_tokens(mention)
+            ent_id = self.ent2id[ent_str]
+            cand_ids = self._get_candidates(ent_id, mention)
 
         if include_pos:
-            all_mention_pos = get_absolute_pos(all_mention_tokens)
-            return mask, all_mention_tokens, all_mention_pos, all_candidate_ids
+            mention_pos = get_absolute_pos(mention_tokens)
+            return mention_tokens, mention_pos, cand_ids
 
-        return mask, all_mention_tokens, all_candidate_ids
+        return mention_tokens, cand_ids
 
-    def _getitem_only_prior_word_and_gram(self, mask, examples, all_candidate_ids):
+    def _getitem_only_prior_word_and_gram(self, example):
         """getitem for only prior and only prior linear models with word and gram tokens."""
 
-        all_candidate_gram_tokens, all_mention_gram_tokens = self._init_tokens(flag='gram')
-        _, all_mention_word_tokens = self._init_tokens(flag='word')
+        cand_gram_tokens, mention_gram_tokens = self._init_tokens(flag='gram')
+        _, mention_word_tokens = self._init_tokens(flag='word')
+        cand_ids = np.zeros(self.args.num_candidates).astype(np.int64)
 
-        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
-            if ent_str in self.ent2id:
-                ent_id = self.ent2id[ent_str]
-            else:
-                continue
+        mention, ent_str, _, _ = example
+        if ent_str in self.ent2id:
+            ent_id = self.ent2id[ent_str]
 
-            # Mention Tokens
-            all_mention_gram_tokens[ent_idx] = self._get_tokens(mention, flag='gram')
-            all_mention_word_tokens[ent_idx] = self._get_tokens(mention, flag='word')
+            mention_gram_tokens = self._get_tokens(mention, flag='gram')
+            mention_word_tokens = self._get_tokens(mention, flag='word')
 
-            # Candidate Generation
-            candidate_ids = self._get_candidates(ent_id, mention)
-            all_candidate_ids[ent_idx] = candidate_ids
+            cand_ids = self._get_candidates(ent_id, mention)
+            cand_strs = [self.id2ent.get(candidate_id, '').replace('_', ' ') for candidate_id in cand_ids]
+            cand_gram_tokens = np.array([self._get_tokens(candidate_str, flag='gram') for candidate_str in cand_strs])
 
-            # Candidate Gram Tokens
-            candidate_strs = [self.id2ent.get(candidate_id, '').replace('_', ' ') for candidate_id in candidate_ids]
-            candidate_gram_tokens = np.array([self._get_tokens(candidate_str, flag='gram') for candidate_str in candidate_strs])
+        return mention_word_tokens, mention_gram_tokens, cand_gram_tokens, cand_ids
 
-            all_candidate_gram_tokens[ent_idx] = candidate_gram_tokens
-
-        return mask, all_mention_word_tokens, all_mention_gram_tokens, all_candidate_gram_tokens, all_candidate_ids
-
-    def _getitem_small_context(self, mask, examples, all_candidate_ids, window=5):
+    def _getitem_small_context(self, example):
         """getitem for prior with small context window."""
 
-        _, all_mention_word_tokens = self._init_tokens(flag='word')
-        all_small_context = np.zeros((self.args.max_ent_size, 2 * window), dtype=np.int64)
+        _, mention_word_tokens = self._init_tokens(flag='word')
+        mention, ent_str, span, small_context = example
+        cand_ids = np.zeros(self.args.num_candidates)
 
-        for ent_idx, (mention, ent_str, span, small_context) in enumerate(examples[:self.args.max_ent_size]):
-            if ent_str in self.ent2id:
-                ent_id = self.ent2id[ent_str]
-            else:
-                continue
-
-            # Mention Tokens
-            all_mention_word_tokens[ent_idx] = self._get_tokens(mention, flag='word')
-
-            # Candidate Generation
-            candidate_ids = self._get_candidates(ent_id, mention)
-            all_candidate_ids[ent_idx] = candidate_ids
-
-            # Context
-            all_small_context[ent_idx] = small_context
+        if ent_str in self.ent2id:
+            ent_id = self.ent2id[ent_str]
+            mention_word_tokens = self._get_tokens(mention, flag='word')
+            cand_ids = self._get_candidates(ent_id, mention)
 
         # for mention, cand, context in zip(all_mention_word_tokens[:5], all_candidate_ids[:5], all_small_context[:5]):
         #     men_str = " ".join([self.id2word.get(word_id, "") for word_id in mention])
@@ -219,115 +192,7 @@ class CombinedDataSet(object):
         #     print()
         # sys.exit(1)
 
-        return mask, all_mention_word_tokens, all_candidate_ids, all_small_context
-
-    def _getitem_only_prior_regress(self, mask, examples, all_candidate_ids):
-        """getitem for only prior with regression model."""
-
-        all_candidate_words, all_mention_words = self._init_tokens(flag='word')
-        all_candidate_priors = np.zeros_like(all_candidate_ids)
-
-        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
-            if ent_str in self.ent2id:
-                ent_id = self.ent2id[ent_str]
-            else:
-                continue
-
-            # Mention Word Tokens
-            all_mention_words[ent_idx] = self._get_tokens(mention, flag='word')
-
-            # Candidate Generation
-            candidate_ids, priors = self._get_candidates(ent_id, mention)
-            all_candidate_ids[ent_idx] = candidate_ids
-            all_candidate_priors[ent_idx] = priors
-
-        return mask, all_mention_words, all_candidate_ids, all_candidate_priors
-
-    def _getitem_only_prior_full(self, example):
-
-        assert len(example) == 1
-        mention, ent_str = example[0]
-        mention_word_tokens = self._get_tokens(mention, flag='word')
-        if ent_str in self.ent2id:
-            mask = np.array([1], dtype=np.float32)
-            label = self.ent2id[ent_str]
-        else:
-            mask = np.array([0], dtype=np.float32)
-            label = 0
-
-        return mask, label, mention_word_tokens
-
-    def _getitem_mention_prior(self, mask, examples, all_candidate_ids, all_context_words):
-
-        # Init Grams
-        all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
-
-        # Init Words
-        all_candidate_words, all_mention_words = self._init_tokens(flag='word')
-
-        # For each mention
-        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
-            if ent_str in self.ent2id:
-                ent_id = self.ent2id[ent_str]
-            else:
-                continue
-
-            # Mention Gram Tokens
-            all_mention_grams[ent_idx] = self._get_tokens(mention, flag='gram')
-
-            # Mention Word Tokens
-            all_mention_words[ent_idx] = self._get_tokens(mention, flag='word')
-
-            # Candidate Generation
-            candidate_ids = self._get_candidates(ent_id, mention)
-            all_candidate_ids[ent_idx] = candidate_ids
-
-            # Gram and word tokens for Candidates
-            candidate_gram_tokens = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
-
-            for cand_idx, candidate_id in enumerate(candidate_ids):
-                candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
-
-                # Candidate Gram Tokens
-                candidate_gram_tokens[cand_idx] = self._get_tokens(candidate_str, flag='gram')
-
-            all_candidate_grams[ent_idx] = candidate_gram_tokens
-
-        return (mask,
-                all_mention_grams,
-                all_mention_words,
-                all_context_words,
-                all_candidate_grams,
-                all_candidate_ids)
-
-    def _getitem_include_gram(self, mask, examples, all_candidate_ids, all_context_words):
-
-        # Init Grams
-        all_candidate_grams, all_mention_grams = self._init_tokens(flag='gram')
-
-        for ent_idx, (mention, ent_str, _, _) in enumerate(examples[:self.args.max_ent_size]):
-            if ent_str in self.ent2id:
-                ent_id = self.ent2id[ent_str]
-            else:
-                continue
-
-            # Mention Gram Tokens
-            all_mention_grams[ent_idx] = self._get_tokens(mention, flag='gram')
-
-            # Candidate Generation
-            candidate_ids = self._get_candidates(ent_id, mention)
-            all_candidate_ids[ent_idx] = candidate_ids
-
-            # Candidate Gram tokens
-            candidate_gram_tokens = np.zeros((self.args.num_candidates, self.args.max_gram_size)).astype(np.int64)
-
-            for cand_idx, candidate_id in enumerate(candidate_ids):
-                candidate_str = self.id2ent.get(candidate_id, '').replace('_', ' ')
-                candidate_gram_tokens[cand_idx] = self._get_tokens(candidate_str, flag='gram')
-
-            all_candidate_grams[ent_idx] = candidate_gram_tokens
-
-        return mask, all_mention_grams, all_context_words, all_candidate_grams, all_candidate_ids
+        return mention_word_tokens, cand_ids, small_context
 
     def __getitem__(self, index):
         """Main getitem function, this calls other getitems based on model type params in self.args."""
@@ -335,32 +200,19 @@ class CombinedDataSet(object):
         if isinstance(index, slice):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
 
-        # Init candidate ids
-        all_candidate_ids = np.zeros((self.args.max_ent_size, self.args.num_candidates)).astype(np.int64)
-
         # Context Word Tokens
-        all_context_tokens, examples = self._init_context(index)
-
-        # Mask of indices to ignore for final loss
-        mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
-        mask[:len(examples)] = 1
+        context_tokens, example = self._init_context(index)
 
         if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
-            return self._getitem_only_prior_word_or_gram(mask, examples, all_candidate_ids, token_type='word', include_pos=False)
+            return self._getitem_only_prior_word_or_gram(example, token_type='word', include_pos=False)
         elif self.model_name == 'only_prior_position':
-            return self._getitem_only_prior_word_or_gram(mask, examples, all_candidate_ids, token_type='word', include_pos=True)
+            return self._getitem_only_prior_word_or_gram(example, token_type='word', include_pos=True)
         elif self.model_name == 'only_prior_conv':
-            return self._getitem_only_prior_word_or_gram(mask, examples, all_candidate_ids, token_type='gram', include_pos=False)
+            return self._getitem_only_prior_word_or_gram(example, token_type='gram', include_pos=False)
         elif self.model_name == 'only_prior_with_string':
-            return self._getitem_only_prior_word_and_gram(mask, examples, all_candidate_ids)
+            return self._getitem_only_prior_word_and_gram(example)
         elif self.model_name in ['prior_small_context']:
-            return self._getitem_small_context(mask, examples, all_candidate_ids)
-        elif self.model_name == 'only_prior_full':
-            return self._getitem_only_prior_full(examples)
-        elif self.model_name == 'mention_prior':
-            return self._getitem_mention_prior(mask, examples, all_candidate_ids, all_context_tokens)
-        elif self.model_name in ['include_gram', 'weigh_concat']:
-            return self._getitem_include_gram(mask, examples, all_candidate_ids, all_context_tokens)
+            return self._getitem_small_context(example)
         else:
             self.logger.info('model name {} dataloader not implemented'.format(self.model_name))
 
