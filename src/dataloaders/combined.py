@@ -215,6 +215,7 @@ class CombinedDataSet(object):
             return self._getitem_small_context(example)
         else:
             self.logger.info('model name {} dataloader not implemented'.format(self.model_name))
+            sys.exit(1)
 
     def __len__(self):
         return len(self.data)
@@ -235,6 +236,3 @@ class CombinedDataSet(object):
                                            num_workers=num_workers,
                                            pin_memory=pin_memory,
                                            drop_last=drop_last)
-
-
-
