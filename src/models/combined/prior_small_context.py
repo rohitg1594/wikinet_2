@@ -42,60 +42,26 @@ class SmallContext(CombinedBase):
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
 
-        if len(mention_word_tokens.shape) == 3:
-            num_abst, num_ent, num_word = mention_word_tokens.shape
-            num_abst, num_ent, num_cand = candidate_ids.shape
-            num_abst, num_ent, num_context = context_tokens.shape
+        # Get the embeddings
+        mention_embs = self.mention_embs(mention_word_tokens)
+        context_embs = self.context_embs(context_tokens)
+        candidate_embs = self.ent_mention_embs(candidate_ids)
 
-            # Reshape to two dimensions - needed because nn.Embedding only allows lookup with 2D-Tensors
-            mention_word_tokens = mention_word_tokens.view(-1, num_word)
-            candidate_ids = candidate_ids.view(-1, num_cand)
-            context_tokens = context_tokens.view(-1, num_context)
+        # Sum the embeddings over the small and large tokens dimension
+        mention_embs_agg = torch.mean(mention_embs, dim=1)
+        context_embs_agg = torch.mean(context_embs, dim=1)
 
-            # Get the embeddings
-            mention_embs = self.mention_embs(mention_word_tokens)
-            context_embs = self.context_embs(context_tokens)
-            candidate_embs = self.ent_mention_embs(candidate_ids)
+        # Cat the embs
+        mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
+        if self.args.combined_linear:
+            mention_repr = self.combine_linear(mention_repr)
 
-            # Sum the embeddings over the small and large tokens dimension
-            mention_embs_agg = torch.mean(mention_embs, dim=1)
-            context_embs_agg = torch.mean(context_embs, dim=1)
+        # Normalize
+        if self.args.norm_final:
+            candidate_embs = F.normalize(candidate_embs, dim=1)
+            mention_repr = F.normalize(mention_repr, dim=1)
 
-            # Cat the embs / pass through linear layer
-            mention_repr = self.dp(torch.cat((mention_embs_agg, context_embs_agg), dim=1))
-            if self.args.combined_linear:
-                mention_repr = self.combine_linear(mention_repr)
+        # Dot product over last dimension
+        scores = torch.matmul(mention_repr, candidate_embs.transpose(1, 2)).squeeze(1)
 
-            # Normalize
-            if self.args.norm_final:
-                candidate_embs = F.normalize(candidate_embs, dim=2)
-                mention_repr = F.normalize(mention_repr, dim=1)
-
-            mention_repr.unsqueeze_(1)
-
-            # Dot product over last dimension
-            scores = torch.matmul(mention_repr, candidate_embs.transpose(1, 2)).squeeze(1)
-
-            return scores
-
-        else:
-            # Get the embeddings
-            mention_embs = self.mention_embs(mention_word_tokens)
-            context_embs = self.context_embs(context_tokens)
-            candidate_embs = self.ent_mention_embs(candidate_ids)
-
-            # Sum the embeddings over the small and large tokens dimension
-            mention_embs_agg = torch.mean(mention_embs, dim=1)
-            context_embs_agg = torch.mean(context_embs, dim=1)
-
-            # Cat the embs
-            mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
-            if self.args.combined_linear:
-                mention_repr = self.combine_linear(mention_repr)
-
-            # Normalize
-            if self.args.norm_final:
-                candidate_embs = F.normalize(candidate_embs, dim=1)
-                mention_repr = F.normalize(mention_repr, dim=1)
-
-            return candidate_embs, mention_repr
+        return scores, candidate_embs, mention_repr
