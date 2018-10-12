@@ -21,19 +21,21 @@ def grid_search():
     param_grid = {
                   'lr': [5e-2, 1e-2, 5e-3, 1e-3],
                   'wd': [1e-5, 1e-6, 1e-7],
-                  'mention_word_dim': [64, 128],
-                  'context_word_dim': [64, 128],
                   'ent_mention_dim': [128, 256],
-                  'init_stdv': [1e-2, 1e-3, 1e-4],
+                  'init_stdv': [1e-2, 5e-2],
                   'combined_linear': [False],
+                  'dp': [0, 1e-1, 2e-1, 3e-1],
                   }
     results = {}
     pd_results = list()
 
-    for param_dict in list(ParameterSampler(param_grid, n_iter=10)):
-        if not param_dict['combined_linear']:
-            param_dict['context_word_dim'] = param_dict['ent_mention_dim'] // 2
-            param_dict['mention_word_dim'] = param_dict['ent_mention_dim'] // 2
+    for param_dict in list(ParameterSampler(param_grid, n_iter=20)):
+        param_dict['context_word_dim'] = param_dict['ent_mention_dim'] // 2
+        param_dict['mention_word_dim'] = param_dict['ent_mention_dim'] // 2
+        if param_dict['ent_mention_dim'] == 256:
+            param_dict['batch_size'] = 2
+        else:
+            param_dict['batch_size'] = 4
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v

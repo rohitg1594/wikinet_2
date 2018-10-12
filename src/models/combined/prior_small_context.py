@@ -36,6 +36,9 @@ class SmallContext(CombinedBase):
             self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim,
                                             self.args.ent_mention_dim)
 
+        # Dropout
+        self.dp = nn.Dropout(self.args.dp)
+
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
 
@@ -59,7 +62,7 @@ class SmallContext(CombinedBase):
             context_embs_agg = torch.mean(context_embs, dim=1)
 
             # Cat the embs / pass through linear layer
-            mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
+            mention_repr = self.dp(torch.cat((mention_embs_agg, context_embs_agg), dim=1))
             if self.args.combined_linear:
                 mention_repr = self.combine_linear(mention_repr)
 
