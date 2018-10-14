@@ -66,7 +66,7 @@ def grid_search():
                           result_dict=results,
                           result_key=result_key)
         logger.info("Starting Training")
-        best_model, best_results = trainer.train()
+        best_results = trainer.train()
         logger.info("Finished Training")
 
         pd_results.append({**param_dict, **best_results})
@@ -78,7 +78,6 @@ def grid_search():
             pickle.dump(results, f)
 
         del model, trainer
-        torch.cuda.empty_cache()
         gc.collect()
 
     return results, pd_results

@@ -214,4 +214,4 @@ class Trainer(object):
             'state_dict': best_model.state_dict(),
             'optimizer': self.optimizer.state_dict()}, filename=join(self.model_dir, 'best_model.ckpt'))
 
-        return best_model, best_results
+        return best_results
