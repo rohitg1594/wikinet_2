@@ -152,12 +152,9 @@ class Trainer(object):
         best_model = self.model
         wait = 0
         best_valid_metric = 0
-        best_results = {k:0 for k in self.data_types}
+        best_results = {k: 0 for k in self.data_types}
         num_batches = len(self.loader)
-        if num_batches > 1000:
-            batch_verbose = True
-        else:
-            batch_verbose = False
+        tenth_batch = num_batches // 10
 
         if self.profile:
             logger.info('Starting profiling of dataloader.....')
@@ -176,7 +173,7 @@ class Trainer(object):
         for epoch in range(self.num_epochs):
             self.model = self.model.train()
             for batch_no, data in enumerate(self.loader, 0):
-                if batch_no % 1000 == 0 and batch_verbose:
+                if batch_no % tenth_batch == 0:
                     logger.info("Now on batch - {}".format(batch_no))
                 loss = self.step(data)
                 training_losses.append(loss)
