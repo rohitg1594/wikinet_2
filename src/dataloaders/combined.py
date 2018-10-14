@@ -182,16 +182,6 @@ class CombinedDataSet(object):
             mention_word_tokens = self._get_tokens(mention, flag='word')
             cand_ids = self._get_candidates(ent_id, mention)
 
-        # for mention, cand, context in zip(all_mention_word_tokens[:5], all_candidate_ids[:5], all_small_context[:5]):
-        #     men_str = " ".join([self.id2word.get(word_id, "") for word_id in mention])
-        #     cand_str = "|".join([self.id2ent.get(ent_id, " ") for ent_id in cand[:10]])
-        #     context_str = " ".join([self.id2word.get(word_id, " ") for word_id in context])
-        #     print(men_str)
-        #     print(cand_str)
-        #     print(context_str)
-        #     print()
-        # sys.exit(1)
-
         return mention_word_tokens.astype(np.int64), cand_ids.astype(np.int64), small_context.astype(np.int64)
 
     def __getitem__(self, index):
