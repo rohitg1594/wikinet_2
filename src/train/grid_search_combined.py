@@ -32,10 +32,6 @@ def grid_search():
     for param_dict in list(ParameterSampler(param_grid, n_iter=20)):
         param_dict['context_word_dim'] = param_dict['ent_mention_dim'] // 2
         param_dict['mention_word_dim'] = param_dict['ent_mention_dim'] // 2
-        if param_dict['ent_mention_dim'] == 256:
-            param_dict['batch_size'] = 2
-        else:
-            param_dict['batch_size'] = 4
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
