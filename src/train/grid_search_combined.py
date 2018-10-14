@@ -23,7 +23,6 @@ def grid_search():
                   'wd': [1e-5, 1e-6, 1e-7],
                   'ent_mention_dim': [128],
                   'init_stdv': [1e-2, 5e-2],
-                  'combined_linear': [False],
                   'dp': [0, 1e-1, 2e-1, 3e-1],
                   }
     results = {}
