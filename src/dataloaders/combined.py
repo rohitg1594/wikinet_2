@@ -195,6 +195,12 @@ class CombinedDataSet(object):
             ent_id = self.ent2id[ent_str]
             cand_ids = self._get_candidates(ent_id, mention)
 
+        context = ' '.join([self.id2word.get(context_id, '') for context_id in context_ids])
+        cands = '|'.join([self.id2ent.get(cand_id, '') for cand_id in cand_ids])
+
+        print(f'CONTEXT : {context}')
+        print(f'CANDS : {cands}')
+
         return context_ids, cand_ids
 
     def __getitem__(self, index):
