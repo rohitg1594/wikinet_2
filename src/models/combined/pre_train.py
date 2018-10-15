@@ -35,27 +35,27 @@ class PreTrain(CombinedBase, Loss):
         context_tokens, candidate_ids = inputs
 
         # Get the embeddings
-        context_embs = self.context_embs(context_tokens)
-        candidate_embs = self.ent_mention_embs(candidate_ids)
+        context_repr = self.context_embs(context_tokens)
+        candidate_repr = self.ent_mention_embs(candidate_ids)
 
         # Sum the embeddings / pass through linear
-        context_repr = torch.mean(context_embs, dim=1)
+        context_repr = torch.mean(context_repr, dim=1)
         if self.args.combined_linear:
             context_repr = self.combine_linear(context_repr)
 
         # Normalize
         if self.args.norm_final:
-            candidate_embs = F.normalize(candidate_embs, dim=1)
+            candidate_repr = F.normalize(candidate_repr, dim=1)
             context_repr = F.normalize(context_repr, dim=1)
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
             context_repr.unsqueeze_(1)
-            scores = torch.matmul(context_repr, candidate_embs.transpose(1, 2)).squeeze(1)
+            scores = torch.matmul(context_repr, candidate_repr.transpose(1, 2)).squeeze(1)
         else:
             scores = 0
 
-        return scores, candidate_embs, context_repr
+        return scores, candidate_repr, context_repr
 
     def loss(self, scores, labels):
         return self.cross_entropy(scores, labels)

@@ -137,7 +137,7 @@ def load_wiki_data(data_type, args, yamada_model):
         train_data = train_data[:args.train_size]
         test_data = []
 
-    elif 'splits' in data_type:
+    elif data_type in ['abstract', 'mention']:
         logger.info("Loading Wikipedia orig training data.....")
         data = []
         for i in range(args.num_shards):
@@ -158,14 +158,7 @@ def load_wiki_data(data_type, args, yamada_model):
             else:
                 test_data.append(d)
 
-    elif data_type == 'conll':
-        logger.info("Loading Pershina training data.....")
-        pershina = PershinaExamples(args, yamada_model)
-        train_data, dev_data, test_data = pershina.get_training_examples()
-        rev_word_dict = reverse_dict(yamada_model['word_dict'])
-        train_data, dev_data, test_data = conll_to_wiki(train_data, rev_word_dict), \
-                                          conll_to_wiki(dev_data, rev_word_dict), \
-                                          conll_to_wiki(test_data,rev_word_dict)
+
     else:
         logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
         sys.exit(1)
