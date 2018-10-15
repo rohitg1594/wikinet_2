@@ -3,12 +3,11 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-import sys
-
 from src.models.combined.base import CombinedBase
+from src.models.loss import Loss
 
 
-class PreTrain(CombinedBase):
+class PreTrain(CombinedBase, Loss):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -59,3 +58,6 @@ class PreTrain(CombinedBase):
             scores = 0
 
         return scores, candidate_embs, context_repr
+
+    def loss(self, scores, labels):
+        return self.cross_entropy(scores, labels)

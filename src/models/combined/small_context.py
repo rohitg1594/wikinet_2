@@ -3,12 +3,11 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-import sys
-
 from src.models.combined.base import CombinedBase
+from src.models.loss import Loss
 
 
-class SmallContext(CombinedBase):
+class SmallContext(CombinedBase, Loss):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -69,3 +68,7 @@ class SmallContext(CombinedBase):
             scores = 0
 
         return scores, candidate_embs, mention_repr
+
+    def loss(self, scores, labels):
+        return self.cross_entropy(scores, labels)
+

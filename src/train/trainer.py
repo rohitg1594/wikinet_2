@@ -6,7 +6,6 @@ from os.path import join
 
 import torch
 from torch.autograd import Variable
-import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from src.utils.data import save_checkpoint
@@ -74,47 +73,10 @@ class Trainer(object):
 
         return tuple(data), labels
 
-    def _cosine_loss(self, scores, ymask):
-        zeros_2d = Variable(torch.zeros(self.args.batch_size * self.args.max_ent_size, self.args.num_candidates - 1))
-        if self.args.use_cuda:
-            if isinstance(self.args.device, int):
-                zeros_2d = zeros_2d.cuda(self.args.device)
-            else:
-                zeros_2d = zeros_2d.cuda(self.args.device[0])
-        scores_pos = scores[:, 0]
-        scores_neg = scores[:, 1:]
-
-        distance_pos = 1 - scores_pos
-        distance_neg = torch.max(zeros_2d, scores_neg - self.args.margin)
-
-        ymask_2d = ymask.repeat(self.args.num_candidates - 1).view(self.args.num_candidates - 1, -1).transpose(0, 1)
-        distance_pos_masked = distance_pos * ymask
-        distance_neg_masked = distance_neg * ymask_2d
-
-        loss_pos = distance_pos_masked.sum() / ymask.sum()
-        loss_neg = distance_neg_masked.sum() / ymask_2d.sum()
-        loss = loss_pos + loss_neg
-
-        return loss
-
-    @staticmethod
-    def _cross_entropy(scores, labels):
-        loss = F.cross_entropy(scores, labels)
-        loss = loss.sum()
-
-        return loss
-
     def step(self, data):
         data, labels = self._get_next_batch(data)
         scores, _, _ = self.model(data)
-
-        if self.args.loss_func == 'cosine':
-            loss = self._cosine_loss(scores)
-        elif self.args.loss_func == 'cross_entropy':
-            loss = self._cross_entropy(scores, labels)
-        else:
-            logger.error("Loss function {} not recognized, choose one of cosine, cross_entropy")
-            sys.exit(1)
+        loss = self.model.loss(scores, labels)
 
         self.optimizer.zero_grad()
         loss.backward()
