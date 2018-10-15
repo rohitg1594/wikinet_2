@@ -184,6 +184,19 @@ class CombinedDataSet(object):
 
         return mention_word_tokens.astype(np.int64), cand_ids.astype(np.int64), small_context.astype(np.int64)
 
+    def _getitem_pre_train(self, context_tokens, example):
+        """getitem for pre train model."""
+
+        context_ids = np.array([self.word_dict.get(token, 0) for token in context_tokens], dtype=np.int64)
+        mention, ent_str, span, small_context = example
+        cand_ids = np.zeros(self.args.num_candidates).astype(np.int64)
+
+        if ent_str in self.ent2id:
+            ent_id = self.ent2id[ent_str]
+            cand_ids = self._get_candidates(ent_id, mention)
+
+        return context_ids, cand_ids
+
     def __getitem__(self, index):
         """Main getitem function, this calls other getitems based on model type params in self.args."""
 
@@ -201,8 +214,10 @@ class CombinedDataSet(object):
             return self._getitem_only_prior_word_or_gram(example, token_type='gram', include_pos=False)
         elif self.model_name == 'only_prior_with_string':
             return self._getitem_only_prior_word_and_gram(example)
-        elif self.model_name in ['prior_small_context']:
+        elif self.model_name == 'prior_small_context':
             return self._getitem_small_context(example)
+        elif self.model_name == 'pre_train':
+            return self._getitem_pre_train(context_tokens, example)
         else:
             self.logger.info('model name {} dataloader not implemented'.format(self.model_name))
             sys.exit(1)

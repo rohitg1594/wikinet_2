@@ -166,23 +166,23 @@ class CombinedValidator:
             context = context[self.wiki_mask, :]
             small_context = small_context[self.wiki_mask, :]
 
-        if self.model_name in ['include_gram', 'weigh_concat']:
+        if self.model_name == 'weigh_concat':
             data = (mention_gram, context, ent_gram, ent_ids)
-        elif self.model_name == 'mention prior':
+        elif self.model_name == 'mention_prior':
             data = (mention_gram, mention_word, context, ent_gram, ent_ids)
-        elif self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
+        elif self.model_name in ['average', 'linear', 'multi_linear', 'rnn']:
             data = (mention_word, ent_ids)
-        elif self.model_name == 'only_prior_with_string':
+        elif self.model_name == 'with_string':
             data = (mention_word, mention_gram, ent_gram, ent_ids)
-        elif self.model_name in ['prior_small_context']:
+        elif self.model_name == 'small_context':
             data = (mention_word, ent_ids, small_context)
-        elif self.model_name == 'only_prior_position':
+        elif self.model_name == 'position':
             pos_indices = get_absolute_pos(mention_word)
             data = (mention_word, pos_indices, ent_ids)
-        elif self.model_name == 'only_prior_conv':
+        elif self.model_name == 'conv':
             data = (mention_gram, ent_ids)
-        elif self.model_name == 'only_prior_full':
-            data = mention_word
+        elif self.model_name == 'pre_train':
+            data = (context, ent_ids)
         else:
             logger.error(f'model {data_type} not implemented')
             sys.exit(1)

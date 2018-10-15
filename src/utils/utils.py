@@ -14,18 +14,7 @@ import torch
 from torch.nn import DataParallel
 import torch.nn as nn
 
-from src.models.combined.mention_prior import MentionPrior
-from src.models.combined.weigh_concat import WeighConcat
-
-from src.models.combined.only_prior.average import Average
-from src.models.combined.only_prior.linear import Linear
-from src.models.combined.only_prior.full import Full
-from src.models.combined.only_prior.multi_linear import MultiLinear
-from src.models.combined.only_prior.rnn import RNN
-from src.models.combined.only_prior.conv import Conv
-from src.models.combined.only_prior.position import Position
-from src.models.combined.only_prior.with_string import WithString
-from src.models.combined.prior_small_context import SmallContext
+from src.models.models import Models
 
 
 use_cuda = torch.cuda.is_available()
@@ -161,76 +150,49 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
               'word_embs': word_embs,
               'W': yamada_model['W'],
               'b': yamada_model['b']}
-    model_name = args.model_name
 
-    if model_name == 'weigh_concat':
-        weighing_linear = torch.Tensor(ent_embs.shape[1] + gram_embs.shape[1], 1)
-        torch.nn.init.eye(weighing_linear)
-        kwargs['weighing_linear'] = weighing_linear
-        model_type = WeighConcat
-    elif 'prior' in model_name:
+    weighing_linear = torch.Tensor(ent_embs.shape[1] + gram_embs.shape[1], 1)
+    torch.nn.init.eye(weighing_linear)
+    kwargs['weighing_linear'] = weighing_linear
 
-        if init == 'pre_trained':
-            logger.info("Loading mention and ent mention embs from {}".format(args.init_mention_model))
-            with open(args.init_mention_model, 'rb') as f:
-                ckpt = torch.load(f, map_location='cpu')
-            mention_embs = ckpt['state_dict']['mention_embs.weight']
-            ent_mention_embs = ckpt['state_dict']['ent_mention_embs.weight']
+    if init == 'pre_trained':
+        logger.info("Loading mention and ent mention embs from {}".format(args.init_mention_model))
+        with open(args.init_mention_model, 'rb') as f:
+            ckpt = torch.load(f, map_location='cpu')
+        mention_embs = ckpt['state_dict']['mention_embs.weight']
+        ent_mention_embs = ckpt['state_dict']['ent_mention_embs.weight']
 
-        elif init == 'pca':
-            logger.info("Loading mention and ent mention embs from yamada pca at {}.".format(args.init_mention_model))
-            with open(join(args.data_path, 'yamada', args.init_mention_model), 'rb') as f:
-                d = pickle.load(f)
-            mention_embs = torch.from_numpy(d['word'])
-            ent_mention_embs = torch.from_numpy(d['ent'])
+    elif init == 'pca':
+        logger.info("Loading mention and ent mention embs from yamada pca at {}.".format(args.init_mention_model))
+        with open(join(args.data_path, 'yamada', args.init_mention_model), 'rb') as f:
+            d = pickle.load(f)
+        mention_embs = torch.from_numpy(d['word'])
+        ent_mention_embs = torch.from_numpy(d['ent'])
 
-        else:
-            mention_embs = torch.from_numpy(np.random.normal(loc=0, scale=args.init_stdv,
-                                                             size=(word_embs.shape[0], args.mention_word_dim)))
-            ent_mention_embs = torch.from_numpy(np.random.normal(loc=0, scale=args.init_stdv,
-                                                                 size=(ent_embs.shape[0], args.ent_mention_dim)))
-            mention_embs[0] = 0
-            ent_mention_embs[0] = 0
-
-        kwargs['mention_embs'] = mention_embs
-        kwargs['ent_mention_embs'] = ent_mention_embs
-
-        if model_name == 'only_prior':
-            model_type = Average
-        elif model_name == 'prior_small_context':
-            model_type = SmallContext
-        elif model_name == 'only_prior_multi_linear':
-            model_type = MultiLinear
-        elif model_name == 'only_prior_rnn':
-            model_type = RNN
-        elif model_name == 'only_prior_linear':
-            model_type = Linear
-        elif model_name == 'only_prior_full':
-            model_type = Full
-        elif model_name == 'only_prior_position':
-            model_type = Position
-        elif model_name == 'only_prior_with_string':
-            model_type = WithString
-        elif model_name == 'only_prior_conv':
-            model_type = Conv
-
-            if args.gram_type == 'bigram':
-                kernel = 2
-            else:
-                kernel = 3
-            conv_weights = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1], kernel)
-            if init == 'xavier_uniform':
-                nn.init.xavier_uniform(conv_weights)
-            elif init == 'xavier_normal':
-                nn.init.xavier_normal(conv_weights)
-            kwargs['conv_weights'] = conv_weights
-        else:
-            model_type = MentionPrior
     else:
-        logger.error("model name {} not recognized".format(model_name))
-        sys.exit(1)
+        mention_embs = torch.from_numpy(np.random.normal(loc=0, scale=args.init_stdv,
+                                                         size=(word_embs.shape[0], args.mention_word_dim)))
+        ent_mention_embs = torch.from_numpy(np.random.normal(loc=0, scale=args.init_stdv,
+                                                             size=(ent_embs.shape[0], args.ent_mention_dim)))
+    mention_embs[0] = 0
+    ent_mention_embs[0] = 0
 
+    if args.gram_type == 'bigram':
+        kernel = 2
+    else:
+        kernel = 3
+    conv_weights = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1], kernel)
+    if init == 'xavier_uniform':
+        nn.init.xavier_uniform(conv_weights)
+    elif init == 'xavier_normal':
+        nn.init.xavier_normal(conv_weights)
+    kwargs['conv_weights'] = conv_weights
+    kwargs['mention_embs'] = mention_embs
+    kwargs['ent_mention_embs'] = ent_mention_embs
+
+    model_type = getattr(Models, args.model_name)
     model = model_type(**kwargs)
+
     if args.use_cuda:
         if isinstance(args.device, tuple):
             # model = model.cuda(args.device[0])
