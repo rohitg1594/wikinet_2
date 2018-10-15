@@ -34,6 +34,7 @@ init_stdv:0.001
 # Model Params
 measure:ip
 dp:0
+combined_linear:True
 
 # Normalization
 norm_gram:False
