@@ -184,10 +184,9 @@ class CombinedDataSet(object):
 
         return mention_word_tokens.astype(np.int64), cand_ids.astype(np.int64), small_context.astype(np.int64)
 
-    def _getitem_pre_train(self, context_tokens, example):
+    def _getitem_pre_train(self, context_ids, example):
         """getitem for pre train model."""
 
-        context_ids = np.array([self.word_dict.get(token, 0) for token in context_tokens], dtype=np.int64)
         mention, ent_str, span, small_context = example
         cand_ids = np.zeros(self.args.num_candidates).astype(np.int64)
 
@@ -210,7 +209,7 @@ class CombinedDataSet(object):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
 
         # Context Word Tokens
-        context_tokens, example = self._init_context(index)
+        context_ids, example = self._init_context(index)
 
         if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
             return self._getitem_only_prior_word_or_gram(example, token_type='word', include_pos=False)
@@ -223,7 +222,7 @@ class CombinedDataSet(object):
         elif self.model_name == 'prior_small_context':
             return self._getitem_small_context(example)
         elif self.model_name == 'pre_train':
-            return self._getitem_pre_train(context_tokens, example)
+            return self._getitem_pre_train(context_ids, example)
         else:
             self.logger.info('model name {} dataloader not implemented'.format(self.model_name))
             sys.exit(1)

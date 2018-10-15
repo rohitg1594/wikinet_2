@@ -38,10 +38,8 @@ class PreTrain(CombinedBase, Loss):
         context_embs = self.context_embs(context_tokens)
         candidate_embs = self.ent_mention_embs(candidate_ids)
 
-        # Sum the embeddings over the small and large tokens dimension
+        # Sum the embeddings / pass through linear
         context_repr = torch.mean(context_embs, dim=1)
-
-        # Cat the embs
         if self.args.combined_linear:
             context_repr = self.combine_linear(context_repr)
 
