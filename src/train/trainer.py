@@ -33,11 +33,7 @@ class Trainer(object):
         self.profile = profile
         self.data_types = ['wiki', 'conll', 'msnbc', 'ace2004']
         self.batch_size = args.batch_size
-
-        if isinstance(validator, tuple):
-            self.conll_validator, self.wiki_validator = validator
-        else:
-            self.validator = validator
+        self.validator = validator
 
         if args.optim == 'adagrad':
             optimizer_type = torch.optim.Adagrad
@@ -98,16 +94,17 @@ class Trainer(object):
         return results
 
     def yamada_validate(self, epoch):
-        conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=self.conll_validator,
-                                                     wiki_validator=self.wiki_validator,
-                                                     model=self.model)
-        logger.info('Epoch - {}, Conll - {}'.format(epoch, conll_perc))
-        logger.info('Epoch - {}, Wiki - {}'.format(epoch, wiki_perc))
-        if self.result_key is not None:
-            self.result_dict[self.result_key]['Conll'].append(conll_perc)
-            self.result_dict[self.result_key]['Wikipedia'].append(wiki_perc)
+        results = {}
+        for data_type in self.data_types:
+            correct, mentions = self.validator[data_type].validate(self.model)
+            res = correct / mentions * 100
+            results[data_type] = res
+            logger.info(f'Epoch - {epoch}, {data_type} - {res}')
 
-        return conll_perc
+            if self.result_key is not None:
+                self.result_dict[self.result_key][data_type].append(res)
+
+        return results['conll']
 
     def train(self):
         training_losses = []

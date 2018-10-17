@@ -33,6 +33,18 @@ class YamadaValidator:
 
         return tuple(data), labels
 
+    def debug(self, inc_ids, context, preds):
+
+        context_str = ''
+        pred_str = ''
+        for inc_i in inc_ids:
+            word_tokens = context[inc_i]
+            context_str += ' '.join([self.rev_word_dict.get(word_token, '') for word_token in word_tokens[:10]])
+            pred_ids = -preds[inc_i].argsort()
+            pred_str += ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
+        print(f'CONTEXT : {context_str}')
+        print(f'Pred : {pred_str}')
+
     def validate(self, model):
         model = model.eval()
 
@@ -41,30 +53,18 @@ class YamadaValidator:
 
         for batch_no, data in enumerate(self.loader, 0):
             data, labels = self._get_next_batch(data)
-
-            context, candidates = data[:2]
-            context, candidates = context.cpu().data.numpy(), candidates.cpu().data.numpy()
-
             scores, _, _ = model(data)
             scores = scores.cpu().data.numpy()
 
             preds = np.argmax(scores, axis=1)
-            # print(f'PREDS : {preds}')
             correct = (np.equal(preds, labels)).sum()
-            # print(f'CORRECT : {correct}')
-            inc = np.not_equal(preds, labels)
-            inc_ids = np.where(inc)
-            # print(f'INCORRECT IDS : {inc_ids}')
 
-            #context_str = ''
-            #pred_str = ''
-            #for inc_i in inc_ids:
-            #    word_tokens = context[inc_i]
-            #    context_str += ' '.join([self.rev_word_dict.get(word_token, '') for word_token in word_tokens[:10]])
-            #    pred_ids = -preds[inc_i].argsort()
-            #    pred_str += ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
-            #print(f'CONTEXT : {context_str}')
-            #print(f'Pred : {pred_str}')
+            if self.args.error:
+                inc = np.not_equal(preds, labels)
+                inc_ids = np.where(inc)
+                context, candidates = data[:2]
+                context, candidates = context.cpu().data.numpy(), candidates.cpu().data.numpy()
+                self.debug(inc_ids, context, preds)
 
             total_correct += correct
             total_mention += scores.shape[0]

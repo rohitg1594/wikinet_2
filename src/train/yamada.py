@@ -2,6 +2,7 @@
 import os
 from os.path import join
 from datetime import datetime
+from collections import defaultdict
 
 import numpy as np
 
@@ -18,6 +19,7 @@ from src.logger import get_logger
 from src.train.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
+DATA_TYPES = ['wiki', 'conll', 'ace2004', 'msnbc']
 
 
 def parse_args():
@@ -113,6 +115,7 @@ def parse_args():
 
 
 def setup(args, logger):
+
     print()
     logger.info("Loading Yamada model.....")
     yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
@@ -124,15 +127,26 @@ def setup(args, logger):
     logger.info("Priors and conditionals loaded.")
 
     logger.info("Using {} for training.....".format(args.data_type))
-    wiki_train_data, wiki_dev_data, wiki_test_data = load_data('proto_370k', args)
-    wiki_dev_data = wiki_dev_data[:5000]
-    conll_train_data, conll_dev_data, conll_test_data = load_data('conll', args)
+    data = defaultdict(dict)
+
+    for data_type in DATA_TYPES:
+        if data_type == 'wiki':
+            train, dev, test = load_data('proto_370k', args)
+            dev = dev[:5000]
+            data['wiki'] = {}
+            data['wiki']['train'] = train
+            data['wiki']['dev'] = dev
+            data['wiki']['test'] = test
+        if data_type == 'conll':
+            for split in ['train', 'dev', 'test']:
+                data['conll'][split] = pickle_load(join(args.data_path, f'training_files/conll-{split}.pickle'))
+        else:
+            data[data_type]['dev'] = pickle_load(join(args.data_path, f'training_files/{data_type}.pickle'))
 
     if args.data_type == 'conll':
-        train_data = conll_train_data
+        train_data = data['conll']['train']
     else:
-        train_data = wiki_train_data
-
+        train_data = data['wiki']['train']
     logger.info("Data loaded.")
 
     logger.info("Creating data loaders.....")
@@ -146,38 +160,25 @@ def setup(args, logger):
                                             shuffle=False,
                                             num_workers=args.num_workers,
                                             drop_last=False)
+    validators = {}
+    for data_type in DATA_TYPES:
+        dataset = YamadaDataset(ent_conditional=conditionals,
+                                ent_prior=priors,
+                                yamada_model=yamada_model,
+                                data=data[data_type]['dev'],
+                                args=args,
+                                cand_type='necounts')
+        loader = dataset.get_loader(batch_size=args.batch_size,
+                                    shuffle=False,
+                                    num_workers=args.num_workers,
+                                    drop_last=False)
+        validators[data_type] = YamadaValidator(loader=loader, args=args,
+                                                word_dict=yamada_model['word_dict'],
+                                                ent_dict=yamada_model['ent_dict'])
 
-    conll_dev_dataset = YamadaDataset(ent_conditional=conditionals,
-                                      ent_prior=priors,
-                                      yamada_model=yamada_model,
-                                      data=conll_dev_data,
-                                      args=args,
-                                      cand_type=args.cand_type)
-    conll_dev_loader = conll_dev_dataset.get_loader(batch_size=args.batch_size,
-                                                    shuffle=False,
-                                                    num_workers=args.num_workers,
-                                                    drop_last=False)
+    logger.info("Data loaders and validators created.There will be {} batches.".format(len(train_loader)))
 
-    wiki_dev_dataset = YamadaDataset(ent_conditional=conditionals,
-                                     ent_prior=priors,
-                                     yamada_model=yamada_model,
-                                     data=wiki_dev_data,
-                                     args=args,
-                                     cand_type='necounts')
-    wiki_dev_loader = wiki_dev_dataset.get_loader(batch_size=args.batch_size,
-                                                  shuffle=False,
-                                                  num_workers=args.num_workers,
-                                                  drop_last=False)
-    logger.info("Data loaders created.There will be {} batches.".format(len(train_loader)))
-
-    logger.info("Creating validators.....")
-    conll_validator = YamadaValidator(loader=conll_dev_loader, args=args,
-                                      word_dict=yamada_model['word_dict'], ent_dict=yamada_model['ent_dict'])
-    wiki_validator = YamadaValidator(loader=wiki_dev_loader, args=args,
-                                     word_dict=yamada_model['word_dict'], ent_dict=yamada_model['ent_dict'])
-    logger.info("Validators created.")
-
-    return train_loader, conll_validator, wiki_validator, yamada_model
+    return train_loader, validators, yamada_model
 
 
 def get_model(args, yamada_model, logger):
