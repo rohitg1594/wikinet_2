@@ -11,7 +11,6 @@ import torch
 
 from src.train.yamada import parse_args, setup, get_model
 from src.train.trainer import Trainer
-from src.utils.utils import yamada_validate_wrap
 DATA_TYPES = ['wiki', 'conll', 'ace2004', 'msnbc']
 
 np.warnings.filterwarnings('ignore')

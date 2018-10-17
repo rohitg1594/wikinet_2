@@ -194,26 +194,20 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
     model = model_type(**kwargs)
 
     if args.use_cuda:
-        if isinstance(args.device, tuple):
-            # model = model.cuda(args.device[0])
-            model = DataParallel(model, args.device)
-        else:
-            model = model.cuda(args.device)
+        model = send_to_cuda(args.device, model)
     logger.info('{} Model created.'.format(model_type.__name__))
 
     return model
 
 
-def yamada_validate_wrap(conll_validator=None,
-                         wiki_validator=None,
-                         model=None):
-    correct, mentions = conll_validator.validate(model)
-    conll_perc = correct / mentions * 100
+def send_to_cuda(device, model):
+    if isinstance(device, tuple):
+        # model = model.cuda(args.device[0])
+        model = DataParallel(model, device)
+    else:
+        model = model.cuda(device)
 
-    correct, mentions = wiki_validator.validate(model)
-    wiki_perc = correct / mentions * 100
-
-    return conll_perc, wiki_perc
+    return model
 
 
 def get_absolute_pos(word_sequences):

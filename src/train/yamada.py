@@ -3,14 +3,11 @@ import os
 from os.path import join
 from datetime import datetime
 from collections import defaultdict
+import configargparse
 
 import numpy as np
 
-from torch.nn import DataParallel
-
-import configargparse
-
-from src.utils.utils import str2bool, yamada_validate_wrap
+from src.utils.utils import str2bool, send_to_cuda
 from src.utils.data import pickle_load, load_data
 from src.dataloaders.yamada import YamadaDataset
 from src.eval.yamada import YamadaValidator
@@ -186,11 +183,7 @@ def get_model(args, yamada_model, logger):
     model = model_type(yamada_model=yamada_model, args=args)
 
     if args.use_cuda:
-        if isinstance(args.device, tuple):
-            model = model.cuda(args.device[0])
-            model = DataParallel(model, args.device)
-        else:
-            model = model.cuda(args.device)
+        model = send_to_cuda(args.device, model)
     logger.info('{} Model created.'.format(model_type.__name__))
 
     return model
@@ -198,22 +191,20 @@ def get_model(args, yamada_model, logger):
 
 def train(model=None,
           logger=None,
-          conll_validator=None,
-          wiki_validator=None,
+          validators=None,
           model_dir=None,
           train_loader=None,
           args=None):
 
     logger.info("Starting validation for untrained model.")
-    conll_perc, wiki_perc = yamada_validate_wrap(conll_validator=conll_validator,
-                                                 wiki_validator=wiki_validator,
-                                                 model=model)
-    logger.info('Untrained, Conll - {}'.format(conll_perc))
-    logger.info('Untrained, Wiki - {}'.format(wiki_perc))
+    for data_type in DATA_TYPES:
+        correct, mentions = validators[data_type].validate(model)
+        res = correct / mentions * 100
+        logger.info(f'Untrained, {data_type} - {res}')
 
     trainer = Trainer(loader=train_loader,
                       args=args,
-                      validator=(conll_validator, wiki_validator),
+                      validator=validators,
                       model=model,
                       model_dir=model_dir,
                       model_type='yamada',
@@ -226,11 +217,10 @@ def train(model=None,
 
 if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
-    Train_loader, Conll_validator, Wiki_validator, Yamada_model = setup(Args, Logger)
+    Train_loader, Validators, Yamada_model = setup(Args, Logger)
     Model = get_model(Args, Yamada_model, Logger)
     train(model=Model,
-          conll_validator=Conll_validator,
-          wiki_validator=Wiki_validator,
+          validators=Validators,
           model_dir=Model_dir,
           train_loader=Train_loader,
           logger=Logger,
