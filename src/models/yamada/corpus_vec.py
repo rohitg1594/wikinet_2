@@ -23,7 +23,7 @@ class YamadaCorpusVec(YamadaBase, Loss):
         b, num_doc, num_context = corpus_context.shape
 
         # Reshape
-        corpus_context = corpus_context.view(-1, corpus_context)
+        corpus_context = corpus_context.view(-1, num_context)
 
         # Get the embeddings
         candidate_embs = self.embeddings_ent(candidate_ids)
