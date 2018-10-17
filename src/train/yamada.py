@@ -125,6 +125,7 @@ def setup(args, logger):
 
     logger.info("Using {} for training.....".format(args.data_type))
     wiki_train_data, wiki_dev_data, wiki_test_data = load_data('proto_370k', args)
+    wiki_dev_data = wiki_dev_data[:5000]
     conll_train_data, conll_dev_data, conll_test_data = load_data('conll', args)
 
     if args.data_type == 'conll':
