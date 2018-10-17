@@ -77,8 +77,8 @@ class YamadaDataset(object):
         # Initialize
         exact_match = np.zeros(self.num_candidates).astype(np.int64)
         contains = np.zeros(self.num_candidates).astype(np.int64)
-        priors = np.zeros(self.num_candidates).astype(np.int64)
-        conditionals = np.zeros(self.num_candidates).astype(np.int64)
+        priors = np.zeros(self.num_candidates).astype(np.float32)
+        conditionals = np.zeros(self.num_candidates).astype(np.float32)
 
         context, example = self._init_context(index)
         mention_str, ent_str, _, _ = example
