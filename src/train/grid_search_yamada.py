@@ -26,6 +26,7 @@ def grid_search(yamada_model=None,
                   'hidden_size': [1000, 2000],
                   'lr': [0.01, 0.005],
                   'wd': [0.001, 0.0001],
+                  'num_docs': [10, 100, 1000, 10000]
                   }
     results = defaultdict(dict)
 
