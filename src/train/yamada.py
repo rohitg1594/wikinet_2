@@ -134,7 +134,7 @@ def setup(args, logger):
             data['wiki']['train'] = train
             data['wiki']['dev'] = dev
             data['wiki']['test'] = test
-        if data_type == 'conll':
+        elif data_type == 'conll':
             for split in ['train', 'dev', 'test']:
                 data['conll'][split] = pickle_load(join(args.data_path, f'training_files/conll-{split}.pickle'))
         else:
