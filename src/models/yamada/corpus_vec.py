@@ -24,21 +24,26 @@ class YamadaCorpusVec(YamadaBase, Loss):
 
         # Reshape
         corpus_context = corpus_context.view(-1, num_context)
+        print(f'RESHAPE CORPUS SHAPE: {corpus_context.shape}')
 
         # Get the embeddings
         candidate_embs = self.embeddings_ent(candidate_ids)
         context_embs = self.embeddings_word(context)
         corpus_embs = self.embeddings_word(corpus_context)
+        print(f'AFTER EMB CORPUS SHAPE: {corpus_embs.shape}')
 
         # Aggregate context
         context_embs = context_embs.mean(dim=1)
         corpus_embs = corpus_embs.mean(dim=1)
 
+        # Reshape again
+        corpus_embs = corpus_embs.view(b, num_doc, -1)
+        print(f'RESHAPE AGAIN CORPUS SHAPE: {corpus_embs.shape}')
+
         # Normalize / Pass through linear layer / Unsqueeze
         context_embs = F.normalize(self.orig_linear(context_embs), dim=1)
         corpus_embs = F.normalize(self.orig_linear(corpus_embs), dim=1)
         context_embs.unsqueeze_(1)
-        corpus_embs.unsqueeze_(1)
 
         # Dot product over last dimension
         doc_dot_product = (context_embs * candidate_embs).sum(dim=2)
