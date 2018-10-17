@@ -75,14 +75,16 @@ class YamadaDataset(object):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
 
         # Initialize
-        exact_match = np.zeros(self.num_candidates).astype(np.int64)
-        contains = np.zeros(self.num_candidates).astype(np.int64)
+        exact_match = np.zeros(self.num_candidates).astype(np.float32)
+        contains = np.zeros(self.num_candidates).astype(np.float32)
         priors = np.zeros(self.num_candidates).astype(np.float32)
         conditionals = np.zeros(self.num_candidates).astype(np.float32)
 
         context, example = self._init_context(index)
         mention_str, ent_str, _, _ = example
         true_ent = self.ent2id.get(ent_str, 0)
+
+        #corpus_vecs = [self._init_context(index)[0] for index in np.random.randint(1, len(self.data), 100)]
 
         nfs = get_normalised_forms(mention_str)
         candidate_ids = []
