@@ -49,12 +49,12 @@ class YamadaValidator:
             scores = scores.cpu().data.numpy()
 
             preds = np.argmax(scores, axis=1)
-            print(f'PREDS : {preds}')
+            # print(f'PREDS : {preds}')
             correct = (np.equal(preds, labels)).sum()
-            print(f'CORRECT : {correct}')
+            # print(f'CORRECT : {correct}')
             inc = np.not_equal(preds, labels)
             inc_ids = np.where(inc)
-            print(f'INCORRECT IDS : {inc_ids}')
+            # print(f'INCORRECT IDS : {inc_ids}')
 
             #context_str = ''
             #pred_str = ''
