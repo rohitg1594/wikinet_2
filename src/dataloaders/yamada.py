@@ -55,36 +55,12 @@ class YamadaDataset(object):
             cand_random = np.random.randint(0, self.max_ent, size=self.num_candidates - 1)
             complete_cands = np.concatenate((np.array(true_ent)[None], cand_random))
 
-        return complete_cands
-
-    def _init_feats(self, num):
-        arr = np.zeros((self.args.max_ent_size, self.num_candidates)).astype(np.float32)
-        res = []
-        for _ in range(num):
-            res.append(arr)
-        return tuple(res)
-
-    def _update_string_feats(self, mention_str, candidates, ent_idx, exact_match, contains):
-        for c_idx, candidate in enumerate(candidates[ent_idx]):
-            ent_str = self.id2ent.get(candidate, '')
-            if mention_str == ent_str or mention_str in ent_str:
-                exact_match[ent_idx, c_idx] = 1
-            if ent_str.startswith(mention_str) or ent_str.endswith(mention_str):
-                contains[ent_idx, c_idx] = 1
-
-    def _update_stat_feats(self, mention_str, candidates, ent_idx, priors, conditionals):
-        for c_idx, candidate in enumerate(candidates[ent_idx]):
-            priors[ent_idx, c_idx] = self.ent_prior.get(candidate, 0)
-            nf = normalise_form(mention_str)
-            if nf in self.ent_conditional:
-                conditionals[ent_idx, c_idx] = self.ent_conditional[nf].get(candidate, 0)
-            else:
-                conditionals[ent_idx, c_idx] = 0
+        return complete_cands.astype(np.int64)
 
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
 
-        context_word_tokens, examples = self.data[index]
+        context_word_tokens, example = self.data[index]
         if self.args.ignore_init:
             context_word_tokens = context_word_tokens[5:]
         if len(context_word_tokens) > 0:
@@ -92,70 +68,47 @@ class YamadaDataset(object):
                 context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
         context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
 
-        context_word_tokens_array = np.zeros((self.args.max_ent_size, self.args.max_context_size), dtype=np.int64)
-        context_word_tokens_array[:len(examples)] = context_word_tokens
-
-        return context_word_tokens_array, examples
+        return context_word_tokens, example
 
     def __getitem__(self, index):
         if isinstance(index, slice):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
 
-        result = []
+        # Initialize
+        exact_match = np.zeros(self.num_candidates).astype(np.int64)
+        contains = np.zeros(self.num_candidates).astype(np.int64)
+        priors = np.zeros(self.num_candidates).astype(np.int64)
+        conditionals = np.zeros(self.num_candidates).astype(np.int64)
 
-        # Each abstract is of shape max_ent_size * num_candidates
-        all_candidates = self._init_feats(1)[0]
+        context, example = self._init_context(index)
+        mention_str, ent_str, _, _ = example
+        true_ent = self.ent2id.get(ent_str, 0)
 
-        if self.args.include_string:
-            exact_match, contains = self._init_feats(2)
-        if self.args.include_stats:
-            priors, conditionals = self._init_feats(2)
+        nfs = get_normalised_forms(mention_str)
+        candidate_ids = []
+        for nf in nfs:
+            if nf in self.necounts:
+                candidate_ids.extend(self.necounts[nf])
 
-        context, examples = self._init_context(index)
+        if true_ent in candidate_ids:
+            candidate_ids.remove(true_ent)
+        candidate_ids = self._gen_cands(true_ent, candidate_ids)
 
-        mask = np.zeros(self.args.max_ent_size, dtype=np.float32)
-        mask[:len(examples)] = 1
+        for cand_idx, cand_id in enumerate(candidate_ids):
+            ent_str = self.id2ent.get(cand_id, '')
+            if mention_str == ent_str or mention_str in ent_str:
+                exact_match[cand_idx] = 1
+            if ent_str.startswith(mention_str) or ent_str.endswith(mention_str):
+                contains[cand_idx] = 1
 
-        for ent_idx, (mention_str, candidates) in enumerate(examples[:self.args.max_ent_size]):
-
-            # Train with wikipedia
-            if isinstance(candidates, str):
-                ent_str = candidates
-                if ent_str in self.ent2id:
-                    true_ent = self.ent2id[ent_str]
-                else:
-                    continue
-            # Train with Conll
+            priors[cand_idx] = self.ent_prior.get(cand_id, 0)
+            nf = normalise_form(mention_str)
+            if nf in self.ent_conditional:
+                conditionals[cand_idx] = self.ent_conditional[nf].get(cand_id, 0)
             else:
-                candidate_ids = [self.ent2id.get(candidate, 0) for candidate in candidates]
-                true_ent = candidate_ids[0]
-                candidate_ids = candidate_ids[1:]
+                conditionals[cand_idx] = 0
 
-            if self.cand_type == 'necounts':
-                nfs = get_normalised_forms(mention_str)
-                candidate_ids = []
-                for nf in nfs:
-                    if nf in self.necounts:
-                        candidate_ids.extend(self.necounts[nf])
-
-                if true_ent in candidate_ids:
-                    candidate_ids.remove(true_ent)
-
-            all_candidates[ent_idx] = self._gen_cands(true_ent, candidate_ids)
-
-            if self.args.include_string:
-                self._update_string_feats(mention_str, all_candidates, ent_idx, exact_match, contains)
-
-            if self.args.include_stats:
-                self._update_stat_feats(mention_str, all_candidates, ent_idx, priors, conditionals)
-
-        result.extend([mask, context.astype(np.int64), all_candidates.astype(np.int64)])
-        if self.args.include_stats:
-            result.extend([priors, conditionals])
-        if self.args.include_string:
-            result.extend([exact_match, contains])
-
-        return result
+        return context, candidate_ids, priors, conditionals, exact_match, contains
 
     def __len__(self):
         return len(self.data)

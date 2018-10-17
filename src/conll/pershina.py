@@ -13,8 +13,8 @@ RE_WIKI_ENT = re.compile(r'.*wiki\/(.*)')
 
 class PershinaExamples(object):
 
-    def __init__(self, args, yamada_model):
-        self.args = args
+    def __init__(self, data_path, yamada_model):
+        self.data_path = data_path
         self.ent_dict = yamada_model['ent_dict']
         self.ent_rev = reverse_dict(self.ent_dict)
         self.word_dict = yamada_model['word_dict']
@@ -25,7 +25,7 @@ class PershinaExamples(object):
         docid2tokens = {}
         for func in [is_training_doc, is_dev_doc, is_test_doc]:
             for i, (text, gold_ents, num_tokens, proper_mentions, doc_id_str) in enumerate(
-                    iter_docs(join(self.args.data_path, 'Conll',
+                    iter_docs(join(self.data_path, 'Conll',
                                    'AIDA-YAGO2-dataset.tsv'), func)):
                 doc_id = int(RE_DOCID.match(doc_id_str).group(0))
                 tokens = self.tokenizer.tokenize(text)
@@ -33,12 +33,24 @@ class PershinaExamples(object):
 
         return docid2tokens
 
+    def _get_context(self):
+
+        docid2context = {}
+        for func in [is_training_doc, is_dev_doc, is_test_doc]:
+            for i, (text, gold_ents, num_tokens, proper_mentions, doc_id_str) in enumerate(
+                    iter_docs(join(self.data_path, 'Conll',
+                                   'AIDA-YAGO2-dataset.tsv'), func)):
+                doc_id = int(RE_DOCID.match(doc_id_str).group(0))
+                docid2context[doc_id] = text
+
+        return docid2context
+
     def _get_doc_candidates(self):
 
         docid2candidates = defaultdict(dict)
 
         for i in range(1, 1394):
-            with open(join(self.args.data_path, 'Conll', 'PPRforNED', 'AIDA_candidates', 'combined', str(i)), 'r') as f:
+            with open(join(self.data_path, 'Conll', 'PPRforNED', 'AIDA_candidates', 'combined', str(i)), 'r') as f:
                 for line in f:
 
                     line = line.strip()
@@ -70,10 +82,10 @@ class PershinaExamples(object):
         dev_examples = []
         test_examples = []
 
-        docid2tokens = self._get_doc_tokens()
+        docid2context = self._get_context()
         docid2candidates = self._get_doc_candidates()
 
-        for docid, tokenids in docid2tokens.items():
+        for docid, tokenids in docid2context.items():
             mention_cand_tup = []
             for mention, ignore_cand_dict in docid2candidates[docid].items():
                 ignore = docid2candidates[docid][mention]['ignore']

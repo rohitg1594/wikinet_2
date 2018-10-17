@@ -18,16 +18,7 @@ class YamadaContextStatsString(YamadaBase):
 
         # Unpack
         context, candidate_ids, priors, conditionals, exact_match, contains = inputs
-        b, max_ent, num_cand = candidate_ids.shape
-        b, max_ent, num_context = context.shape
-
-        # Reshape
-        candidate_ids = candidate_ids.view(-1, num_cand)
-        context = context.view(-1, num_context)
-        priors = priors.view(-1, num_cand)
-        conditionals = conditionals.view(-1, num_cand)
-        exact_match = exact_match.view(-1, num_cand)
-        contains = contains.view(-1, num_cand)
+        b, num_cand = candidate_ids.shape
 
         # Get the embeddings
         candidate_embs = self.embeddings_ent(candidate_ids)
@@ -56,6 +47,6 @@ class YamadaContextStatsString(YamadaBase):
 
         # Scores
         scores = self.output(F.relu(self.dropout(self.hidden(input))))
-        scores = scores.view(b * max_ent, -1)
+        scores = scores.view(b, -1)
 
         return scores
