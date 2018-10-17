@@ -4,9 +4,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from src.models.yamada.yamada_base import YamadaBase
+from src.models.loss import Loss
 
 
-class YamadaContextStatsString(YamadaBase):
+class YamadaContextStatsString(YamadaBase, Loss):
 
     def __init__(self, yamada_model=None, args=None):
         super().__init__(yamada_model, args)
