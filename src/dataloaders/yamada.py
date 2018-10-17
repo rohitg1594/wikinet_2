@@ -91,7 +91,6 @@ class YamadaDataset(object):
         if self.corpus_flag:
             corpus_context = np.vstack([self._init_context(index)[0]
                                         for index in np.random.randint(1, len(self.data), self.args.num_docs)])
-            print(f'CORPUS CONTEXT SHAPE: {corpus_context.shape}')
 
         nfs = get_normalised_forms(mention_str)
         candidate_ids = []

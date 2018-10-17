@@ -39,11 +39,14 @@ class YamadaCorpusVec(YamadaBase, Loss):
         # Reshape again
         corpus_embs = corpus_embs.view(b, num_doc, -1)
         print(f'RESHAPE AGAIN CORPUS SHAPE: {corpus_embs.shape}')
+        corpus_embs = corpus_embs.view(dim=1)
+        print(f'SUM AGAIN CORPUS SHAPE: {corpus_embs.shape}')
 
         # Normalize / Pass through linear layer / Unsqueeze
         context_embs = F.normalize(self.orig_linear(context_embs), dim=1)
         corpus_embs = F.normalize(self.orig_linear(corpus_embs), dim=1)
         context_embs.unsqueeze_(1)
+        corpus_embs.unsqueeze_(1)
 
         # Dot product over last dimension
         doc_dot_product = (context_embs * candidate_embs).sum(dim=2)
@@ -59,6 +62,7 @@ class YamadaCorpusVec(YamadaBase, Loss):
 
         # Create input for mlp
         context_embs = context_embs.expand(-1, num_cand, -1)
+        corpus_embs = corpus_embs.expand(-1, num_cand, -1)
         input = torch.cat((context_embs, doc_dot_product, corpus_embs, corpus_dot_product,
                            candidate_embs, priors, conditionals, exact_match, contains), dim=2)
 
