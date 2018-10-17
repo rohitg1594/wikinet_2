@@ -10,7 +10,7 @@ from torch.nn import DataParallel
 import configargparse
 
 from src.utils.utils import str2bool, normal_initialize, get_model
-from src.utils.data import load_vocab, pickle_load, load_wiki_data
+from src.utils.data import load_vocab, pickle_load, load_data
 from src.eval.combined import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenizer.gram_tokenizer import get_gram_tokenizer
@@ -179,7 +179,7 @@ def setup(args=None, logger=None):
 
     # Training Data
     logger.info("Loading training data.....")
-    train_data, dev_data, test_data = load_wiki_data(args.data_type, args, yamada_model)
+    train_data, dev_data, test_data = load_data(args.data_type, args, yamada_model)
     logger.info("Training data loaded.")
     logger.info(f"Train : {len(train_data)}, Dev : {len(dev_data)}, Test :{len(test_data)}")
 

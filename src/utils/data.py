@@ -127,7 +127,7 @@ def load_stats(args, yamada_model):
     return priors, conditionals
 
 
-def load_wiki_data(data_type, args, yamada_model):
+def load_data(data_type, args):
     """
        Load train data in format used by combined dataloader.
     """
@@ -157,10 +157,13 @@ def load_wiki_data(data_type, args, yamada_model):
                 dev_data.append(d)
             else:
                 test_data.append(d)
-
+    elif data_type == 'conll':
+        train_data = pickle_load(join(args.data_path, 'training_files', 'conll-train.pickle'))
+        dev_data = pickle_load(join(args.data_path, 'training_files', 'conll-dev.pickle'))
+        test_data = pickle_load(join(args.data_path, 'training_files', 'conll-test.pickle'))
 
     else:
-        logger.error("Data type {} not recognized, choose between [wiki, conll]".format(args.data_type))
+        logger.error("Data type {} not recognized".format(args.data_type))
         sys.exit(1)
 
     return train_data, dev_data, test_data

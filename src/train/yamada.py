@@ -11,7 +11,7 @@ from torch.nn import DataParallel
 import configargparse
 
 from src.utils.utils import str2bool, yamada_validate_wrap
-from src.utils.data import pickle_load, load_wiki_data
+from src.utils.data import pickle_load, load_data
 from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada import YamadaDataset
 from src.eval.yamada import YamadaValidator
@@ -131,17 +131,17 @@ def setup(args, logger):
     logger.info("Priors and conditionals loaded.")
 
     logger.info("Using {} for training.....".format(args.data_type))
-    pershina = PershinaExamples(args, yamada_model)
-    conll_train_data, conll_dev_data, conll_test_data = pershina.get_training_examples()
-    data_type = 'proto' if args.data_type == 'conll' else args.data_type
-    wiki_train_data, wiki_dev_data, wiki_test_data = load_wiki_data(data_type, args, yamada_model)
+    #pershina = PershinaExamples(args, yamada_model)
+    #conll_train_data, conll_dev_data, conll_test_data = pershina.get_training_examples()
+    #data_type = 'proto' if args.data_type == 'conll' else args.data_type
+    wiki_train_data, wiki_dev_data, wiki_test_data = load_data('proto_370k', args)
+    conll_train_data, conll_dev_data, conll_test_data = load_data('conll', args)
+
     if args.data_type == 'conll':
         train_data = conll_train_data
-    elif args.data_type in ['wiki', 'proto']:
-        train_data = wiki_train_data
     else:
-        logger.error("Data type {} not recognized, choose one of wiki, conll, proto.".format(args.data_type))
-        sys.exit(1)
+        train_data = wiki_train_data
+
     logger.info("Data loaded.")
 
     logger.info("Creating data loaders.....")
