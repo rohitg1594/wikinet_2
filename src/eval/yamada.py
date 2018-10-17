@@ -56,15 +56,15 @@ class YamadaValidator:
             inc_ids = np.where(inc)
             print(f'INCORRECT IDS : {inc_ids}')
 
-            context_str = ''
-            pred_str = ''
-            for inc_i in inc_ids:
-                word_tokens = context[inc_i]
-                context_str += ' '.join([self.rev_word_dict.get(word_token, '') for word_token in word_tokens[:10]])
-                pred_ids = -preds[inc_i].argsort()
-                pred_str += ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
-            print(f'CONTEXT : {context_str}')
-            print(f'Pred : {pred_str}')
+            #context_str = ''
+            #pred_str = ''
+            #for inc_i in inc_ids:
+            #    word_tokens = context[inc_i]
+            #    context_str += ' '.join([self.rev_word_dict.get(word_token, '') for word_token in word_tokens[:10]])
+            #    pred_ids = -preds[inc_i].argsort()
+            #    pred_str += ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
+            #print(f'CONTEXT : {context_str}')
+            #print(f'Pred : {pred_str}')
 
             total_correct += correct
             total_mention += scores.shape[0]
