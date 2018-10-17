@@ -40,7 +40,7 @@ class YamadaValidator:
         total_mention = 0
 
         for batch_no, data in enumerate(self.loader, 0):
-            data,labels = self._get_next_batch(data)
+            data, labels = self._get_next_batch(data)
 
             context, candidates = data[:2]
             context, candidates = context.cpu().data.numpy(), candidates.cpu().data.numpy()
