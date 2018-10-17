@@ -215,7 +215,8 @@ def train(model=None,
                       validator=(conll_validator, wiki_validator),
                       model=model,
                       model_dir=model_dir,
-                      model_type='yamada')
+                      model_type='yamada',
+                      profile=args.profile)
     logger.info("Starting Training:")
     print()
     trainer.train()
