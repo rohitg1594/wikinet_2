@@ -42,7 +42,7 @@ def grid_search(yamada_model=None,
         for data_type in DATA_TYPES:
             correct, mentions = validators[data_type].validate(model)
             res = correct / mentions * 100
-            result_dict[result_key][data_type] = [res]
+            results[result_key][data_type] = [res]
             logger.info(f'Untrained, {data_type} - {res}')
 
         trainer = Trainer(loader=train_loader,
