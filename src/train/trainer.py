@@ -61,7 +61,7 @@ class Trainer(object):
         for i in range(len(data)):
             data[i] = Variable(data[i])
 
-        labels = Variable(torch.zeros(self.args.batch_size).type(torch.LongTensor), requires_grad=False)
+        labels = Variable(torch.zeros(data[0].shape[0]).type(torch.LongTensor), requires_grad=False)
 
         if self.args.use_cuda:
             if isinstance(self.args.device, int):
