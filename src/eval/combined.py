@@ -12,7 +12,7 @@ from logging import getLogger
 import torch
 from torch.nn import DataParallel
 
-from src.utils.utils import reverse_dict, equalize_len, get_absolute_pos, eval_ranking, check_errors
+from src.utils.utils import reverse_dict, equalize_len, get_absolute_pos, eval_ranking, check_errors, send_to_cuda
 from src.utils.data import pickle_load
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
@@ -263,14 +263,10 @@ class CombinedValidator:
                 print()
 
             # Debug
-            debug_str = self._get_debug_string(preds=preds, data_type=data_type)
+            # debug_str = self._get_debug_string(preds=preds, data_type=data_type)
             # print(debug_str)
 
         if self.args.use_cuda:
-            if isinstance(self.args.device, tuple):
-                model = model.cuda(self.args.device[0])
-                DataParallel(model, self.args.device)
-            else:
-                model.cuda(self.args.device)
+            send_to_cuda(self.args.device, model)
 
         return results

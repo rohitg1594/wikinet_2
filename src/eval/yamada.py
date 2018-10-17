@@ -59,7 +59,7 @@ class YamadaValidator:
             preds = np.argmax(scores, axis=1)
             correct = (np.equal(preds, labels)).sum()
 
-            if self.args.error:
+            if self.args.debug:
                 inc = np.not_equal(preds, labels)
                 inc_ids = np.where(inc)
                 context, candidates = data[:2]
