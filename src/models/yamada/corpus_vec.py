@@ -4,9 +4,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from src.models.yamada.yamada_base import YamadaBase
+from src.models.loss import Loss
 
 
-class YamadaCorpusVec(YamadaBase):
+class YamadaCorpusVec(YamadaBase, Loss):
 
     def __init__(self, yamada_model=None, args=None):
         super().__init__(yamada_model, args)
@@ -60,4 +61,7 @@ class YamadaCorpusVec(YamadaBase):
         scores = self.output(F.relu(self.dropout(self.hidden(input))))
         scores = scores.view(b, -1)
 
-        return scores
+        return scores, context_embs, input
+
+    def loss(self, scores, labels):
+        return self.cross_entropy(scores, labels)

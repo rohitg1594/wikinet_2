@@ -15,8 +15,7 @@ max_ent_size:35
 max_context_size:100
 
 # Model types
-include_stats:True
-include_string:True
+model_name:corpus_vec
 
 # Model Params
 hidden_size:1000

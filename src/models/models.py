@@ -11,9 +11,14 @@ from src.models.combined.mention_prior import MentionPrior
 from src.models.combined.pre_train import PreTrain
 from src.models.combined.small_context import SmallContext
 
+from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
+from src.models.yamada.yamada_context_stats import YamadaContextStats
+from src.models.yamada.corpus_vec import YamadaCorpusVec
+
 
 class Models:
 
+    # Combined
     linear = Linear
     average = Average
     conv = Conv
@@ -24,4 +29,9 @@ class Models:
     mention_prior = MentionPrior
     pre_train = PreTrain
     small_context = SmallContext
+
+    # Yamada
+    yamada_full = YamadaContextStatsString
+    yamada_stats = YamadaContextStats
+    corpus_vec = YamadaCorpusVec
 

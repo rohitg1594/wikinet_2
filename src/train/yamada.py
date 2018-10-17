@@ -2,7 +2,6 @@
 import os
 from os.path import join
 from datetime import datetime
-import sys
 
 import numpy as np
 
@@ -12,13 +11,9 @@ import configargparse
 
 from src.utils.utils import str2bool, yamada_validate_wrap
 from src.utils.data import pickle_load, load_data
-from src.conll.pershina import PershinaExamples
 from src.dataloaders.yamada import YamadaDataset
 from src.eval.yamada import YamadaValidator
-from src.models.yamada.yamada_context import YamadaContext
-from src.models.yamada.yamada_context_stats import YamadaContextStats
-from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
-from src.models.yamada.yamada_context_string import YamadaContextString
+from src.models.models import Models
 from src.logger import get_logger
 from src.train.trainer import Trainer
 
@@ -52,10 +47,7 @@ def parse_args():
 
     # Model Type
     model_selection = parser.add_argument_group('Type of model to train.')
-    model_selection.add_argument('--include_string', type=str2bool,
-                                 help='whether to include string information in yamada model')
-    model_selection.add_argument('--include_stats', type=str2bool,
-                                 help='whether to include stats information in yamada model')
+    model_selection.add_argument('--model_name', type=str, help='name of model to train')
 
     # Model params
     model_params = parser.add_argument_group("Parameters for chosen model.")
@@ -191,18 +183,8 @@ def setup(args, logger):
 
 
 def get_model(args, yamada_model, logger):
-    if args.include_stats and args.include_string:
-        model = YamadaContextStatsString(yamada_model=yamada_model, args=args)
-        logger.info("Model YamadaContextStatsString created.")
-    elif args.include_stats and not args.include_string:
-        model = YamadaContextStats(yamada_model=yamada_model, args=args)
-        logger.info("Model YamadaContextStats created.")
-    elif not args.include_stats and args.include_string:
-        model = YamadaContextString(yamada_model=yamada_model, args=args)
-        logger.info("Model YamadaContextString created.")
-    else:
-        model = YamadaContext(yamada_model=yamada_model, args=args)
-        logger.info("Model YamadaContext created.")
+    model_type = args.model_name
+    model = model_type(yamada_model=yamada_model, args=args)
 
     if args.use_cuda:
         if isinstance(args.device, tuple):
@@ -210,6 +192,7 @@ def get_model(args, yamada_model, logger):
             model = DataParallel(model, args.device)
         else:
             model = model.cuda(args.device)
+    logger.info('{} Model created.'.format(model_type.__name__))
 
     return model
 
