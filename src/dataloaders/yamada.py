@@ -33,6 +33,10 @@ class YamadaDataset(object):
         self.ent_conditional = ent_conditional
         self.cand_rand = cand_rand
         self.cand_type = cand_type
+        if self.args.model_name == 'corpus_vec':
+            self.corpus_flag = True
+        else:
+            self.corpus_flag = False
 
         if self.cand_rand:
             self.num_candidates = 10 ** 6
@@ -84,7 +88,9 @@ class YamadaDataset(object):
         mention_str, ent_str, _, _ = example
         true_ent = self.ent2id.get(ent_str, 0)
 
-        #corpus_vecs = np.vstack([self._init_context(index)[0] for index in np.random.randint(1, len(self.data), self.args.num_docs)])
+        if self.corpus_flag:
+            corpus_context = np.vstack([self._init_context(index)[0]
+                                     for index in np.random.randint(1, len(self.data), self.args.num_docs)])
 
         nfs = get_normalised_forms(mention_str)
         candidate_ids = []
@@ -110,7 +116,10 @@ class YamadaDataset(object):
             else:
                 conditionals[cand_idx] = 0
 
-        return context, candidate_ids, priors, conditionals, exact_match, contains
+        if self.corpus_flag:
+            return corpus_context, context, candidate_ids, priors, conditionals, exact_match, contains
+        else:
+            return context, candidate_ids, priors, conditionals, exact_match, contains
 
     def __len__(self):
         return len(self.data)
