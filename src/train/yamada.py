@@ -124,9 +124,6 @@ def setup(args, logger):
     logger.info("Priors and conditionals loaded.")
 
     logger.info("Using {} for training.....".format(args.data_type))
-    #pershina = PershinaExamples(args, yamada_model)
-    #conll_train_data, conll_dev_data, conll_test_data = pershina.get_training_examples()
-    #data_type = 'proto' if args.data_type == 'conll' else args.data_type
     wiki_train_data, wiki_dev_data, wiki_test_data = load_data('proto_370k', args)
     conll_train_data, conll_dev_data, conll_test_data = load_data('conll', args)
 
@@ -183,7 +180,7 @@ def setup(args, logger):
 
 
 def get_model(args, yamada_model, logger):
-    model_type = args.model_name
+    model_type = getattr(Models, args.model_name)
     model = model_type(yamada_model=yamada_model, args=args)
 
     if args.use_cuda:
