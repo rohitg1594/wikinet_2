@@ -45,7 +45,7 @@ class YamadaValidator:
             context, candidates = data[:2]
             context, candidates = context.cpu().data.numpy(), candidates.cpu().data.numpy()
 
-            scores = model(data)
+            scores, _, _ = model(data)
             scores = scores.cpu().data.numpy()
 
             preds = np.argmax(scores, axis=1)
