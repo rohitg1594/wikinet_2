@@ -21,31 +21,26 @@ class YamadaValidator:
 
     def _get_next_batch(self, data):
         data = list(data)
-        ymask = data[0]
-        b, e = ymask.shape
-        data = data[1:]
         for i in range(len(data)):
             data[i] = Variable(data[i])
 
-        ymask = ymask.view(b * e)
-        labels = np.zeros_like(ymask)
+        labels = np.zeros(self.args.batch_size)
 
         if self.args.use_cuda:
             if isinstance(self.args.device, int):
                 for i in range(len(data)):
                     data[i] = data[i].cuda(self.args.device)
 
-        return tuple(data), ymask, labels
+        return tuple(data), labels
 
     def validate(self, model):
         model = model.eval()
 
         total_correct = 0
         total_mention = 0
-        errors = []
 
         for batch_no, data in enumerate(self.loader, 0):
-            data, ymask, labels = self._get_next_batch(data)
+            data,labels = self._get_next_batch(data)
 
             context, candidates = data[:2]
             context, candidates = context.cpu().data.numpy(), candidates.cpu().data.numpy()
@@ -55,9 +50,9 @@ class YamadaValidator:
 
             preds = np.argmax(scores, axis=1)
             print(f'PREDS : {preds}')
-            correct = (np.equal(preds, labels) * ymask).sum()
+            correct = (np.equal(preds, labels)).sum()
             print(f'CORRECT : {correct}')
-            inc = np.not_equal(preds, labels) * ymask
+            inc = np.not_equal(preds, labels)
             inc_ids = np.where(inc)
             print(f'INCORRECT IDS : {inc_ids}')
 
@@ -71,9 +66,8 @@ class YamadaValidator:
             print(f'CONTEXT : {context_str}')
             print(f'Pred : {pred_str}')
 
-            mention = ymask.sum()
             total_correct += correct
-            total_mention += mention
+            total_mention += scores.shape[0]
 
         return total_correct, total_mention
 
