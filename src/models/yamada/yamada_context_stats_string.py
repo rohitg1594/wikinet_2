@@ -49,4 +49,4 @@ class YamadaContextStatsString(YamadaBase):
         scores = self.output(F.relu(self.dropout(self.hidden(input))))
         scores = scores.view(b, -1)
 
-        return scores
+        return scores, context_embs, input
