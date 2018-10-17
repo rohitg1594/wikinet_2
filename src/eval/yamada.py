@@ -24,7 +24,7 @@ class YamadaValidator:
         for i in range(len(data)):
             data[i] = Variable(data[i])
 
-        labels = np.zeros(data[0].shape)
+        labels = np.zeros(data[0].shape[0])
 
         if self.args.use_cuda:
             if isinstance(self.args.device, int):
