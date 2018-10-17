@@ -89,8 +89,12 @@ class YamadaDataset(object):
         true_ent = self.ent2id.get(ent_str, 0)
 
         if self.corpus_flag:
+            if self.args.num_docs < len(self.data):
+                num_docs = len(self.data)
+            else:
+                num_docs = self.args.num_docs
             corpus_context = np.vstack([self._init_context(index)[0]
-                                        for index in np.random.randint(1, len(self.data), self.args.num_docs)])
+                                        for index in np.random.randint(1, len(self.data), num_docs)])
 
         nfs = get_normalised_forms(mention_str)
         candidate_ids = []
