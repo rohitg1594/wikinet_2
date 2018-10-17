@@ -1,17 +1,14 @@
 # This module implements a trainer to be used by combined.py
 import logging
-
 import sys
 from os.path import join
+import cProfile
 
 import torch
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from src.utils.data import save_checkpoint
-from src.utils.utils import yamada_validate_wrap
-
-import cProfile
 
 logger = logging.getLogger()
 
