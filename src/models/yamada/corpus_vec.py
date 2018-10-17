@@ -39,7 +39,7 @@ class YamadaCorpusVec(YamadaBase, Loss):
         # Reshape again
         corpus_embs = corpus_embs.view(b, num_doc, -1)
         print(f'RESHAPE AGAIN CORPUS SHAPE: {corpus_embs.shape}')
-        corpus_embs = corpus_embs.view(dim=1)
+        corpus_embs = corpus_embs.mean(dim=1)
         print(f'SUM AGAIN CORPUS SHAPE: {corpus_embs.shape}')
 
         # Normalize / Pass through linear layer / Unsqueeze
