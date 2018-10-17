@@ -50,3 +50,7 @@ class YamadaContextStatsString(YamadaBase):
         scores = scores.view(b, -1)
 
         return scores, context_embs, input
+
+    def loss(self, scores, labels):
+        return self.cross_entropy(scores, labels)
+
