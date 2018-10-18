@@ -146,7 +146,7 @@ def setup(args, logger):
         train_data = data['wiki']['train']
     logger.info("Data loaded.")
 
-    logger.info("Creating data loaders.....")
+    logger.info("Creating data loaders and validators.....")
     train_dataset = YamadaDataset(ent_conditional=conditionals,
                                   ent_prior=priors,
                                   yamada_model=yamada_model,
@@ -172,6 +172,7 @@ def setup(args, logger):
         validators[data_type] = YamadaValidator(loader=loader, args=args,
                                                 word_dict=yamada_model['word_dict'],
                                                 ent_dict=yamada_model['ent_dict'])
+        logger.info(f'Len loader {data_type} : {len(loader)}')
 
     logger.info("Data loaders and validators created.There will be {} batches.".format(len(train_loader)))
 
