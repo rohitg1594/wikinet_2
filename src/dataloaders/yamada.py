@@ -27,7 +27,6 @@ class YamadaDataset(object):
         self.ent2id = yamada_model['ent_dict']
         self.id2ent = reverse_dict(self.ent2id)
         self.word_dict = yamada_model['word_dict']
-        self.data = data
         self.max_ent = len(self.ent2id)
         self.ent_prior = ent_prior
         self.ent_conditional = ent_conditional
@@ -37,6 +36,10 @@ class YamadaDataset(object):
             self.corpus_flag = True
         else:
             self.corpus_flag = False
+
+        self.processed_data = []
+        for index in range(len(data)):
+            self.processed_data.append(self._init_context(index))
 
         if self.cand_rand:
             self.num_candidates = 10 ** 6
@@ -84,17 +87,17 @@ class YamadaDataset(object):
         priors = np.zeros(self.num_candidates).astype(np.float32)
         conditionals = np.zeros(self.num_candidates).astype(np.float32)
 
-        context, example = self._init_context(index)
+        context, example = self.processed_data[index]
         mention_str, ent_str, _, _ = example
         true_ent = self.ent2id.get(ent_str, 0)
 
         if self.corpus_flag:
-            if self.args.num_docs > len(self.data):
-                num_docs = len(self.data)
+            if self.args.num_docs > len(self.processed_data):
+                num_docs = len(self.processed_data)
             else:
                 num_docs = self.args.num_docs
-            corpus_context = np.vstack([self._init_context(index)[0]
-                                        for index in np.random.randint(1, len(self.data), num_docs)])
+            corpus_context = np.vstack([self.processed_data[index][0]
+                                        for index in np.random.randint(1, len(self.processed_data), num_docs)])
 
         nfs = get_normalised_forms(mention_str)
         candidate_ids = []
@@ -126,7 +129,7 @@ class YamadaDataset(object):
             return context, candidate_ids, priors, conditionals, exact_match, contains
 
     def __len__(self):
-        return len(self.data)
+        return len(self.processed_data)
 
     def get_loader(self,
                    batch_size=1,
