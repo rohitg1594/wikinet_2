@@ -66,7 +66,7 @@ def grid_search(yamada_model=None,
         with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
             pickle.dump(results, f)
 
-        del model
+        del model, trainer
         torch.cuda.empty_cache()
         gc.collect()
 

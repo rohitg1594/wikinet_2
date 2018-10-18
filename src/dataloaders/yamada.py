@@ -89,7 +89,7 @@ class YamadaDataset(object):
         true_ent = self.ent2id.get(ent_str, 0)
 
         if self.corpus_flag:
-            if self.args.num_docs < len(self.data):
+            if self.args.num_docs > len(self.data):
                 num_docs = len(self.data)
             else:
                 num_docs = self.args.num_docs
