@@ -37,6 +37,7 @@ class YamadaDataset(object):
         else:
             self.corpus_flag = False
 
+        self.data = data
         self.processed_data = []
         for index in range(len(data)):
             self.processed_data.append(self._init_context(index))
