@@ -19,10 +19,10 @@ class SmallContext(CombinedBase, Loss):
         self.mention_embs.weight.data[0] = 0
 
         # Context embeddings
-        self.context_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.context_word_dim,
-                                         padding_idx=0, sparse=self.args.sparse)
-        self.context_embs.weight.data.normal_(0, self.args.init_stdv)
-        self.context_embs.weight.data[0] = 0
+        # self.context_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.context_word_dim,
+        #                                 padding_idx=0, sparse=self.args.sparse)
+        # self.context_embs.weight.data.normal_(0, self.args.init_stdv)
+        # self.context_embs.weight.data[0] = 0
 
         # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(self.ent_embs.weight.shape[0], self.args.ent_mention_dim,
@@ -43,7 +43,7 @@ class SmallContext(CombinedBase, Loss):
 
         # Get the embeddings
         mention_embs = self.mention_embs(mention_word_tokens)
-        context_embs = self.context_embs(context_tokens)
+        context_embs = self.mention_embs(context_tokens)
         candidate_embs = self.ent_mention_embs(candidate_ids)
 
         # Sum the embeddings over the small and large tokens dimension
