@@ -129,7 +129,7 @@ def setup(args, logger):
     for data_type in DATA_TYPES:
         if data_type == 'wiki':
             train, dev, test = load_data('proto_370k', args)
-            dev_new = [dev[idx] for idx in np.random.randint(0, len(dev), 5000)]
+            dev_new = [dev[idx] for idx in np.random.randint(0, len(dev), 10000)]
             data['wiki'] = {}
             data['wiki']['train'] = train
             data['wiki']['dev'] = dev_new
