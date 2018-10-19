@@ -6,6 +6,7 @@ from collections import defaultdict
 
 import numpy as np
 from sklearn.model_selection import ParameterGrid
+import pandas as pd
 
 import torch
 
@@ -25,11 +26,12 @@ def grid_search(yamada_model=None,
                 args=None):
     param_grid = {'dp': [0.1, 0.2, 0.3],
                   'hidden_size': [1000, 2000],
-                  'lr': [0.01, 0.005],
-                  'wd': [0.001, 0.0001],
-                  'num_docs': [1000, 100, 10]
+                  'lr': [1e-2, 5e-2, 1e-3],
+                  'wd': [1e-3, 1e-4, 1e-5],
+                  'num_docs': [1000, 100, 50, 10]
                   }
     results = defaultdict(dict)
+    pd_results = list()
 
     for param_dict in list(ParameterGrid(param_grid)):
         for k, v in param_dict.items():
@@ -73,8 +75,13 @@ def grid_search(yamada_model=None,
                           result_key=result_key)
         logger.info("Starting Training.....")
         print()
-        trainer.train()
+        best_results = trainer.train()
         logger.info("Finished Training")
+
+        pd_results.append({**param_dict, **best_results})
+        print('PD RESULTS: {}'.format(pd_results))
+        df = pd.DataFrame(pd_results)
+        df.to_csv(join(model_dir, 'hyper_df.csv'))
 
         for k, v in results.items():
             print(k)
@@ -87,15 +94,17 @@ def grid_search(yamada_model=None,
         torch.cuda.empty_cache()
         gc.collect()
 
-    return results
+    return results, pd_results
 
 
 if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
     Train_dataset, Datasets, Yamada_model = setup(Args, Logger)
-    result_dict = grid_search(yamada_model=Yamada_model,
+    result_dict, pd_dict = grid_search(yamada_model=Yamada_model,
                               model_dir=Model_dir,
                               train_dataset=Train_dataset,
                               datasets=Datasets,
                               logger=Logger,
                               args=Args)
+    df = pd.DataFrame(pd_dict)
+    df.to_csv(join(Model_dir, 'hyper_df.csv'))
