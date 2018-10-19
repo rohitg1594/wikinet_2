@@ -34,7 +34,7 @@ def grid_search(yamada_model=None,
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
-
+        args.__dict__['batch_size'] = 10000 / param_dict['num_docs']
         model = get_model(args, yamada_model, logger)
 
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
