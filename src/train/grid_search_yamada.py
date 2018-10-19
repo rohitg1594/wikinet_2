@@ -28,7 +28,7 @@ def grid_search(yamada_model=None,
                   'hidden_size': [1000, 2000],
                   'lr': [1e-2, 5e-2, 1e-3],
                   'wd': [1e-3, 1e-4, 1e-5],
-                  'num_docs': [1000, 100, 50, 10]
+                  'num_docs': [100, 50, 10]
                   }
     results = defaultdict(dict)
     pd_results = list()
@@ -101,10 +101,10 @@ if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
     Train_dataset, Datasets, Yamada_model = setup(Args, Logger)
     result_dict, pd_dict = grid_search(yamada_model=Yamada_model,
-                              model_dir=Model_dir,
-                              train_dataset=Train_dataset,
-                              datasets=Datasets,
-                              logger=Logger,
-                              args=Args)
+                                       model_dir=Model_dir,
+                                       train_dataset=Train_dataset,
+                                       datasets=Datasets,
+                                       logger=Logger,
+                                       args=Args)
     df = pd.DataFrame(pd_dict)
     df.to_csv(join(Model_dir, 'hyper_df.csv'))
