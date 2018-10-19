@@ -213,7 +213,7 @@ class CombinedDataSet(object):
             return self._getitem_only_prior_word_or_gram(example, token_type='gram', include_pos=False)
         elif self.model_name == 'only_prior_with_string':
             return self._getitem_only_prior_word_and_gram(example)
-        elif self.model_name == 'prior_small_context':
+        elif self.model_name == 'small_context':
             return self._getitem_small_context(example)
         elif self.model_name == 'pre_train':
             return self._getitem_pre_train(context_ids, example)
