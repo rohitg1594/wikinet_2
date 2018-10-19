@@ -26,7 +26,7 @@ def grid_search(yamada_model=None,
                   'hidden_size': [1000, 2000],
                   'lr': [0.01, 0.005],
                   'wd': [0.001, 0.0001],
-                  'num_docs': [10, 100, 1000, 10000]
+                  'num_docs': [1000, 100, 10]
                   }
     results = defaultdict(dict)
 
@@ -34,7 +34,7 @@ def grid_search(yamada_model=None,
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
-        args.__dict__['batch_size'] = 10000 // param_dict['num_docs']
+        args.__dict__['batch_size'] = 5000 // param_dict['num_docs']
         model = get_model(args, yamada_model, logger)
         train_loader = train_dataset.get_loader(batch_size=args.batch_size,
                                                 shuffle=False,
@@ -70,7 +70,7 @@ def grid_search(yamada_model=None,
         with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
             pickle.dump(results, f)
 
-        del model, trainer
+        del model, trainer, train_loader
         torch.cuda.empty_cache()
         gc.collect()
 
