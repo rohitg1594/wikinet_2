@@ -179,7 +179,7 @@ def setup(args=None, logger=None):
 
     # Training Data
     logger.info("Loading training data.....")
-    train_data, dev_data, test_data = load_data(args.data_type, args, yamada_model)
+    train_data, dev_data, test_data = load_data(args.data_type, args)
     logger.info("Training data loaded.")
     logger.info(f"Train : {len(train_data)}, Dev : {len(dev_data)}, Test :{len(test_data)}")
 
