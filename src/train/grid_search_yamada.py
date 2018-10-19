@@ -92,10 +92,10 @@ def grid_search(yamada_model=None,
 
 if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
-    Train_dataset, Validators, Yamada_model = setup(Args, Logger)
+    Train_dataset, Datasets, Yamada_model = setup(Args, Logger)
     result_dict = grid_search(yamada_model=Yamada_model,
                               model_dir=Model_dir,
-                              validators=Validators,
                               train_dataset=Train_dataset,
+                              datasets=Datasets,
                               logger=Logger,
                               args=Args)

@@ -224,7 +224,6 @@ if __name__ == '__main__':
     Train_dataset, Validators, Yamada_model = setup(Args, Logger)
     Model = get_model(Args, Yamada_model, Logger)
     train(model=Model,
-          validators=Validators,
           model_dir=Model_dir,
           train_dataset=Train_dataset,
           logger=Logger,
