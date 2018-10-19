@@ -171,8 +171,6 @@ def setup(args, logger):
                                                 ent_dict=yamada_model['ent_dict'])
         logger.info(f'Len loader {data_type} : {len(loader)}')
 
-    logger.info("Data loaders and validators created.There will be {} batches.".format(len(train_loader)))
-
     return train_dataset, validators, yamada_model
 
 
@@ -198,6 +196,7 @@ def train(model=None,
                                             shuffle=False,
                                             num_workers=args.num_workers,
                                             drop_last=False)
+    logger.info("Data loaders and validators created.There will be {} batches.".format(len(train_loader)))
 
     logger.info("Starting validation for untrained model.")
     for data_type in DATA_TYPES:
