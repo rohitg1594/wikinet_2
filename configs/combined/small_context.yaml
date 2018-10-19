@@ -28,7 +28,7 @@ max_ent_size:35
 
 # Model types
 init_yamada:True
-model_name:prior_small_context
+model_name:small_context
 init_stdv:0.001
 
 # Model Params
