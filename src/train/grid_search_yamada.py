@@ -11,6 +11,7 @@ import torch
 
 from src.train.yamada import parse_args, setup, get_model
 from src.train.trainer import Trainer
+from src.eval.yamada import YamadaValidator
 DATA_TYPES = ['wiki', 'conll', 'ace2004', 'msnbc']
 
 np.warnings.filterwarnings('ignore')
@@ -18,7 +19,7 @@ np.warnings.filterwarnings('ignore')
 
 def grid_search(yamada_model=None,
                 logger=None,
-                validators=None,
+                datasets=None,
                 model_dir=None,
                 train_dataset=None,
                 args=None):
@@ -45,8 +46,18 @@ def grid_search(yamada_model=None,
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         print(f'Batch Size : {args.batch_size}')
         result_key = tuple(param_dict.items())
+
         logger.info("Starting validation for untrained model.....")
+        validators = {}
         for data_type in DATA_TYPES:
+            loader = datasets[data_type].get_loader(batch_size=args.batch_size,
+                                                    shuffle=False,
+                                                    num_workers=args.num_workers,
+                                                    drop_last=False)
+            logger.info(f'Len loader {data_type} : {len(loader)}')
+            validators[data_type] = YamadaValidator(loader=loader, args=args,
+                                                    word_dict=yamada_model['word_dict'],
+                                                    ent_dict=yamada_model['ent_dict'])
             correct, mentions = validators[data_type].validate(model)
             res = correct / mentions * 100
             results[result_key][data_type] = [res]
@@ -72,7 +83,7 @@ def grid_search(yamada_model=None,
         with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
             pickle.dump(results, f)
 
-        del model, trainer, train_loader
+        del model, trainer, train_loader, loader, validators
         torch.cuda.empty_cache()
         gc.collect()
 

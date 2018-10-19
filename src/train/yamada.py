@@ -154,24 +154,16 @@ def setup(args, logger):
                                   args=args,
                                   cand_type=args.cand_type)
 
-    validators = {}
+    datasets = {}
     for data_type in DATA_TYPES:
-        dataset = YamadaDataset(ent_conditional=conditionals,
-                                ent_prior=priors,
-                                yamada_model=yamada_model,
-                                data=data[data_type]['dev'],
-                                args=args,
-                                cand_type='necounts')
-        loader = dataset.get_loader(batch_size=args.batch_size,
-                                    shuffle=False,
-                                    num_workers=args.num_workers,
-                                    drop_last=False)
-        validators[data_type] = YamadaValidator(loader=loader, args=args,
-                                                word_dict=yamada_model['word_dict'],
-                                                ent_dict=yamada_model['ent_dict'])
-        logger.info(f'Len loader {data_type} : {len(loader)}')
+        datasets[data_type] = YamadaDataset(ent_conditional=conditionals,
+                                            ent_prior=priors,
+                                            yamada_model=yamada_model,
+                                            data=data[data_type]['dev'],
+                                            args=args,
+                                            cand_type='necounts')
 
-    return train_dataset, validators, yamada_model
+    return train_dataset, datasets, yamada_model
 
 
 def get_model(args, yamada_model, logger):
@@ -187,10 +179,11 @@ def get_model(args, yamada_model, logger):
 
 def train(model=None,
           logger=None,
-          validators=None,
+          datasets=None,
           model_dir=None,
           train_dataset=None,
-          args=None):
+          args=None,
+          yamada_model=None):
 
     train_loader = train_dataset.get_loader(batch_size=args.batch_size,
                                             shuffle=False,
@@ -199,7 +192,16 @@ def train(model=None,
     logger.info("Data loaders and validators created.There will be {} batches.".format(len(train_loader)))
 
     logger.info("Starting validation for untrained model.")
+    validators = {}
     for data_type in DATA_TYPES:
+        loader = datasets[data_type].get_loader(batch_size=args.batch_size,
+                                                shuffle=False,
+                                                num_workers=args.num_workers,
+                                                drop_last=False)
+        logger.info(f'Len loader {data_type} : {len(loader)}')
+        validators[data_type] = YamadaValidator(loader=loader, args=args,
+                                                word_dict=yamada_model['word_dict'],
+                                                ent_dict=yamada_model['ent_dict'])
         correct, mentions = validators[data_type].validate(model)
         res = correct / mentions * 100
         logger.info(f'Untrained, {data_type} - {res}')
@@ -226,4 +228,5 @@ if __name__ == '__main__':
           model_dir=Model_dir,
           train_dataset=Train_dataset,
           logger=Logger,
-          args=Args)
+          args=Args,
+          yamada_model=Yamada_model)
