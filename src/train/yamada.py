@@ -153,10 +153,7 @@ def setup(args, logger):
                                   data=train_data,
                                   args=args,
                                   cand_type=args.cand_type)
-    train_loader = train_dataset.get_loader(batch_size=args.batch_size,
-                                            shuffle=False,
-                                            num_workers=args.num_workers,
-                                            drop_last=False)
+
     validators = {}
     for data_type in DATA_TYPES:
         dataset = YamadaDataset(ent_conditional=conditionals,
@@ -176,7 +173,7 @@ def setup(args, logger):
 
     logger.info("Data loaders and validators created.There will be {} batches.".format(len(train_loader)))
 
-    return train_loader, validators, yamada_model
+    return train_dataset, validators, yamada_model
 
 
 def get_model(args, yamada_model, logger):
@@ -194,8 +191,13 @@ def train(model=None,
           logger=None,
           validators=None,
           model_dir=None,
-          train_loader=None,
+          train_dataset=None,
           args=None):
+
+    train_loader = train_dataset.get_loader(batch_size=args.batch_size,
+                                            shuffle=False,
+                                            num_workers=args.num_workers,
+                                            drop_last=False)
 
     logger.info("Starting validation for untrained model.")
     for data_type in DATA_TYPES:
@@ -218,11 +220,11 @@ def train(model=None,
 
 if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
-    Train_loader, Validators, Yamada_model = setup(Args, Logger)
+    Train_dataset, Validators, Yamada_model = setup(Args, Logger)
     Model = get_model(Args, Yamada_model, Logger)
     train(model=Model,
           validators=Validators,
           model_dir=Model_dir,
-          train_loader=Train_loader,
+          train_dataset=Train_dataset,
           logger=Logger,
           args=Args)

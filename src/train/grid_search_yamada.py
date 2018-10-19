@@ -20,7 +20,7 @@ def grid_search(yamada_model=None,
                 logger=None,
                 validators=None,
                 model_dir=None,
-                train_loader=None,
+                train_dataset=None,
                 args=None):
     param_grid = {'dp': [0.1, 0.2, 0.3],
                   'hidden_size': [1000, 2000],
@@ -36,6 +36,10 @@ def grid_search(yamada_model=None,
             args.__dict__[k] = v
         args.__dict__['batch_size'] = 10000 / param_dict['num_docs']
         model = get_model(args, yamada_model, logger)
+        train_loader = train_dataset.get_loader(batch_size=args.batch_size,
+                                                shuffle=False,
+                                                num_workers=args.num_workers,
+                                                drop_last=False)
 
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())
@@ -75,10 +79,10 @@ def grid_search(yamada_model=None,
 
 if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
-    Train_loader, Validators, Yamada_model = setup(Args, Logger)
+    Train_dataset, Validators, Yamada_model = setup(Args, Logger)
     result_dict = grid_search(yamada_model=Yamada_model,
                               model_dir=Model_dir,
                               validators=Validators,
-                              train_loader=Train_loader,
+                              train_dataset=Train_dataset,
                               logger=Logger,
                               args=Args)
