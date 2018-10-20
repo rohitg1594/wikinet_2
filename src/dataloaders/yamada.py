@@ -106,10 +106,12 @@ class YamadaDataset(object):
                 other_docs = [self.processed_id2context[index]
                               for index in np.random.randint(0, high=len(self.processed_id2context),
                                                              size=self.args.num_docs - 1)]
-                print(other_docs)
-                for o in other_docs:
-                    print(o.shape)
-                corpus_context = np.vstack(list(self.processed_id2context[context_id]) + other_docs)
+                try:
+                    corpus_context = np.vstack(list(self.processed_id2context[context_id]) + other_docs)
+                except:
+                    for i, doc in enumerate(other_docs):
+                        print(i, doc.shape)
+                    print(self.processed_id2context[context_id].shape)
             else:
                 corpus_context = self.corpus_context
 
