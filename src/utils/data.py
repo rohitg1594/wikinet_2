@@ -135,7 +135,7 @@ def load_data(data_type, args):
     if 'proto' in data_type:
         logger.info("Loading Wikipedia proto training data.....")
         for split in ['train', 'dev']:
-            id2context, examples = pickle_load(join(args.data_path, 'training_files', 'proto', f'{data_type}.pickle'))
+            id2context, examples = pickle_load(join(args.data_path, 'training_files', 'proto', f'{split}.pickle'))
             if split == 'train':
                 examples = examples[:args.train_size]
             res[split] = id2context, examples

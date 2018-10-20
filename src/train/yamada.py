@@ -165,7 +165,7 @@ def setup(args, logger):
                                             args=args,
                                             cand_type='necounts')
         logger.info(f"{data_type} dev dataset created.")
-        
+
     return train_dataset, datasets, yamada_model
 
 
