@@ -44,7 +44,7 @@ class YamadaDataset(object):
         self.id2context = id2context
         print(f'len examples: {len(examples)}, len id2contex: {len(id2context)}')
         self.processed_id2context = {}
-        for index in range(1, len(self.id2context)):
+        for index in self.id2context.keys():
             self.processed_id2context[index] = self._init_context(index)
 
         if self.args.model_name == 'corpus_vec':

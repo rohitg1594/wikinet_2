@@ -13,6 +13,7 @@ train_size:0
 # Padding
 max_ent_size:35
 max_context_size:100
+num_docs:100
 
 # Model types
 model_name:corpus_vec
