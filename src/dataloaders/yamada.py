@@ -104,7 +104,7 @@ class YamadaDataset(object):
         if self.corpus_flag:
             if self.rand_docs:
                 other_docs = [self.processed_id2context[index]
-                              for index in np.random.randint(high=len(self.processed_id2context),
+                              for index in np.random.randint(0, high=len(self.processed_id2context),
                                                              size=self.args.num_docs - 1)]
                 print(other_docs)
                 for o in other_docs:
