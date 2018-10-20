@@ -30,24 +30,31 @@ class YamadaDataset(object):
         self.max_ent = len(self.ent2id)
         self.ent_prior = ent_prior
         self.ent_conditional = ent_conditional
+
         self.cand_rand = cand_rand
         self.cand_type = cand_type
-        if self.args.model_name == 'corpus_vec':
-            self.corpus_flag = True
-        else:
-            self.corpus_flag = False
-
-        self.data = data
-        self.processed_data = []
-        for index in range(len(data)):
-            self.processed_data.append(self._init_context(index))
-
         if self.cand_rand:
             self.num_candidates = 10 ** 6
-
         if cand_type == 'necounts':
             # This is of the form: mention_str :  Counter(cand_id: counts)
             self.necounts = pickle_load(join(self.args.data_path, "necounts", "normal_necounts.pickle"))
+
+        id2context, examples = data
+        self.examples = examples
+        self.id2context = id2context
+        self.processed_id2context = {}
+        for index in range(1, len(self.id2context)):
+            self.processed_id2context[index] = self._init_context(index)
+
+        if self.args.model_name == 'corpus_vec':
+            self.corpus_flag = True
+            if self.args.num_docs > len(self.id2context):
+                self.rand_docs = False
+                self.corpus_context = np.vstack([context_arr for context_arr in self.processed_id2context.values()])
+            else:
+                self.rand_docs = True
+        else:
+            self.corpus_flag = False
 
     def _gen_cands(self, true_ent, candidates):
 
@@ -68,15 +75,15 @@ class YamadaDataset(object):
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
 
-        context_word_tokens, example = self.data[index]
+        context = self.processed_id2context[index]
         if self.args.ignore_init:
-            context_word_tokens = context_word_tokens[5:]
-        if len(context_word_tokens) > 0:
-            if isinstance(context_word_tokens[0], str):
-                context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
-        context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
+            context = context[5:]
+        if len(context) > 0:
+            if isinstance(context[0], str):
+                context = [self.word_dict.get(token, 0) for token in context]
+        context = np.array(equalize_len(context, self.args.max_context_size))
 
-        return context_word_tokens, example
+        return context
 
     def __getitem__(self, index):
         if isinstance(index, slice):
@@ -88,17 +95,18 @@ class YamadaDataset(object):
         priors = np.zeros(self.num_candidates).astype(np.float32)
         conditionals = np.zeros(self.num_candidates).astype(np.float32)
 
-        context, example = self.processed_data[index]
+        context_id, example = self.examples[index]
+        context = self.processed_id2context[context_id]
         mention_str, ent_str, _, _ = example
         true_ent = self.ent2id.get(ent_str, 0)
 
         if self.corpus_flag:
-            if self.args.num_docs > len(self.processed_data):
-                num_docs = len(self.processed_data)
+            if self.rand_docs:
+                other_docs = [self.processed_id2context[index]
+                              for index in np.random.randint(1, len(self.processed_id2context), self.args.num_docs - 1)]
+                corpus_context = np.vstack(list(self.processed_id2context[context_id]) + other_docs)
             else:
-                num_docs = self.args.num_docs
-            corpus_context = np.vstack([self.processed_data[index][0]
-                                        for index in np.random.randint(1, len(self.processed_data), num_docs)])
+                corpus_context = self.corpus_context
 
         nfs = get_normalised_forms(mention_str)
         candidate_ids = []
@@ -130,7 +138,7 @@ class YamadaDataset(object):
             return context, candidate_ids, priors, conditionals, exact_match, contains
 
     def __len__(self):
-        return len(self.processed_data)
+        return len(self.examples)
 
     def get_loader(self,
                    batch_size=1,

@@ -10,7 +10,6 @@ import logging
 import pickle
 
 from src.utils.utils import normalize, reverse_dict
-from src.conll.pershina import PershinaExamples
 
 logger = logging.getLogger(__name__)
 
@@ -131,12 +130,19 @@ def load_data(data_type, args):
     """
        Load train data in format used by combined dataloader.
     """
+    res = {}
+    splits = ['train', 'dev', 'test']
     if 'proto' in data_type:
         logger.info("Loading Wikipedia proto training data.....")
-        train_data, dev_data = pickle_load(join(args.data_path, 'training_files', 'proto', f'{data_type}.pickle'))
-        train_data = train_data[:args.train_size]
-        test_data = []
+        for split in ['train', 'dev']:
+            id2context, examples = pickle_load(join(args.data_path, 'training_files', 'proto', f'{data_type}.pickle'))
+            if split == 'train':
+                examples = examples[:args.train_size]
+            res[split] = id2context, examples
 
+        res['test'] = {}, []
+
+    # TODO: CHANGE THIS TO ID2CONTEXT FORMAT
     elif data_type in ['abstract', 'mention']:
         logger.info("Loading Wikipedia orig training data.....")
         data = []
@@ -158,13 +164,11 @@ def load_data(data_type, args):
             else:
                 test_data.append(d)
     elif data_type == 'conll':
-        train_data = pickle_load(join(args.data_path, 'training_files', 'conll-train.pickle'))
-        dev_data = pickle_load(join(args.data_path, 'training_files', 'conll-dev.pickle'))
-        test_data = pickle_load(join(args.data_path, 'training_files', 'conll-test.pickle'))
-
+        for split in splits:
+            res[split] = pickle_load(join(args.data_path, 'training_files', f'conll-{split}.pickle'))
     else:
         logger.error("Data type {} not recognized".format(args.data_type))
         sys.exit(1)
 
-    return train_data, dev_data, test_data
+    return res
 

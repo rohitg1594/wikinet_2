@@ -128,15 +128,16 @@ def setup(args, logger):
 
     for data_type in DATA_TYPES:
         if data_type == 'wiki':
-            train, dev, test = load_data('proto_370k', args)
-            dev_new = [dev[idx] for idx in np.random.randint(0, len(dev), 10000)]
-            data['wiki'] = {}
-            data['wiki']['train'] = train
-            data['wiki']['dev'] = dev_new
-            data['wiki']['test'] = test
+            res = load_data('proto_370k', args)
+            id2context, examples = res['dev']
+            new_examples = [examples[idx] for idx in np.random.randint(0, len(examples), 10000)]
+            res['dev'] = id2context, new_examples
+            for split, data in res.items():
+                data['wiki'][split] = data
         elif data_type == 'conll':
-            for split in ['train', 'dev', 'test']:
-                data['conll'][split] = pickle_load(join(args.data_path, f'training_files/conll-{split}.pickle'))
+            res = load_data('conll', args)
+            for split, data in res.items():
+                data['conll'][split] = data
         else:
             data[data_type]['dev'] = pickle_load(join(args.data_path, f'training_files/{data_type}.pickle'))
 
