@@ -132,12 +132,12 @@ def setup(args, logger):
             id2context, examples = res['dev']
             new_examples = [examples[idx] for idx in np.random.randint(0, len(examples), 10000)]
             res['dev'] = id2context, new_examples
-            for split, data in res.items():
-                data['wiki'][split] = data
+            for split, data_split in res.items():
+                data['wiki'][split] = data_split
         elif data_type == 'conll':
             res = load_data('conll', args)
-            for split, data in res.items():
-                data['conll'][split] = data
+            for split, data_split in res.items():
+                data['conll'][split] = data_split
         else:
             data[data_type]['dev'] = pickle_load(join(args.data_path, f'training_files/{data_type}.pickle'))
 
