@@ -154,6 +154,7 @@ def setup(args, logger):
                                   data=train_data,
                                   args=args,
                                   cand_type=args.cand_type)
+    logger.info("Training dataset created.")
 
     datasets = {}
     for data_type in DATA_TYPES:
@@ -163,7 +164,8 @@ def setup(args, logger):
                                             data=data[data_type]['dev'],
                                             args=args,
                                             cand_type='necounts')
-
+        logger.info(f"{data_type} dev dataset created.")
+        
     return train_dataset, datasets, yamada_model
 
 
