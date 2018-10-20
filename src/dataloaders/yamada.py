@@ -18,7 +18,7 @@ class YamadaDataset(object):
                  data=None,
                  args=None,
                  cand_rand=False,
-                 cand_type='pershina'):
+                 cand_type='necounts'):
         super().__init__()
 
         self.args = args
@@ -42,6 +42,7 @@ class YamadaDataset(object):
         id2context, examples = data
         self.examples = examples
         self.id2context = id2context
+        print(f'len examples: {len(examples)}, len id2contex: {len(id2context)}')
         self.processed_id2context = {}
         for index in range(1, len(self.id2context)):
             self.processed_id2context[index] = self._init_context(index)
