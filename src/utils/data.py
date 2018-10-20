@@ -128,7 +128,7 @@ def load_stats(args, yamada_model):
 
 def load_data(data_type, args):
     """
-       Load train data in format used by combined dataloader.
+       Load train data in format used by combined and yamada dataloader.
     """
     res = {}
     splits = ['train', 'dev', 'test']

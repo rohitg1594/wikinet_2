@@ -76,7 +76,7 @@ class YamadaDataset(object):
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
 
-        context = self.processed_id2context[index]
+        context = self.id2context[index]
         if self.args.ignore_init:
             context = context[5:]
         if len(context) > 0:
