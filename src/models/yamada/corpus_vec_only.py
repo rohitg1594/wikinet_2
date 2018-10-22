@@ -17,14 +17,10 @@ class YamadaCorpusVecOnly(YamadaBase, Loss):
 
     def forward(self, inputs):
 
-        # Unpack
+        # Unpack / Get embs
         corpus_context, _, candidate_ids, _, _, _, _ = inputs
         b, num_doc, num_context = corpus_context.shape
 
-        # Reshape
-        corpus_context = corpus_context.view(-1, num_context)
-
-        # Get the embeddings
         candidate_embs = self.embeddings_ent(candidate_ids)
         corpus_embs = self.embeddings_word(corpus_context)
 
@@ -34,7 +30,7 @@ class YamadaCorpusVecOnly(YamadaBase, Loss):
         corpus_embs = corpus_embs.mean(dim=1)
         corpus_embs.unsqueeze_(1)
 
-        # Dot product over last dimension
+        # Get scores
         scores = (corpus_embs * candidate_embs).sum(dim=2)
         scores = scores.view(b, -1)
 
