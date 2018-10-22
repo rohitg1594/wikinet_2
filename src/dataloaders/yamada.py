@@ -47,7 +47,7 @@ class YamadaDataset(object):
         for index in self.id2context.keys():
             self.processed_id2context[index] = self._init_context(index)
 
-        if self.args.model_name == 'corpus_vec':
+        if 'corpus_vec' in self.args.model_name:
             self.corpus_flag = True
             if self.args.num_docs > len(self.id2context):
                 self.rand_docs = False
@@ -106,13 +106,8 @@ class YamadaDataset(object):
                 other_docs = [self.processed_id2context[index]
                               for index in np.random.randint(0, high=len(self.processed_id2context),
                                                              size=self.args.num_docs - 1)]
-                try:
-                    full_corpus = list(self.processed_id2context[context_id][None, :]) + other_docs
-                    corpus_context = np.vstack(full_corpus)
-                except:
-                    for i, doc in enumerate(other_docs):
-                        print(i, doc.shape)
-                    print(self.processed_id2context[context_id].shape)
+                full_corpus = list(self.processed_id2context[context_id][None, :]) + other_docs
+                corpus_context = np.vstack(full_corpus)
             else:
                 corpus_context = self.corpus_context
 

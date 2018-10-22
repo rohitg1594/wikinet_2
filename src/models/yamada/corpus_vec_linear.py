@@ -7,7 +7,7 @@ from src.models.yamada.yamada_base import YamadaBase
 from src.models.loss import Loss
 
 
-class YamadaCorpusVec(YamadaBase, Loss):
+class YamadaCorpusVecLinear(YamadaBase, Loss):
 
     def __init__(self, yamada_model=None, args=None):
         super().__init__(yamada_model, args)

@@ -13,7 +13,8 @@ from src.models.combined.small_context import SmallContext
 
 from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
 from src.models.yamada.yamada_context_stats import YamadaContextStats
-from src.models.yamada.corpus_vec import YamadaCorpusVec
+from src.models.yamada.corpus_vec_average import YamadaCorpusVecAverage
+from src.models.yamada.corpus_vec_only import YamadaCorpusVecOnly
 
 
 class Models:
@@ -33,5 +34,6 @@ class Models:
     # Yamada
     yamada_full = YamadaContextStatsString
     yamada_stats = YamadaContextStats
-    corpus_vec = YamadaCorpusVec
+    corpus_vec_average = YamadaCorpusVecAverage
+    corpus_vec_only = YamadaCorpusVecOnly
 
