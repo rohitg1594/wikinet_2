@@ -29,14 +29,9 @@ class YamadaCorpusVecOnly(YamadaBase, Loss):
         corpus_embs = self.embeddings_word(corpus_context)
 
         # Aggregate context
+        corpus_embs = corpus_embs.mean(dim=2)
+        corpus_embs = F.normalize(self.orig_linear(corpus_embs), dim=2)
         corpus_embs = corpus_embs.mean(dim=1)
-
-        # Reshape again
-        corpus_embs = corpus_embs.view(b, num_doc, -1)
-        corpus_embs = corpus_embs.mean(dim=1)
-
-        # Normalize / Pass through linear layer / Unsqueeze
-        corpus_embs = F.normalize(self.orig_linear(corpus_embs), dim=1)
         corpus_embs.unsqueeze_(1)
 
         # Dot product over last dimension
