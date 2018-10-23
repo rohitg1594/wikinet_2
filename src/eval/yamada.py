@@ -41,6 +41,7 @@ class YamadaValidator:
         comp_str = ''
         for inc_i in inc_ids:
             word_tokens = context[inc_i]
+            print(f'WORD TOKENS : {word_tokens}')
             context_str = ' '.join([self.rev_word_dict.get(word_token, '') for word_token in word_tokens[:10]])
             pred_ids = -preds[inc_i].argsort()
             pred_str = ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
