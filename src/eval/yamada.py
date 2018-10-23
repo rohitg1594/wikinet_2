@@ -68,8 +68,8 @@ class YamadaValidator:
             cor = np.equal(preds, labels)
             inc = np.not_equal(preds, labels)
             print(f'PREDS SHAPE : {preds.shape}')
-            inc_ids = np.where(inc)
-            cor_ids = np.where(cor)
+            inc_ids = np.where(inc)[0]
+            cor_ids = np.where(cor)[0]
             print(f'INC IDS: {inc_ids}')
             print(f'COR IDS: {cor_ids}')
             context, candidates = data[:2]
