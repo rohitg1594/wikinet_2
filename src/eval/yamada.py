@@ -36,14 +36,14 @@ class YamadaValidator:
 
         return tuple(data), labels
 
-    def get_pred_str(self, inc_ids, context, preds):
+    def get_pred_str(self, ids, context, preds):
 
         comp_str = ''
-        for inc_i in inc_ids:
-            word_tokens = context[inc_i]
+        for id in ids:
+            word_tokens = context[id]
             print(f'WORD TOKENS : {word_tokens}')
             context_str = ' '.join([self.rev_word_dict.get(word_token, '') for word_token in word_tokens[:10]])
-            pred_ids = -preds[inc_i].argsort()
+            pred_ids = -preds[id].argsort()
             pred_str = ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
             comp_str += context_str + pred_str + '\n'
 
@@ -73,6 +73,8 @@ class YamadaValidator:
             print(f'INC IDS: {inc_ids}')
             print(f'COR IDS: {cor_ids}')
             context, candidates = data[:2]
+            print(f'CONTEXT SHAPE: {context.shape}')
+            print(f'CONTEXT: {context}')
             context, candidates = context.cpu().data.numpy(), candidates.cpu().data.numpy()
             inc_pred_str += self.get_pred_str(inc_ids, context, preds)
             cor_pred_str += self.get_pred_str(cor_ids, context, preds)
