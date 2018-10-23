@@ -18,7 +18,7 @@ class YamadaContextStatsString(YamadaBase, Loss):
     def forward(self, inputs):
 
         # Unpack
-        context, candidate_ids, priors, conditionals, exact_match, contains = inputs
+        _, context, candidate_ids, priors, conditionals, exact_match, contains = inputs
         b, num_cand = candidate_ids.shape
 
         # Get the embeddings
