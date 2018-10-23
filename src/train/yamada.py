@@ -16,6 +16,7 @@ from src.logger import get_logger
 from src.train.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
+
 DATA_TYPES = ['wiki', 'conll', 'ace2004', 'msnbc']
 
 

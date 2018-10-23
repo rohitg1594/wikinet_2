@@ -61,12 +61,13 @@ class YamadaValidator:
             data, labels = self._get_next_batch(data)
             scores, _, _ = model(data)
             scores = scores.cpu().data.numpy()
-
+            print(f'SCORES SHAPE : {scores.shape}')
             preds = np.argmax(scores, axis=1)
             num_cor = (np.equal(preds, labels)).sum()
-
+            print(f'PREDS SHAPE : {preds.shape}')
             cor = np.equal(preds, labels)
             inc = np.not_equal(preds, labels)
+            print(f'PREDS SHAPE : {preds.shape}')
             inc_ids = np.where(inc)
             cor_ids = np.where(cor)
             context, candidates = data[:2]
