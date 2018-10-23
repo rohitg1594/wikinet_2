@@ -70,6 +70,8 @@ class YamadaValidator:
             print(f'PREDS SHAPE : {preds.shape}')
             inc_ids = np.where(inc)
             cor_ids = np.where(cor)
+            print(f'INC IDS: {inc_ids}')
+            print(f'COR IDS: {cor_ids}')
             context, candidates = data[:2]
             context, candidates = context.cpu().data.numpy(), candidates.cpu().data.numpy()
             inc_pred_str += self.get_pred_str(inc_ids, context, preds)
