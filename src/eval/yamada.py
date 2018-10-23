@@ -39,11 +39,10 @@ class YamadaValidator:
     def get_pred_str(self, ids, context, scores, candidates):
 
         comp_str = ''
-        print(f'PREDS SHAPE: {scores.shape}')
         for id in ids:
             word_tokens = context[id]
             context_str = ' '.join([self.rev_word_dict.get(word_token, '') for word_token in word_tokens[:20]])
-            pred_ids = candidates[id][(-scores[id]).argsort()]
+            pred_ids = candidates[id][(-scores[id]).argsort()][:10]
             pred_str = ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
             correct_ent = self.rev_ent_dict.get(candidates[id][0], '')
             comp_str += '||'.join([correct_ent, pred_str, context_str]) + '\n'
