@@ -46,7 +46,6 @@ class YamadaValidator:
             print(f'pred ids:{pred_ids}')
             pred_str = ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
             correct_ent = self.rev_ent_dict.get(candidates[id][0], '')
-            context.cpu().data.numpy()
             comp_str += '||'.join([correct_ent, pred_str, context_str]) + '\n'
 
         return comp_str
