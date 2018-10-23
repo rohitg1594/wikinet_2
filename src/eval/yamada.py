@@ -36,16 +36,18 @@ class YamadaValidator:
 
         return tuple(data), labels
 
-    def get_pred_str(self, ids, context, preds):
+    def get_pred_str(self, ids, context, preds, candidates):
 
         comp_str = ''
         for id in ids:
             word_tokens = context[id]
-            print(f'WORD TOKENS : {word_tokens}')
-            context_str = ' '.join([self.rev_word_dict.get(word_token, '') for word_token in word_tokens[:10]])
-            pred_ids = -preds[id].argsort()
+            context_str = ' '.join([self.rev_word_dict.get(word_token, '') for word_token in word_tokens[:20]])
+            pred_ids = (-preds[id]).argsort()
+            print(f'pred ids:{pred_ids}')
             pred_str = ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
-            comp_str += context_str + pred_str + '\n'
+            correct_ent = self.rev_ent_dict.get(candidates[id][0], '')
+            context.cpu().data.numpy()
+            comp_str += '||'.join([correct_ent, pred_str, context_str]) + '\n'
 
         return comp_str
 
@@ -61,23 +63,19 @@ class YamadaValidator:
             data, labels = self._get_next_batch(data)
             scores, _, _ = model(data)
             scores = scores.cpu().data.numpy()
-            print(f'SCORES SHAPE : {scores.shape}')
+
             preds = np.argmax(scores, axis=1)
             num_cor = (np.equal(preds, labels)).sum()
-            print(f'PREDS SHAPE : {preds.shape}')
+
             cor = np.equal(preds, labels)
             inc = np.not_equal(preds, labels)
-            print(f'PREDS SHAPE : {preds.shape}')
             inc_ids = np.where(inc)[0]
             cor_ids = np.where(cor)[0]
-            print(f'INC IDS: {inc_ids}')
-            print(f'COR IDS: {cor_ids}')
+
             context, candidates = data[:2]
-            print(f'CONTEXT SHAPE: {context.shape}')
-            print(f'CONTEXT: {context}')
             context, candidates = context.cpu().data.numpy(), candidates.cpu().data.numpy()
-            inc_pred_str += self.get_pred_str(inc_ids, context, preds)
-            cor_pred_str += self.get_pred_str(cor_ids, context, preds)
+            inc_pred_str += self.get_pred_str(inc_ids, context, preds, candidates)
+            cor_pred_str += self.get_pred_str(cor_ids, context, preds, candidates)
 
             total_correct += num_cor
             total_mention += scores.shape[0]
