@@ -17,6 +17,7 @@ from src.models.yamada.corpus_vec_average import YamadaCorpusVecAverage
 from src.models.yamada.corpus_vec_only import YamadaCorpusVecOnly
 from src.models.yamada.corpus_vec_linear import YamadaCorpusVecLinear
 
+
 class Models:
 
     # Combined

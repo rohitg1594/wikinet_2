@@ -164,8 +164,7 @@ def setup(args, logger):
                                             yamada_model=yamada_model,
                                             data=data[data_type]['dev'],
                                             args=args,
-                                            cand_type='necounts',
-                                            data_type=data_type)
+                                            cand_type='necounts')
         logger.info(f"{data_type} dev dataset created.")
 
     return train_dataset, datasets, yamada_model
@@ -206,7 +205,8 @@ def train(model=None,
         logger.info(f'Len loader {data_type} : {len(loader)}')
         validators[data_type] = YamadaValidator(loader=loader, args=args,
                                                 word_dict=yamada_model['word_dict'],
-                                                ent_dict=yamada_model['ent_dict'])
+                                                ent_dict=yamada_model['ent_dict'],
+                                                data_type=data_type)
         correct, mentions = validators[data_type].validate(model)
         res = correct / mentions * 100
         logger.info(f'Untrained, {data_type} - {res}')
