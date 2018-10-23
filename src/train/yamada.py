@@ -105,6 +105,7 @@ def parse_args():
     if not os.path.exists(model_date_dir):
         os.makedirs(model_date_dir)
     model_dir = join(model_date_dir, args.exp_name)
+    args.__dict__['model_dir'] = model_dir
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -163,7 +164,8 @@ def setup(args, logger):
                                             yamada_model=yamada_model,
                                             data=data[data_type]['dev'],
                                             args=args,
-                                            cand_type='necounts')
+                                            cand_type='necounts',
+                                            data_type=data_type)
         logger.info(f"{data_type} dev dataset created.")
 
     return train_dataset, datasets, yamada_model
