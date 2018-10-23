@@ -36,7 +36,7 @@ class YamadaValidator:
 
         return tuple(data), labels
 
-    def get_pred_str(self, ids, context, scores, candidates):
+    def get_pred_str(self, ids, context, scores, candidates, context_ids):
 
         comp_str = ''
         for id in ids:
@@ -45,7 +45,7 @@ class YamadaValidator:
             pred_ids = candidates[id][(-scores[id]).argsort()][:10]
             pred_str = ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
             correct_ent = self.rev_ent_dict.get(candidates[id][0], '')
-            comp_str += '||'.join([correct_ent, pred_str, context_str]) + '\n'
+            comp_str += '||'.join([correct_ent, pred_str, str(context_ids[id]), context_str]) + '\n'
 
         return comp_str
 
@@ -70,10 +70,11 @@ class YamadaValidator:
             inc_ids = np.where(inc)[0]
             cor_ids = np.where(cor)[0]
 
-            context, candidates = data[:2]
-            context, candidates = context.cpu().data.numpy(), candidates.cpu().data.numpy()
-            inc_pred_str += self.get_pred_str(inc_ids, context, scores, candidates)
-            cor_pred_str += self.get_pred_str(cor_ids, context, scores, candidates)
+            context_ids, context, candidates = data[:3]
+            context_ids, context, candidates = context_ids.cpu().data.numpy(), \
+                                               context.cpu().data.numpy(), candidates.cpu().data.numpy()
+            inc_pred_str += self.get_pred_str(inc_ids, context, scores, candidates, context_ids)
+            cor_pred_str += self.get_pred_str(cor_ids, context, scores, candidates, context_ids)
 
             total_correct += num_cor
             total_mention += scores.shape[0]

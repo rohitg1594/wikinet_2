@@ -18,7 +18,7 @@ class YamadaCorpusVecAverage(YamadaBase, Loss):
     def forward(self, inputs):
 
         # Unpack
-        corpus_context, context, candidate_ids, priors, conditionals, exact_match, contains = inputs
+        context, candidate_ids, priors, conditionals, exact_match, contains, corpus_context = inputs
         b, num_cand = candidate_ids.shape
         b, num_doc, num_context = corpus_context.shape
 

@@ -136,9 +136,9 @@ class YamadaDataset(object):
                 conditionals[cand_idx] = 0
 
         if self.corpus_flag:
-            return corpus_context, context, candidate_ids, priors, conditionals, exact_match, contains
+            return context_id, context, candidate_ids, priors, conditionals, exact_match, contains, corpus_context
         else:
-            return context, candidate_ids, priors, conditionals, exact_match, contains
+            return context_id, context, candidate_ids, priors, conditionals, exact_match, contains
 
     def __len__(self):
         return len(self.examples)
