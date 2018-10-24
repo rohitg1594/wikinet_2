@@ -96,6 +96,8 @@ class YamadaDataset(object):
         priors = np.zeros(self.num_candidates).astype(np.float32)
         conditionals = np.zeros(self.num_candidates).astype(np.float32)
 
+        true_not_in_cand = 1  # if true entity is in the candidates
+
         context_id, example = self.examples[index]
         context = self.processed_id2context[context_id]
         mention_str, ent_str, _, _ = example
@@ -118,6 +120,7 @@ class YamadaDataset(object):
                 candidate_ids.extend(self.necounts[nf])
 
         if true_ent in candidate_ids:
+            true_not_in_cand = 0
             candidate_ids.remove(true_ent)
         candidate_ids = self._gen_cands(true_ent, candidate_ids)
 
@@ -136,9 +139,9 @@ class YamadaDataset(object):
                 conditionals[cand_idx] = 0
 
         if self.corpus_flag:
-            return context_id, context, candidate_ids, priors, conditionals, exact_match, contains, corpus_context
+            return true_not_in_cand, context, candidate_ids, priors, conditionals, exact_match, contains, corpus_context
         else:
-            return context_id, context, candidate_ids, priors, conditionals, exact_match, contains
+            return true_not_in_cand, context, candidate_ids, priors, conditionals, exact_match, contains
 
     def __len__(self):
         return len(self.examples)

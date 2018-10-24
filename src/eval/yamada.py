@@ -37,7 +37,7 @@ class YamadaValidator:
 
         return tuple(data), labels
 
-    def get_pred_str(self, batch_no, ids, context, scores, candidates, context_ids):
+    def get_pred_str(self, batch_no, ids, context, scores, candidates):
 
         comp_str = ''
         for id in ids:
@@ -47,7 +47,7 @@ class YamadaValidator:
             pred_ids = candidates[id][(-scores[id]).argsort()][:10]
             pred_str = ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
             correct_ent = self.rev_ent_dict.get(candidates[id][0], '')
-            comp_str += '||'.join([mention_id, correct_ent, pred_str, str(context_ids[id]), context_str]) + '\n'
+            comp_str += '||'.join([mention_id, correct_ent, pred_str, context_str]) + '\n'
 
         return comp_str
 
@@ -56,6 +56,7 @@ class YamadaValidator:
 
         total_correct = 0
         total_mention = 0
+        total_true_not_in_cand = 0
         cor_pred_str = ''
         inc_pred_str = ''
 
@@ -72,14 +73,15 @@ class YamadaValidator:
             inc_ids = np.where(inc)[0]
             cor_ids = np.where(cor)[0]
 
-            context_ids, context, candidates = data[:3]
-            context_ids, context, candidates = context_ids.cpu().data.numpy(), \
+            true_not_in_cand, context, candidates = data[:3]
+            true_not_in_cand, context, candidates = true_not_in_cand.cpu().data.numpy().sum(), \
                                                context.cpu().data.numpy(), candidates.cpu().data.numpy()
-            inc_pred_str += self.get_pred_str(batch_no, inc_ids, context, scores, candidates, context_ids)
-            cor_pred_str += self.get_pred_str(batch_no, cor_ids, context, scores, candidates, context_ids)
+            inc_pred_str += self.get_pred_str(batch_no, inc_ids, context, scores, candidates)
+            cor_pred_str += self.get_pred_str(batch_no, cor_ids, context, scores, candidates)
 
             total_correct += num_cor
             total_mention += scores.shape[0]
+            total_true_not_in_cand += true_not_in_cand
 
         with open(join(self.args.model_dir, f'inc_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(inc_pred_str)
@@ -87,5 +89,5 @@ class YamadaValidator:
         with open(join(self.args.model_dir, f'cor_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(cor_pred_str)
 
-        return total_correct, total_mention
+        return total_correct, total_mention, total_true_not_in_cand
 

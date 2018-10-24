@@ -60,10 +60,10 @@ def grid_search(yamada_model=None,
             validators[data_type] = YamadaValidator(loader=loader, args=args,
                                                     word_dict=yamada_model['word_dict'],
                                                     ent_dict=yamada_model['ent_dict'])
-            correct, mentions = validators[data_type].validate(model)
-            res = correct / mentions * 100
-            results[result_key][data_type] = [res]
-            logger.info(f'Untrained, {data_type} - {res}')
+            correct, mentions, true_not_in_cand = validators[data_type].validate(model)
+            res_w_full = correct / mentions * 100
+            res_w_cand = (correct - true_not_in_cand) / mentions * 100
+            logger.info(f'Untrained, {data_type} - {res_w_full}, {res_w_cand}')
 
         trainer = Trainer(loader=train_loader,
                           args=args,
