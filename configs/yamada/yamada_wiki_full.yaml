@@ -1,6 +1,6 @@
 # General
 seed:-1
-exp_name:yamada_wiki
+exp_name:yamada_wiki_full
 debug:False
 
 # Data
@@ -19,7 +19,7 @@ num_docs:100
 model_name:corpus_vec
 
 # Model Params
-hidden_size:1000
+hidden_size:2000
 dp:0.2
 
 # Candidate Generation
@@ -32,7 +32,7 @@ patience:10
 num_epochs:10
 batch_size:16
 num_workers:8
-lr:1e-03
+lr:5e-03
 wd:1e-04
 optim:rmsprop
 sparse:False
