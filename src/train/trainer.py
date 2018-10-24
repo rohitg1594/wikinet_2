@@ -97,7 +97,7 @@ class Trainer(object):
             acc_not_corrected = correct / mentions * 100
             acc_corrected = (correct - cand_correction) / mentions * 100
             logger.info(f'Epoch - {epoch}, {data_type} - {acc_not_corrected}, {acc_corrected}')
-
+            results[data_type] = acc_corrected
             if self.result_key is not None:
                 self.result_dict[self.result_key][data_type].append(acc_corrected)
 
