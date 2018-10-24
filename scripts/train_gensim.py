@@ -1,6 +1,5 @@
 import gensim
 import sys
-import logging
 import argparse
 sys.path.append('/home/rogupta/wikinet_2/')
 
@@ -9,6 +8,7 @@ from src.utils.utils import *
 
 parser = argparse.ArgumentParser(description='Training Gensim')
 parser.add_argument('--data_path', required=True, type=str, help='config file path')
+parser.add_argument('--num_epochs', required=True, type=str, help='number of epochs')
 
 logger = logging.getLogger()
 log_formatter = logging.Formatter(fmt='%(levelname)s:%(asctime)s:%(message)s', datefmt='%I:%M:%S %p')
@@ -33,10 +33,11 @@ class RegexpTokenizer(object):
 
 args = parser.parse_args()
 tokenizer = RegexpTokenizer()
-WIKI_DIR = '/home/rogupta/enwiki-latest-wikiextractor-2/'
+WIKI_DIR = '/work/rogupta/enwiki-latest-wikiextractor-2/'
 DATA_PATH = args.data_path
 NUM_WORKERS = 20
 EMB_SIZE = 300
+NUM_EPOCHS = args.num_epochs
 
 logger.info("Loading Training data.....")
 train_data = pickle_load(join(DATA_PATH, 'w2v/training.pickle'))
@@ -47,9 +48,9 @@ tokenized_data = [tokenizer.tokenize(abst) for abst in train_data]
 logger.info("Training data tokenized.")
 
 logger.info("Starting Training.....")
-model = gensim.models.Word2Vec(tokenized_data, size=EMB_SIZE, workers=NUM_WORKERS, min_count=5, iter=10)
+model = gensim.models.Word2Vec(tokenized_data, size=EMB_SIZE, workers=NUM_WORKERS, min_count=5, iter=NUM_EPOCHS)
 logger.info("Training done.")
 
 logger.info("Saving Model.....")
-model.save(os.path.join(DATA_PATH, 'w2v', 'model'))
+model.save(os.path.join(DATA_PATH, f'w2v-{EMB_SIZE}-{NUM_EPOCHS}', 'model'))
 logger.info("Model Saved.")
