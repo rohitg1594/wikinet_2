@@ -10,7 +10,7 @@ from src.models.loss import Loss
 class YamadaCorpusVecLinear(YamadaBase, Loss):
 
     def __init__(self, yamada_model=None, args=None):
-        super().__init__(yamada_model, args)
+        super(YamadaBase).__init__(yamada_model, args)
 
         self.hidden = nn.Linear(6 + 3 * self.emb_dim, self.args.hidden_size)
         self.output = nn.Linear(self.args.hidden_size, 1)
