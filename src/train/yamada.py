@@ -188,7 +188,8 @@ def train(model=None,
           model_dir=None,
           train_dataset=None,
           args=None,
-          yamada_model=None):
+          yamada_model=None,
+          run=None):
 
     train_loader = train_dataset.get_loader(batch_size=args.batch_size,
                                             shuffle=False,
@@ -207,7 +208,8 @@ def train(model=None,
         validators[data_type] = YamadaValidator(loader=loader, args=args,
                                                 word_dict=yamada_model['word_dict'],
                                                 ent_dict=yamada_model['ent_dict'],
-                                                data_type=data_type)
+                                                data_type=data_type,
+                                                run=run)
         correct, mentions = validators[data_type].validate(model)
         res = correct / mentions * 100
         logger.info(f'Untrained, {data_type} - {res}')
@@ -229,10 +231,13 @@ if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
     Train_dataset, Datasets, Yamada_model = setup(Args, Logger)
     Model = get_model(Args, Yamada_model, Logger)
-    train(model=Model,
-          model_dir=Model_dir,
-          train_dataset=Train_dataset,
-          datasets=Datasets,
-          logger=Logger,
-          args=Args,
-          yamada_model=Yamada_model)
+
+    for i in range(1, 11):
+        train(model=Model,
+              model_dir=Model_dir,
+              train_dataset=Train_dataset,
+              datasets=Datasets,
+              logger=Logger,
+              args=Args,
+              yamada_model=Yamada_model,
+              run=i)

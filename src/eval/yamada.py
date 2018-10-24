@@ -12,7 +12,7 @@ logger = getLogger()
 
 
 class YamadaValidator:
-    def __init__(self, loader=None, args=None, ent_dict=None, word_dict=None, data_type=None):
+    def __init__(self, loader=None, args=None, ent_dict=None, word_dict=None, data_type=None, run=None):
 
         self.loader = loader
         self.args = args
@@ -21,6 +21,7 @@ class YamadaValidator:
         self.rev_ent_dict = reverse_dict(ent_dict)
         self.rev_word_dict = reverse_dict(word_dict)
         self.data_type = data_type
+        self.run = run
 
     def _get_next_batch(self, data):
         data = list(data)
@@ -79,10 +80,10 @@ class YamadaValidator:
             total_correct += num_cor
             total_mention += scores.shape[0]
 
-        with open(join(self.args.model_dir, f'inc_preds_{self.data_type}.txt'), 'w') as f:
+        with open(join(self.args.model_dir, f'inc_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(inc_pred_str)
 
-        with open(join(self.args.model_dir, f'cor_preds_{self.data_type}.txt'), 'w') as f:
+        with open(join(self.args.model_dir, f'cor_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(cor_pred_str)
 
         return total_correct, total_mention
