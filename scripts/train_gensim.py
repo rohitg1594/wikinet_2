@@ -8,7 +8,9 @@ from src.utils.utils import *
 
 parser = argparse.ArgumentParser(description='Training Gensim')
 parser.add_argument('--data_path', required=True, type=str, help='config file path')
-parser.add_argument('--num_epochs', required=True, type=str, help='number of epochs')
+parser.add_argument('--num_epochs', required=True, type=int, help='number of epochs')
+parser.add_argument('--num_workers', required=True, type=int, help='number of workers')
+parser.add_argument('--emb_size', required=True, type=int, help='embedding size')
 
 logger = logging.getLogger()
 log_formatter = logging.Formatter(fmt='%(levelname)s:%(asctime)s:%(message)s', datefmt='%I:%M:%S %p')
@@ -31,12 +33,13 @@ class RegexpTokenizer(object):
         else:
             return [text[o.start():o.end()] for o in self._rule.finditer(text)]
 
+
 args = parser.parse_args()
 tokenizer = RegexpTokenizer()
 WIKI_DIR = '/work/rogupta/enwiki-latest-wikiextractor-2/'
 DATA_PATH = args.data_path
-NUM_WORKERS = 20
-EMB_SIZE = 300
+NUM_WORKERS = args.num_workers
+EMB_SIZE = args.emb_size
 NUM_EPOCHS = args.num_epochs
 
 logger.info("Loading Training data.....")
