@@ -210,10 +210,10 @@ def train(model=None,
                                                 ent_dict=yamada_model['ent_dict'],
                                                 data_type=data_type,
                                                 run=run)
-        correct, mentions, true_not_in_cand = validators[data_type].validate(model)
-        res_w_full = correct / mentions * 100
-        res_w_cand = (correct - true_not_in_cand) / mentions * 100
-        logger.info(f'Untrained, {data_type} - {res_w_full}, {res_w_cand}')
+        correct, mentions, cand_correction = validators[data_type].validate(model)
+        acc_not_corrected = correct / mentions * 100
+        acc_corrected = (correct - cand_correction) / mentions * 100
+        logger.info(f'Untrained, {data_type} - {acc_not_corrected}, {acc_corrected}')
 
     trainer = Trainer(loader=train_loader,
                       args=args,

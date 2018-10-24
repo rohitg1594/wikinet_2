@@ -93,14 +93,13 @@ class Trainer(object):
     def yamada_validate(self, epoch):
         results = {}
         for data_type in self.data_types:
-            correct, mentions, true_not_in_cand = self.validator[data_type].validate(self.model)
-            res_w_full = correct / mentions * 100
-            res_w_cand = (correct - true_not_in_cand) / mentions * 100
-            results[data_type] = res_w_cand
-            logger.info(f'Epoch - {epoch}, {data_type} - {res_w_full}, {res_w_cand}')
+            correct, mentions, cand_correction= self.validator[data_type].validate(self.model)
+            acc_not_corrected = correct / mentions * 100
+            acc_corrected = (correct - cand_correction) / mentions * 100
+            logger.info(f'Epoch - {epoch}, {data_type} - {acc_not_corrected}, {acc_corrected}')
 
             if self.result_key is not None:
-                self.result_dict[self.result_key][data_type].append(res_w_cand)
+                self.result_dict[self.result_key][data_type].append(acc_corrected)
 
         return results['conll']
 

@@ -56,7 +56,7 @@ class YamadaValidator:
 
         total_correct = 0
         total_mention = 0
-        total_true_not_in_cand = 0
+        total_cand_correction = 0
         cor_pred_str = ''
         inc_pred_str = ''
 
@@ -74,14 +74,16 @@ class YamadaValidator:
             cor_ids = np.where(cor)[0]
 
             true_not_in_cand, context, candidates = data[:3]
-            true_not_in_cand, context, candidates = true_not_in_cand.cpu().data.numpy().sum(), \
-                                               context.cpu().data.numpy(), candidates.cpu().data.numpy()
+            true_not_in_cand, context, candidates = true_not_in_cand.cpu().data.numpy(), \
+                                                    context.cpu().data.numpy(), \
+                                                    candidates.cpu().data.numpy()
             inc_pred_str += self.get_pred_str(batch_no, inc_ids, context, scores, candidates)
             cor_pred_str += self.get_pred_str(batch_no, cor_ids, context, scores, candidates)
 
             total_correct += num_cor
             total_mention += scores.shape[0]
-            total_true_not_in_cand += true_not_in_cand
+            cand_correction = true_not_in_cand[cor_ids].sum()
+            total_cand_correction += cand_correction
 
         with open(join(self.args.model_dir, f'inc_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(inc_pred_str)
@@ -89,5 +91,5 @@ class YamadaValidator:
         with open(join(self.args.model_dir, f'cor_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(cor_pred_str)
 
-        return total_correct, total_mention, total_true_not_in_cand
+        return total_correct, total_mention, total_cand_correction
 
