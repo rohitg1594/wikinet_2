@@ -230,9 +230,9 @@ def train(model=None,
 if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
     Train_dataset, Datasets, Yamada_model = setup(Args, Logger)
-    Model = get_model(Args, Yamada_model, Logger)
 
     for i in range(1, 11):
+        Model = get_model(Args, Yamada_model, Logger)
         train(model=Model,
               model_dir=Model_dir,
               train_dataset=Train_dataset,

@@ -13,6 +13,7 @@ class YamadaBase(nn.Module):
         b = yamada_model['b']
 
         self.emb_dim = word_embs.shape[1]
+        self.num_ent = ent_embs.shape[0]
         self.args = args
 
         # Words
