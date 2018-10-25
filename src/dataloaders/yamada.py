@@ -8,6 +8,8 @@ from os.path import join
 from src.utils.utils import reverse_dict, get_normalised_forms, equalize_len, normalise_form
 from src.utils.data import pickle_load
 
+import difflib
+
 
 class YamadaDataset(object):
 
@@ -30,6 +32,8 @@ class YamadaDataset(object):
         self.max_ent = len(self.ent2id)
         self.ent_prior = ent_prior
         self.ent_conditional = ent_conditional
+
+        self.redirects = pickle_load(join(self.args.data_path, 'redirects.pickle'))
 
         self.cand_rand = cand_rand
         self.cand_type = cand_type
@@ -95,13 +99,21 @@ class YamadaDataset(object):
         contains = np.zeros(self.num_candidates).astype(np.float32)
         priors = np.zeros(self.num_candidates).astype(np.float32)
         conditionals = np.zeros(self.num_candidates).astype(np.float32)
-
         true_not_in_cand = 1  # if true entity is in the candidates
 
         context_id, example = self.examples[index]
         context = self.processed_id2context[context_id]
         mention_str, ent_str, _, _ = example
-        true_ent = self.ent2id.get(ent_str, 0)
+        if ent_str not in self.ent2id:
+            if ent_str in self.redirects:
+                ent_str = self.redirects[ent_str]
+
+        if ent_str in self.ent2id:
+            true_ent = self.ent2id[ent_str]
+            ent_ignore = 0
+        else:
+            true_ent = 0
+            ent_ignore = 1
 
         if self.corpus_flag:
             if self.rand_docs:
@@ -139,9 +151,9 @@ class YamadaDataset(object):
                 conditionals[cand_idx] = 0
 
         if self.corpus_flag:
-            return true_not_in_cand, context, candidate_ids, priors, conditionals, exact_match, contains, corpus_context
+            return ent_ignore, true_not_in_cand, context, candidate_ids, priors, conditionals, exact_match, contains, corpus_context
         else:
-            return true_not_in_cand, context, candidate_ids, priors, conditionals, exact_match, contains
+            return ent_ignore, true_not_in_cand, context, candidate_ids, priors, conditionals, exact_match, contains
 
     def __len__(self):
         return len(self.examples)

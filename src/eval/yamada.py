@@ -43,10 +43,10 @@ class YamadaValidator:
         for id in ids:
             word_tokens = context[id]
             mention_id = str(batch_no * self.args.batch_size + id)
-            context_str = ' '.join([self.rev_word_dict.get(word_token, '') for word_token in word_tokens[:20]])
+            context_str = ' '.join([self.rev_word_dict.get(word_token, 'UNK_WORD') for word_token in word_tokens[:20]])
             pred_ids = candidates[id][(-scores[id]).argsort()][:10]
-            pred_str = ','.join([self.rev_ent_dict.get(pred_id, '') for pred_id in pred_ids])
-            correct_ent = self.rev_ent_dict.get(candidates[id][0], '')
+            pred_str = ','.join([self.rev_ent_dict.get(pred_id, 'UNK_ENT') for pred_id in pred_ids])
+            correct_ent = self.rev_ent_dict.get(candidates[id][0], 'UNK_ENT')
             comp_str += '||'.join([mention_id, correct_ent, pred_str, context_str]) + '\n'
 
         return comp_str
@@ -57,6 +57,7 @@ class YamadaValidator:
         total_correct = 0
         total_mention = 0
         total_cand_correction = 0
+        total_ent_ignore = 0
         cor_pred_str = ''
         inc_pred_str = ''
 
@@ -64,6 +65,29 @@ class YamadaValidator:
             data, labels = self._get_next_batch(data)
             scores, _, _ = model(data)
             scores = scores.cpu().data.numpy()
+
+            ent_ignore, true_not_in_cand, context, candidates = data[:4]
+            ent_ignore, true_not_in_cand, context, candidates = ent_ignore.cpu().data.numpy(), \
+                                                                true_not_in_cand.cpu().data.numpy(), \
+                                                                context.cpu().data.numpy(), \
+                                                                candidates.cpu().data.numpy()
+            total_ent_ignore += ent_ignore.sum()
+
+            print('BEFORE')
+            print(f'SCORES : {scores}')
+            print(f'CANDIDATES : {candidates}')
+            print(f'TRUE NOT IN CANDS : {true_not_in_cand}')
+
+            scores = scores[ent_ignore != 1]
+            labels = labels[ent_ignore != 1]
+            context = context[ent_ignore != 1]
+            candidates = candidates[ent_ignore != 1]
+            true_not_in_cand = true_not_in_cand[ent_ignore != 1]
+
+            print('AFTER')
+            print(f'ENT IGNORE : {ent_ignore}')
+            print(f'CANDIDATES : {candidates}')
+            print(f'TRUE NOT IN CANDS : {true_not_in_cand}')
 
             preds = np.argmax(scores, axis=1)
             num_cor = (np.equal(preds, labels)).sum()
@@ -73,10 +97,6 @@ class YamadaValidator:
             inc_ids = np.where(inc)[0]
             cor_ids = np.where(cor)[0]
 
-            true_not_in_cand, context, candidates = data[:3]
-            true_not_in_cand, context, candidates = true_not_in_cand.cpu().data.numpy(), \
-                                                    context.cpu().data.numpy(), \
-                                                    candidates.cpu().data.numpy()
             inc_pred_str += self.get_pred_str(batch_no, inc_ids, context, scores, candidates)
             cor_pred_str += self.get_pred_str(batch_no, cor_ids, context, scores, candidates)
 
