@@ -57,7 +57,7 @@ model = gensim.models.Word2Vec(tokenized_data,
 logger.info("Training done.")
 
 logger.info("Saving Model.....")
-output_dir = os.path.join(args.data_path, 'w2v', f'w2v-{args.train_type}-{args.emb_size}-{args.num_epochs}-{args.min_counts}')
+output_dir = os.path.join(args.data_path, 'w2v', f'w2v-{args.train_type}-{args.emb_size}-{args.num_epochs}-{args.min_count}')
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 model.save(join(output_dir, 'model'))
