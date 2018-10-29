@@ -11,7 +11,8 @@ parser.add_argument('--data_path', required=True, type=str, help='config file pa
 parser.add_argument('--num_epochs', required=True, type=int, help='number of epochs')
 parser.add_argument('--num_workers', required=True, type=int, help='number of workers')
 parser.add_argument('--emb_size', required=True, type=int, help='embedding size')
-parser.add_argument('--min_count', required=True, type=int, help='minimum count considered while training')
+parser.add_argument('--word_min_count', required=True, type=int, help='minimum count considered while training')
+parser.add_argument('--ent_min_count', required=True, type=int, help='minimum count considered while training')
 parser.add_argument('--train_type', required=True, type=str, help='type of training data - new or yamada')
 
 logger = logging.getLogger()
@@ -38,7 +39,7 @@ class RegexpTokenizer(object):
 
 def my_trim_rule(word, count, min_count):
     if word.startswith('e__'):
-        if count < 3:
+        if count < args.ent_min_count:
             return gensim.utils.RULE_DISCARD
         else:
             return gensim.utils.RULE_KEEP
@@ -62,13 +63,13 @@ logger.info("Starting Training.....")
 model = gensim.models.Word2Vec(tokenized_data,
                                size=args.emb_size,
                                workers=args.num_workers,
-                               min_count=args.min_count,
+                               min_count=args.word_min_count,
                                iter=args.num_epochs,
                                trim_rule=my_trim_rule)
 logger.info("Training done.")
 
 logger.info("Saving Model.....")
-output_dir = os.path.join(args.data_path, 'w2v', f'w2v-{args.train_type}-{args.emb_size}-{args.num_epochs}-{args.min_count}')
+output_dir = os.path.join(args.data_path, 'w2v', f'w2v-{args.train_type}-{args.emb_size}-{args.num_epochs}-{args.ent_min_count}')
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 model.save(join(output_dir, 'model'))
