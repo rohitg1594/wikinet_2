@@ -93,7 +93,7 @@ class Trainer(object):
     def yamada_validate(self, epoch):
         results = {}
         for data_type in self.data_types:
-            ent_in_dict, ent_ignore, not_in_cand, correct = self.validators[data_type].validate(self.model)
+            ent_in_dict, ent_ignore, not_in_cand, correct = self.validator[data_type].validate(self.model)
             total_mentions = ent_in_dict, ent_ignore
             print(
                 f'Total Examples : {total_mentions}, Ent Ignored : {ent_ignore}, Not in Cand: {not_in_cand}, Correct : {correct}')
