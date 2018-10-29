@@ -11,6 +11,7 @@ parser.add_argument('--data_path', required=True, type=str, help='config file pa
 parser.add_argument('--num_epochs', required=True, type=int, help='number of epochs')
 parser.add_argument('--num_workers', required=True, type=int, help='number of workers')
 parser.add_argument('--emb_size', required=True, type=int, help='embedding size')
+parser.add_argument('--min_count', required=True, type=int, help='minimum count considered while training')
 parser.add_argument('--train_type', required=True, type=str, help='type of training data - new or yamada')
 
 logger = logging.getLogger()
@@ -44,11 +45,14 @@ train_data = pickle_load(join(args.data_path, f'w2v/train-{args.train_type}-dict
 logger.info("Training data loaded.")
 
 logger.info("Tokenizing Training data.....")
-tokenized_data = [tokenizer.tokenize(abst) for abst in train_data]
+tokenized_data = [tokenizer.tokenize(abst) for abst in train_data[:1000]]
 logger.info("Training data tokenized.")
 
 logger.info("Starting Training.....")
-model = gensim.models.Word2Vec(tokenized_data, size=args.emb_size, workers=args.num_workers, min_count=3,
+model = gensim.models.Word2Vec(tokenized_data,
+                               size=args.emb_size,
+                               workers=args.num_workers,
+                               min_count=args.min_count,
                                iter=args.num_epochs)
 logger.info("Training done.")
 
