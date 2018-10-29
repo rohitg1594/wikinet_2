@@ -39,11 +39,11 @@ class RegexpTokenizer(object):
 def my_trim_rule(word, count, min_count):
     if word.startswith('e__'):
         if count < 3:
-            return gensim.utills.RULE_DISCARD
+            return gensim.utils.RULE_DISCARD
         else:
-            return gensim.utills.RULE_KEEP
+            return gensim.utils.RULE_KEEP
 
-    return gensim.utills.RULE_DEFAULT
+    return gensim.utils.RULE_DEFAULT
 
 
 args = parser.parse_args()
