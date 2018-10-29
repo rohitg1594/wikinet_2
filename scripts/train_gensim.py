@@ -11,6 +11,7 @@ parser.add_argument('--data_path', required=True, type=str, help='config file pa
 parser.add_argument('--num_epochs', required=True, type=int, help='number of epochs')
 parser.add_argument('--num_workers', required=True, type=int, help='number of workers')
 parser.add_argument('--emb_size', required=True, type=int, help='embedding size')
+parser.add_argument('--train_type', required=True, type=str, help='type of training data - new or yamada')
 
 logger = logging.getLogger()
 log_formatter = logging.Formatter(fmt='%(levelname)s:%(asctime)s:%(message)s', datefmt='%I:%M:%S %p')
@@ -37,13 +38,9 @@ class RegexpTokenizer(object):
 args = parser.parse_args()
 tokenizer = RegexpTokenizer()
 WIKI_DIR = '/work/rogupta/enwiki-latest-wikiextractor-2/'
-DATA_PATH = args.data_path
-NUM_WORKERS = args.num_workers
-EMB_SIZE = args.emb_size
-NUM_EPOCHS = args.num_epochs
 
 logger.info("Loading Training data.....")
-train_data = pickle_load(join(DATA_PATH, 'w2v/training.pickle'))
+train_data = pickle_load(join(args.data_path, 'w2v/train-{args.train_type}-dict.pickle'))
 logger.info("Training data loaded.")
 
 logger.info("Tokenizing Training data.....")
@@ -51,9 +48,10 @@ tokenized_data = [tokenizer.tokenize(abst) for abst in train_data]
 logger.info("Training data tokenized.")
 
 logger.info("Starting Training.....")
-model = gensim.models.Word2Vec(tokenized_data, size=EMB_SIZE, workers=NUM_WORKERS, min_count=5, iter=NUM_EPOCHS)
+model = gensim.models.Word2Vec(tokenized_data, size=args.emb_size, workers=args.num_workers, min_count=3,
+                               iter=args.num_epochs)
 logger.info("Training done.")
 
 logger.info("Saving Model.....")
-model.save(os.path.join(DATA_PATH, f'w2v-{EMB_SIZE}-{NUM_EPOCHS}', 'model'))
+model.save(os.path.join(args.data_path, f'w2v-{args.train_type}-{args.emb_size}-{args.num_epochs}', 'model'))
 logger.info("Model Saved.")
