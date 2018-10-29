@@ -211,7 +211,8 @@ def train(model=None,
                                                 data_type=data_type,
                                                 run=run)
         correct, mentions, cand_correction, ent_ignored = validators[data_type].validate(model)
-        print(f'Total Examples : {len(datasets[data_type])}, Ent Ignored : {ent_ignored}, Correct : {correct}, Mentions : {mentions}, Cand Correction : {cand_correction}')
+        print(
+            f'Total Examples : {len(datasets[data_type])}, Ent Ignored : {ent_ignored}, Correct : {correct}, Mentions : {mentions}, Cand Correction : {cand_correction}')
         acc_not_corrected = correct / mentions * 100
         acc_corrected = (correct - cand_correction) / mentions * 100
         logger.info(f'Untrained, {data_type} - {acc_not_corrected}, {acc_corrected}')

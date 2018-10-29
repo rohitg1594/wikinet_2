@@ -93,7 +93,9 @@ class Trainer(object):
     def yamada_validate(self, epoch):
         results = {}
         for data_type in self.data_types:
-            correct, mentions, cand_correction= self.validator[data_type].validate(self.model)
+            correct, mentions, cand_correction, ent_ignored = self.validator[data_type].validate(self.model)
+            print(
+                f'Total Examples : {len(datasets[data_type])}, Ent Ignored : {ent_ignored}, Correct : {correct}, Mentions : {mentions}, Cand Correction : {cand_correction}')
             acc_not_corrected = correct / mentions * 100
             acc_corrected = (correct - cand_correction) / mentions * 100
             logger.info(f'Epoch - {epoch}, {data_type} - {acc_not_corrected}, {acc_corrected}')
