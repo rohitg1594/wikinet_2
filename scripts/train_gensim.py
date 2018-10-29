@@ -40,7 +40,7 @@ tokenizer = RegexpTokenizer()
 WIKI_DIR = '/work/rogupta/enwiki-latest-wikiextractor-2/'
 
 logger.info("Loading Training data.....")
-train_data = pickle_load(join(args.data_path, 'w2v/train-{args.train_type}-dict.pickle'))
+train_data = pickle_load(join(args.data_path, f'w2v/train-{args.train_type}-dict.pickle'))
 logger.info("Training data loaded.")
 
 logger.info("Tokenizing Training data.....")
