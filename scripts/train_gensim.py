@@ -45,7 +45,7 @@ train_data = pickle_load(join(args.data_path, f'w2v/train-{args.train_type}-dict
 logger.info("Training data loaded.")
 
 logger.info("Tokenizing Training data.....")
-tokenized_data = [tokenizer.tokenize(abst) for abst in train_data[:10000]]
+tokenized_data = [tokenizer.tokenize(abst) for abst in train_data]
 logger.info("Training data tokenized.")
 
 logger.info("Starting Training.....")
@@ -57,7 +57,7 @@ model = gensim.models.Word2Vec(tokenized_data,
 logger.info("Training done.")
 
 logger.info("Saving Model.....")
-output_dir = os.path.join(args.data_path, f'w2v-{args.train_type}-{args.emb_size}-{args.num_epochs}')
+output_dir = os.path.join(args.data_path, 'w2v', f'w2v-{args.train_type}-{args.emb_size}-{args.num_epochs}-{args.min_counts}')
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
 model.save(join(output_dir, 'model'))
