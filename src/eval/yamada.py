@@ -73,23 +73,11 @@ class YamadaValidator:
                                                                 candidates.cpu().data.numpy()
             total_ent_ignore += ent_ignore.sum()
 
-            if batch_no == 0:
-                print('BEFORE')
-                print(f'SCORES : {scores}')
-                print(f'CANDIDATES : {candidates}')
-                print(f'TRUE NOT IN CANDS : {true_not_in_cand}')
-
-            scores = scores[ent_ignore != 1][:20]
-            labels = labels[ent_ignore != 1][:20]
-            context = context[ent_ignore != 1][:20]
-            candidates = candidates[ent_ignore != 1][:20]
-            true_not_in_cand = true_not_in_cand[ent_ignore != 1][:20]
-
-            if batch_no == 0:
-                print('AFTER')
-                print(f'ENT IGNORE : {ent_ignore}')
-                print(f'CANDIDATES : {candidates}')
-                print(f'TRUE NOT IN CANDS : {true_not_in_cand}')
+            scores = scores[ent_ignore != 1]
+            labels = labels[ent_ignore != 1]
+            context = context[ent_ignore != 1]
+            candidates = candidates[ent_ignore != 1]
+            true_not_in_cand = true_not_in_cand[ent_ignore != 1]
 
             preds = np.argmax(scores, axis=1)
             num_cor = (np.equal(preds, labels)).sum()

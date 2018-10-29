@@ -99,7 +99,7 @@ class YamadaDataset(object):
         contains = np.zeros(self.num_candidates).astype(np.float32)
         priors = np.zeros(self.num_candidates).astype(np.float32)
         conditionals = np.zeros(self.num_candidates).astype(np.float32)
-        true_not_in_cand = 1  # if true entity is in the candidates
+        true_not_in_cand = 1  # if true entity is not in the candidates
 
         context_id, example = self.examples[index]
         context = self.processed_id2context[context_id]
