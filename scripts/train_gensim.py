@@ -45,7 +45,7 @@ train_data = pickle_load(join(args.data_path, f'w2v/train-{args.train_type}-dict
 logger.info("Training data loaded.")
 
 logger.info("Tokenizing Training data.....")
-tokenized_data = [tokenizer.tokenize(abst) for abst in train_data[:100000]]
+tokenized_data = [tokenizer.tokenize(abst) for abst in train_data]
 logger.info("Training data tokenized.")
 
 logger.info("Starting Training.....")
