@@ -36,6 +36,16 @@ class RegexpTokenizer(object):
             return [text[o.start():o.end()] for o in self._rule.finditer(text)]
 
 
+def my_trim_rule(word, count, min_count):
+    if word.startswith('e__'):
+        if count < 3:
+            return gensim.utills.RULE_DISCARD
+        else:
+            return gensim.utills.RULE_KEEP
+
+    return gensim.utills.RULE_DEFAULT
+
+
 args = parser.parse_args()
 tokenizer = RegexpTokenizer()
 WIKI_DIR = '/work/rogupta/enwiki-latest-wikiextractor-2/'
@@ -45,7 +55,7 @@ train_data = pickle_load(join(args.data_path, f'w2v/train-{args.train_type}-dict
 logger.info("Training data loaded.")
 
 logger.info("Tokenizing Training data.....")
-tokenized_data = [tokenizer.tokenize(abst) for abst in train_data]
+tokenized_data = [tokenizer.tokenize(abst) for abst in train_data[:10000]]
 logger.info("Training data tokenized.")
 
 logger.info("Starting Training.....")
@@ -53,7 +63,8 @@ model = gensim.models.Word2Vec(tokenized_data,
                                size=args.emb_size,
                                workers=args.num_workers,
                                min_count=args.min_count,
-                               iter=args.num_epochs)
+                               iter=args.num_epochs,
+                               trim_rule=my_trim_rule)
 logger.info("Training done.")
 
 logger.info("Saving Model.....")
