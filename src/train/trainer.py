@@ -94,7 +94,7 @@ class Trainer(object):
         results = {}
         for data_type in self.data_types:
             ent_in_dict, ent_ignore, not_in_cand, correct = self.validator[data_type].validate(self.model)
-            total_mentions = ent_in_dict, ent_ignore
+            total_mentions = ent_in_dict + ent_ignore
             print(
                 f'Total Examples : {total_mentions}, Ent Ignored : {ent_ignore}, Not in Cand: {not_in_cand}, Correct : {correct}')
             cand_coverage = (1 - not_in_cand / ent_in_dict) * 100
