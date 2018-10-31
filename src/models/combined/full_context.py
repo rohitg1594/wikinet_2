@@ -44,8 +44,6 @@ class FullContext(CombinedBase, Loss):
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
 
-        print(f'CONTEXT : {context_tokens[:, :20]}')
-
         # Get the embeddings
         mention_embs = self.mention_embs(mention_word_tokens)
         context_embs = self.mention_embs(context_tokens)
