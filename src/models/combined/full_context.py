@@ -69,7 +69,7 @@ class FullContext(CombinedBase, Loss):
             mention_repr.unsqueeze_(1)
             scores = torch.matmul(mention_repr, candidate_embs.transpose(1, 2)).squeeze(1)
         else:
-            scores = 0
+            scores = torch.Tensor([0])
 
         return scores, candidate_embs, mention_repr
 
