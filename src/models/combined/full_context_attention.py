@@ -57,7 +57,9 @@ class FullContextAttn(CombinedBase, Loss):
         mention_embs_proj = self.proj_mention(mention_embs_agg)
         context_embs_proj = self.proj_context(context_embs_agg)
         mention_repr = self.w * mention_embs_proj + (1 - self.w) * context_embs_proj
-        print(f'combine weight : {self.w}')
+
+        if len(candidate_ids) > 10**3:
+            print(f'combine weight : {self.w}')
         # Normalize
         if self.args.norm_final:
             candidate_embs = F.normalize(candidate_embs, dim=1)

@@ -25,8 +25,9 @@ class YamadaDataset(object):
 
         self.args = args
         self.num_candidates = self.args.num_candidates
-        self.cand_gen = self.num_candidates // 2
+        self.num_cand_gen = self.num_candidates // 2
         self.ent2id = yamada_model['ent_dict']
+        self.len_ent = len(self.ent2id)
         self.id2ent = reverse_dict(self.ent2id)
         self.word_dict = yamada_model['word_dict']
         self.max_ent = len(self.ent2id)
@@ -61,21 +62,32 @@ class YamadaDataset(object):
         else:
             self.corpus_flag = False
 
-    def _gen_cands(self, true_ent, candidates):
+    def _gen_cands(self, ent_str, mention):
 
-        if not self.cand_rand:
-            if len(candidates) > self.cand_gen:
-                cand_gen = np.random.choice(np.array(candidates), replace=False, size=self.cand_gen)
-                cand_random = np.random.randint(0, self.max_ent, size=self.num_candidates - self.cand_gen - 1)
-            else:
-                cand_gen = np.array(candidates)
-                cand_random = np.random.randint(0, self.max_ent, size=self.num_candidates - len(candidates) - 1)
-            complete_cands = np.concatenate((np.array(true_ent)[None], cand_gen, cand_random))
+        ent_id = self.ent2id.get(ent_str, 0)
+        if self.args.cand_gen_rand:
+            candidate_ids = np.concatenate((np.array(ent_id)[None],
+                                            np.random.randint(1, self.len_ent + 1,
+                                                              size=self.args.num_candidates - 1))).astype(np.int64)
         else:
-            cand_random = np.random.randint(0, self.max_ent, size=self.num_candidates - 1)
-            complete_cands = np.concatenate((np.array(true_ent)[None], cand_random))
+            nfs = get_normalised_forms(mention)
+            candidate_ids = []
+            for nf in nfs:
+                if nf in self.necounts:
+                    candidate_ids.extend(self.necounts[nf])
 
-        return complete_cands.astype(np.int64)
+            if ent_id in candidate_ids: candidate_ids.remove(ent_id)  # Remove if true entity is part of candidates
+
+            if len(candidate_ids) > self.num_cand_gen:
+                cand_generation = np.random.choice(np.array(candidate_ids), replace=False, size=self.num_cand_gen)
+                cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - self.num_cand_gen - 1)
+            else:
+                cand_generation = np.array(candidate_ids)
+                cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - len(candidate_ids) - 1)
+
+            candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random)).astype(np.int64)
+
+        return candidate_ids
 
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
