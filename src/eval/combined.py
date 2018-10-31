@@ -177,6 +177,8 @@ class CombinedValidator:
             data = (mention_word, ent_ids, small_context)
         elif self.model_name == 'full_context':
             data = (mention_word, ent_ids, context)
+        elif self.model_name == 'full_context_attention':
+            data = (mention_word, ent_ids, context)
         elif self.model_name == 'position':
             pos_indices = get_absolute_pos(mention_word)
             data = (mention_word, pos_indices, ent_ids)

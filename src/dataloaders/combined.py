@@ -240,6 +240,8 @@ class CombinedDataSet(object):
             return self._getitem_small_context(example)
         elif self.model_name == 'full_context':
             return self._getitem_full_context(context_id, example)
+        elif self.model_name == 'full_context_attention':
+            return self._getitem_full_context(context_id, example)
         elif self.model_name == 'pre_train':
             return self._getitem_pre_train(context_id, example)
         else:
