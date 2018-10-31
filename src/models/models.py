@@ -10,6 +10,7 @@ from src.models.combined.only_prior.with_string import WithString
 from src.models.combined.mention_prior import MentionPrior
 from src.models.combined.pre_train import PreTrain
 from src.models.combined.small_context import SmallContext
+from src.models.combined.full_context import FullContext
 
 from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
 from src.models.yamada.yamada_context_stats import YamadaContextStats
@@ -31,6 +32,7 @@ class Models:
     mention_prior = MentionPrior
     pre_train = PreTrain
     small_context = SmallContext
+    full_context = FullContext
 
     # Yamada
     yamada_full = YamadaContextStatsString
