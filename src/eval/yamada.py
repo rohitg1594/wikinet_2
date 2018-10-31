@@ -54,9 +54,8 @@ class YamadaValidator:
         model = model.eval()
 
         total_correct = 0
-        total_in_dict = 0
         total_not_in_cand = 0
-        total_ent_ignore = 0
+        total_mentions = 0
         cor_pred_str = ''
         inc_pred_str = ''
 
@@ -84,7 +83,7 @@ class YamadaValidator:
             cor_pred_str += self.get_pred_str(batch_no, cor_ids, context, scores, candidates)
 
             total_correct += num_cor
-            total_in_dict += scores.shape[0]
+            total_mentions += scores.shape[0]
             total_not_in_cand += not_in_cand[cor_ids].sum()
 
         with open(join(self.args.model_dir, f'inc_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
@@ -93,5 +92,5 @@ class YamadaValidator:
         with open(join(self.args.model_dir, f'cor_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(cor_pred_str)
 
-        return total_in_dict, total_ent_ignore, total_not_in_cand, total_correct
+        return total_mentions, total_not_in_cand, total_correct
 
