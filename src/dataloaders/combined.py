@@ -29,6 +29,8 @@ class CombinedDataSet(object):
         """
         super().__init__()
 
+        self.logger = getLogger(__name__)
+
         self.ent2id = ent_dict
         self.len_ent = len(self.ent2id)
         self.id2ent = reverse_dict(self.ent2id)
@@ -42,8 +44,14 @@ class CombinedDataSet(object):
         self.model_name = self.args.model_name
 
         self.num_cand_gen = self.args.num_candidates // 2
-        self.data = data
-        self.logger = getLogger(__name__)
+        id2context, examples = data
+        self.examples = examples
+        self.id2context = id2context
+        self.logger.info(f'len examples: {len(examples)}, len id2contex: {len(id2context)}')
+
+        self.processed_id2context = {}
+        for index in self.id2context.keys():
+            self.processed_id2context[index] = self._init_context(index)
 
         # Candidates
         if not self.args.cand_gen_rand:
@@ -52,12 +60,13 @@ class CombinedDataSet(object):
                 self.necounts = pickle.load(f)
             logger.info('necounts loaded.')
 
-    def _get_candidates(self, ent_id, mention, prior=False):
+    def _get_candidates(self, ent_str, mention, prior=False):
         """Candidate generation step, can be random or based on necounts."""
 
+        ent_id = self.ent2id.get(ent_str, 0)
         if self.args.cand_gen_rand:
             candidate_ids = np.concatenate((np.array(ent_id)[None],
-                                            np.random.randint(1, self.len_ent + 1, size=self.args.num_candidates - 1)))
+                                            np.random.randint(1, self.len_ent + 1, size=self.args.num_candidates - 1))).astype(np.int64)
         else:
             nfs = get_normalised_forms(mention)
             candidate_ids = []
@@ -74,7 +83,7 @@ class CombinedDataSet(object):
                 cand_generation = np.array(candidate_ids)
                 cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - len(candidate_ids) - 1)
 
-            candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random))
+            candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random)).astype(np.int64)
 
         if prior:
             priors = np.zeros(self.args.num_candidates)
@@ -93,11 +102,15 @@ class CombinedDataSet(object):
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
 
-        context_word_tokens, example = self.data[index]
-        context_word_tokens = [self.word_dict.get(token, 0) for token in context_word_tokens]
-        context_word_tokens = np.array(equalize_len(context_word_tokens, self.args.max_context_size))
+        context = self.id2context[index]
+        if self.args.ignore_init:
+            context = context[5:]
+        if len(context) > 0:
+            if isinstance(context[0], str):
+                context = [self.word_dict.get(token, 0) for token in context]
+        context = np.array(equalize_len(context, self.args.max_context_size))
 
-        return context_word_tokens, example
+        return context
 
     def _init_tokens(self, flag='gram'):
         """Initialize numpy array that will hold all mention gram and candidate gram tokens."""
@@ -184,6 +197,16 @@ class CombinedDataSet(object):
 
         return mention_word_tokens.astype(np.int64), cand_ids.astype(np.int64), small_context.astype(np.int64)
 
+    def _getitem_full_context(self, context_id, example):
+        """getitem for prior with small context window."""
+
+        mention, ent_str, span, small_context = example
+        context_tokens = self.processed_id2context[context_id]
+        mention_word_tokens = self._get_tokens(mention, flag='word')
+        cand_ids = self._get_candidates(ent_str, mention)
+
+        return mention_word_tokens, cand_ids, context_tokens
+
     def _getitem_pre_train(self, context_ids, example):
         """getitem for pre train model."""
 
@@ -203,7 +226,7 @@ class CombinedDataSet(object):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
 
         # Context Word Tokens
-        context_ids, example = self._init_context(index)
+        context_id, example = self.examples[index]
 
         if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
             return self._getitem_only_prior_word_or_gram(example, token_type='word', include_pos=False)
@@ -215,8 +238,10 @@ class CombinedDataSet(object):
             return self._getitem_only_prior_word_and_gram(example)
         elif self.model_name == 'small_context':
             return self._getitem_small_context(example)
+        elif self.model_name == 'full_context':
+            return self._getitem_full_context(context_id, example)
         elif self.model_name == 'pre_train':
-            return self._getitem_pre_train(context_ids, example)
+            return self._getitem_pre_train(context_id, example)
         else:
             self.logger.info('model name {} dataloader not implemented'.format(self.model_name))
             sys.exit(1)
