@@ -110,13 +110,12 @@ class Trainer(object):
     def yamada_validate(self, epoch):
         results = {}
         for data_type in self.data_types:
-            ent_in_dict, ent_ignore, not_in_cand, correct = self.validator[data_type].validate(self.model)
-            total_mentions = ent_in_dict + ent_ignore
-            print(
-                f'Total Examples : {total_mentions}, Ent Ignored : {ent_ignore}, Not in Cand: {not_in_cand}, Correct : {correct}')
-            cand_coverage = (1 - not_in_cand / ent_in_dict) * 100
-            acc = (correct - not_in_cand) / ent_in_dict * 100
-            logger.info(f'Epoch - {epoch}, {data_type}, Cand Coverage - {cand_coverage}, Acc- {acc}')
+            total_mentions, not_in_cand, correct = self.validator[data_type].validate(self.model)
+            logger.info(
+                f'Total mentions : {total_mentions}, Not in Cand: {not_in_cand}, Correct : {correct}')
+            cand_coverage = (1 - not_in_cand / total_mentions) * 100
+            acc = (correct - not_in_cand) / total_mentions * 100
+            logger.info(f'Epoch : {epoch}, {data_type}, Cand Coverage - {cand_coverage}, Acc- {acc}')
 
             results[data_type] = acc
             if self.result_key is not None:
