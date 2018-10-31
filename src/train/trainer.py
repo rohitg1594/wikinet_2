@@ -55,8 +55,7 @@ class Trainer(object):
             data[i] = Variable(data[i])
 
         # labels = Variable(torch.zeros(data[0].shape[0]).type(torch.LongTensor), requires_grad=False)
-        labels = Variable(torch.zeros((data[0].shape[0], self.args.num_candidates)),
-                          self.args.num_can.type(torch.LongTensor), requires_grad=False)
+        labels = Variable(torch.zeros((data[0].shape[0], self.args.num_candidates)).type(torch.LongTensor), requires_grad=False)
         labels[:, 0] = 1
 
         if self.args.use_cuda:
