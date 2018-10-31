@@ -74,10 +74,7 @@ class FullContext(CombinedBase, Loss):
         return scores, candidate_embs, mention_repr
 
     def loss(self, scores, labels):
-
-        bce_labels = Variable(torch.zeros_like(scores.data).type(torch.LongTensor), requires_grad=False)
-        bce_labels[:, 0] = 1
-        return self.binary_cross_entropy(scores, bce_labels)
+        return self.binary_cross_entropy(scores, labels)
 
         # return self.cross_entropy(scores, labels)
 
