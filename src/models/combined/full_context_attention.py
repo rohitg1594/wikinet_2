@@ -34,8 +34,8 @@ class FullContextAttn(CombinedBase, Loss):
         self.ent_mention_embs.weight.data[0] = 0
 
         # Linear
-        self.proj_mention = nn.Linear(self.self.args.mention_word_dim, self.args.ent_mention_dim)
-        self.proj_context = nn.Linear(self.self.args.context_word_dim, self.args.ent_mention_dim)
+        self.proj_mention = nn.Linear(self.args.mention_word_dim, self.args.ent_mention_dim)
+        self.proj_context = nn.Linear(self.args.context_word_dim, self.args.ent_mention_dim)
         self.w = nn.Parameter(0.5)
 
         # Dropout
