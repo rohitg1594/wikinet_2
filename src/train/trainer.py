@@ -57,16 +57,25 @@ class Trainer(object):
         labels = Variable(torch.zeros(data[0].shape[0]).type(torch.LongTensor), requires_grad=False)
 
         if self.args.use_cuda:
-            if isinstance(self.args.device, int):
-                for i in range(len(data)):
-                    data[i] = data[i].cuda(self.args.device)
-                labels = labels.cuda(self.args.device)
-            else:
-                for i in range(len(data)):
-                    data[i] = data[i].cuda(self.args.device[0])
-                labels = labels.cuda(self.args.device[0])
+            device = self.args.device if isinstance(self.args.device, int) else self.args.device[0]
+            for i in range(len(data)):
+                data[i] = data[i].cuda(device)
+            labels = labels.cuda(device)
 
         return tuple(data), labels
+
+    def _get_next_batch_yamada(self, data_dict):
+        for k, v in data_dict.items():
+            data_dict[k] = Variable(v)
+
+        labels = Variable(torch.zeros(v.shape[0]).type(torch.LongTensor), requires_grad=False)
+
+        if self.args.use_cuda:
+            device = self.args.device if isinstance(self.args.device, int) else self.args.device[0]
+            for k, v in data_dict.items():
+                data_dict[k] = v.cuda(device)
+
+        return data_dict, labels
 
     def step(self, data):
         data, labels = self._get_next_batch(data)

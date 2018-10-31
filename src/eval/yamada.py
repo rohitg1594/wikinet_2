@@ -30,7 +30,7 @@ class YamadaValidator:
         labels = np.zeros(v.shape[0])
 
         if self.args.use_cuda:
-            device = self.arge.device if isinstance(self.args.device, int) else self.args.device[0]
+            device = self.args.device if isinstance(self.args.device, int) else self.args.device[0]
             for k, v in data_dict.items():
                 data_dict[k] = v.cuda(device)
 

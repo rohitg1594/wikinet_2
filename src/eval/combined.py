@@ -166,12 +166,13 @@ class CombinedValidator:
             small_context = small_context[self.wiki_mask, :]
 
         if cuda:
-            mention_gram.cuda(self.args.device)
-            mention_word.cuda(self.args.device)
-            context.cuda(self.args.device)
-            small_context.cuda(self.args.device)
-            ent_gram.cuda(self.args.device)
-            ent_ids.cuda(self.args.device)
+            device = self.args.device if isinstance(self.args.device, int) else self.args.device[0]
+            mention_gram = mention_gram.cuda(device)
+            mention_word = mention_word.cuda(device)
+            context = context.cuda(device)
+            small_context = small_context.cuda(device)
+            ent_gram = ent_gram.cuda(device)
+            ent_ids = ent_ids.cuda(device)
 
         if self.model_name == 'weigh_concat':
             data = (mention_gram, context, ent_gram, ent_ids)
