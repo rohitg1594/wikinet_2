@@ -74,6 +74,7 @@ class Trainer(object):
             device = self.args.device if isinstance(self.args.device, int) else self.args.device[0]
             for k, v in data_dict.items():
                 data_dict[k] = v.cuda(device)
+            labels = labels.cuda(device)
 
         return data_dict, labels
 
