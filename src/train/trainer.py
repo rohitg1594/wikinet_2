@@ -78,7 +78,10 @@ class Trainer(object):
         return data_dict, labels
 
     def step(self, data):
-        data, labels = self._get_next_batch(data)
+        if self.model_type == 'combined':
+            data, labels = self._get_next_batch(data)
+        elif self.model_type == 'yamada':
+            data, labels = self._get_next_batch_yamada(data)
         scores, _, _ = self.model(data)
         loss = self.model.loss(scores, labels)
 
