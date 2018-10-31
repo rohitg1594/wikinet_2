@@ -179,9 +179,10 @@ def setup(args=None, logger=None):
 
     # Training Data
     logger.info("Loading training data.....")
-    train_data, dev_data, test_data = load_data(args.data_type, args)
+    res = load_data(args.data_type, args)
+    train_data, dev_data, test_data = res['train'], res['dev'], res['test']
     logger.info("Training data loaded.")
-    logger.info(f"Train : {len(train_data)}, Dev : {len(dev_data)}, Test :{len(test_data)}")
+    logger.info(f"Train : {len(train_data[1])}, Dev : {len(dev_data[1])}, Test :{len(test_data)}")
 
     # Validation
     logger.info("Creating validator.....")
