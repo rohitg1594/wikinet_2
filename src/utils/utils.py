@@ -205,7 +205,7 @@ def send_to_cuda(device, model):
     if isinstance(device, tuple):
         model = DistributedDataParallel(model, device)
     else:
-        model.cuda(device)
+        model = model.cuda(device)
 
     return model
 
