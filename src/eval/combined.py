@@ -31,12 +31,12 @@ class CombinedValidator:
 
         self.gram_tokenizer = gram_tokenizer
         self.word_tokenizer = RegexpTokenizer()
-        self.word_dict = yamada_model['word_dict']
-        self.rev_word_dict = reverse_dict(self.word_dict)
-        self.ent_dict = yamada_model['ent_dict']
-        self.rev_ent_dict = reverse_dict(self.ent_dict)
-        self.gram_dict = gram_dict
-        self.rev_gram_dict = reverse_dict(self.gram_dict)
+        self.word2id = yamada_model['word_dict']
+        self.id2word = reverse_dict(self.word2id)
+        self.ent2id = yamada_model['ent_dict']
+        self.id2ent = reverse_dict(self.ent2id)
+        self.gram2id = gram_dict
+        self.id2gram = reverse_dict(self.gram2id)
         self.data = data
         self.args = args
         self.model_name = self.args.model_name
@@ -108,33 +108,32 @@ class CombinedValidator:
             logger.info('Data type not understood, choose one of msnbc, wiki, ace2004 and conll')
             sys.exit(1)
 
+        id2context, examples = data
+
         # For each abstract
-        for context_word_tokens, example in data:
-            mention, ent_str, mention_char_span, small_context_tokens = example
+        for example in examples:
+            context_id, (mention, ent_str, mention_char_span, small_context_tokens) = example
 
             # Check if entity is relevant
-            if ent_str in self.ent_dict:
-                ent_id = self.ent_dict[ent_str]
-            else:
-                continue
+            ent_id = self.ent2id.get(ent_str, 0)
 
             # Gold
             all_gold.append(ent_id)
 
             # Mention Gram
             mention_gram_tokens = [token for token in self.gram_tokenizer(mention)]
-            mention_gram_indices = [self.gram_dict.get(token, 0) for token in mention_gram_tokens]
+            mention_gram_indices = [self.gram2id.get(token, 0) for token in mention_gram_tokens]
             mention_gram_indices = equalize_len(mention_gram_indices, self.args.max_gram_size)
             all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
 
             # Mention Word
             mention_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(mention)]
-            mention_word_indices = [self.word_dict.get(token, 0) for token in mention_word_tokens]
+            mention_word_indices = [self.word2id.get(token, 0) for token in mention_word_tokens]
             mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
             all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
 
             # Context Word
-            context_word_indices = [self.word_dict.get(token, 0) for token in context_word_tokens]
+            context_word_indices = [self.word2id.get(token, 0) for token in id2context[context_id]]
             context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
             all_context_word_indices.append(np.array(context_word_indices).astype(np.int64))
 
@@ -153,7 +152,7 @@ class CombinedValidator:
     def _get_data(self, data_type='wiki'):
 
         ent_gram = torch.from_numpy(self.ent_gram_indices).long()
-        ent_ids = torch.arange(0, len(self.ent_dict) + 1).long()
+        ent_ids = torch.arange(0, len(self.ent2id) + 1).long()
 
         mention_gram = torch.from_numpy(self.numpy_data[data_type]['mention_gram']).long()
         mention_word = torch.from_numpy(self.numpy_data[data_type]['mention_word']).long()
@@ -202,14 +201,14 @@ class CombinedValidator:
             # m_g = mention_gram[i]
             # s += ''.join([self.rev_gram_dict[token][0] for token in m_g if token in self.rev_gram_dict]) + '|'
             m_w = mention_word[i]
-            s += ' '.join([self.rev_word_dict[token] for token in m_w if token in self.rev_word_dict]) + '|'
+            s += ' '.join([self.id2word[token] for token in m_w if token in self.id2word]) + '|'
             c_w = small_context[i][:20]
-            s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
+            s += ' '.join([self.id2word[token] for token in c_w if token in self.id2word]) + '|'
             # c_w = context[i][:20]
             # s += ' '.join([self.rev_word_dict[token] for token in c_w if token in self.rev_word_dict]) + '|'
-            s += self.rev_ent_dict[gold[i]] + '|'
+            s += self.id2ent[gold[i]] + '|'
             if result:
-                s += ','.join([self.rev_ent_dict[ent_id] for ent_id in preds[i][:10] if ent_id in self.rev_ent_dict])
+                s += ','.join([self.id2ent[ent_id] for ent_id in preds[i][:10] if ent_id in self.id2ent])
             s += '\n'
 
         return s
@@ -226,9 +225,6 @@ class CombinedValidator:
 
             ent_combined_embs = ent_combined_embs.detach().numpy()
             mention_combined_embs = mention_combined_embs.detach().numpy()
-
-            # print(f"Ent Combined Embs {ent_combined_embs[:10, :10]}")
-            # print(f"Mention Embs {mention_combined_embs[:10, :10]}")
 
             if not flag:
                 # Create / search in Faiss Index
@@ -259,12 +255,8 @@ class CombinedValidator:
                 print(f'{data_type.upper()}\n')
                 mention_gram = self.numpy_data[data_type]['mention_gram']
                 mention_gram = mention_gram[self.wiki_mask, :] if data_type == 'wiki' else mention_gram
-                check_errors(preds, gold, mention_gram, self.rev_ent_dict, self.rev_gram_dict, [1, 10, 100])
+                check_errors(preds, gold, mention_gram, self.id2ent, self.id2gram, [1, 10, 100])
                 print()
-
-            # Debug
-            # debug_str = self._get_debug_string(preds=preds, data_type=data_type)
-            # print(debug_str)
 
         if self.args.use_cuda:
             send_to_cuda(self.args.device, model)
