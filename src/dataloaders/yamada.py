@@ -104,16 +104,8 @@ class YamadaDataset(object):
         context_id, example = self.examples[index]
         context = self.processed_id2context[context_id]
         mention_str, ent_str, _, _ = example
-        if ent_str not in self.ent2id:
-            if ent_str in self.redirects:
-                ent_str = self.redirects[ent_str]
-
-        if ent_str in self.ent2id:
-            true_ent = self.ent2id[ent_str]
-            ent_ignore = 0
-        else:
-            true_ent = 0
-            ent_ignore = 1
+        ent_str = self.redirects.get(ent_str, ent_str)
+        true_ent = self.ent2id.get(ent_str, 0)
 
         if self.corpus_flag:
             if self.rand_docs:

@@ -36,7 +36,7 @@ class FullContextAttn(CombinedBase, Loss):
         # Linear
         self.proj_mention = nn.Linear(self.args.mention_word_dim, self.args.ent_mention_dim)
         self.proj_context = nn.Linear(self.args.context_word_dim, self.args.ent_mention_dim)
-        self.w = nn.Parameter(0.5)
+        self.w = nn.Parameter(torch.Tensor([0.5]))
 
         # Dropout
         self.dp = nn.Dropout(self.args.dp)
