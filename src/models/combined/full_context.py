@@ -74,8 +74,5 @@ class FullContext(CombinedBase, Loss):
         return scores, candidate_embs, mention_repr
 
     def loss(self, scores, labels):
-        scores = F.sigmoid(scores)
-        return self.binary_cross_entropy(scores, labels)
-
-        # return self.cross_entropy(scores, labels)
+        return self.cross_entropy(scores, labels)
 
