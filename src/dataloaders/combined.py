@@ -247,7 +247,7 @@ class CombinedDataSet(object):
             sys.exit(1)
 
     def __len__(self):
-        return len(self.data)
+        return len(self.examples)
 
     def get_loader(self,
                    batch_size=1,
