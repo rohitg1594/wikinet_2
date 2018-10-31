@@ -149,7 +149,7 @@ class CombinedValidator:
 
         return output
 
-    def _get_data(self, data_type='wiki'):
+    def _get_data(self, data_type='wiki', cuda=False):
 
         ent_gram = torch.from_numpy(self.ent_gram_indices).long()
         ent_ids = torch.arange(0, len(self.ent2id) + 1).long()
@@ -164,6 +164,14 @@ class CombinedValidator:
             mention_word = mention_word[self.wiki_mask, :]
             context = context[self.wiki_mask, :]
             small_context = small_context[self.wiki_mask, :]
+
+        if cuda:
+            mention_gram.cuda(self.args.device)
+            mention_word.cuda(self.args.device)
+            context.cuda(self.args.device)
+            small_context.cuda(self.args.device)
+            ent_gram.cuda(self.args.device)
+            ent_ids.cuda(self.args.device)
 
         if self.model_name == 'weigh_concat':
             data = (mention_gram, context, ent_gram, ent_ids)
@@ -224,7 +232,7 @@ class CombinedValidator:
         results = {}
 
         for data_type in self.data_types:
-            input = self._get_data(data_type=data_type)
+            input = self._get_data(data_type=data_type, cuda=True)
             print()
             _, ent_combined_embs, mention_combined_embs = model(input)
 
