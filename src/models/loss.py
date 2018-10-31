@@ -10,3 +10,9 @@ class Loss:
         loss = loss.sum()
 
         return loss
+
+    @staticmethod
+    def binary_cross_entropy(scores, labels):
+        loss = F.binary_cross_entropy(scores, labels)
+
+        return loss

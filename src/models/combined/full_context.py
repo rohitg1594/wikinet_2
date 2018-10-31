@@ -2,6 +2,7 @@
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
+from torch.autograd import Variable
 
 from src.models.combined.base import CombinedBase
 from src.models.loss import Loss
@@ -73,5 +74,10 @@ class FullContext(CombinedBase, Loss):
         return scores, candidate_embs, mention_repr
 
     def loss(self, scores, labels):
-        return self.cross_entropy(scores, labels)
+
+        bce_labels = Variable(torch.zeros_like(scores.data).type(torch.LongTensor), requires_grad=False)
+        bce_labels[:, 0] = 1
+        return self.binary_cross_entropy(scores, bce_labels)
+
+        # return self.cross_entropy(scores, labels)
 

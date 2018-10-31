@@ -65,29 +65,29 @@ class YamadaDataset(object):
     def _gen_cands(self, ent_str, mention):
 
         ent_id = self.ent2id.get(ent_str, 0)
-        if self.args.cand_gen_rand:
-            candidate_ids = np.concatenate((np.array(ent_id)[None],
-                                            np.random.randint(1, self.len_ent + 1,
-                                                              size=self.args.num_candidates - 1))).astype(np.int64)
+
+        nfs = get_normalised_forms(mention)
+        candidate_ids = []
+        for nf in nfs:
+            if nf in self.necounts:
+                candidate_ids.extend(self.necounts[nf])
+
+        if ent_id != 0 and ent_id in candidate_ids:
+            candidate_ids.remove(ent_id)
+            not_in_cand = 0
         else:
-            nfs = get_normalised_forms(mention)
-            candidate_ids = []
-            for nf in nfs:
-                if nf in self.necounts:
-                    candidate_ids.extend(self.necounts[nf])
+            not_in_cand = 1
 
-            if ent_id in candidate_ids: candidate_ids.remove(ent_id)  # Remove if true entity is part of candidates
+        if len(candidate_ids) > self.num_cand_gen:
+            cand_generation = np.random.choice(np.array(candidate_ids), replace=False, size=self.num_cand_gen)
+            cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - self.num_cand_gen - 1)
+        else:
+            cand_generation = np.array(candidate_ids)
+            cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - len(candidate_ids) - 1)
 
-            if len(candidate_ids) > self.num_cand_gen:
-                cand_generation = np.random.choice(np.array(candidate_ids), replace=False, size=self.num_cand_gen)
-                cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - self.num_cand_gen - 1)
-            else:
-                cand_generation = np.array(candidate_ids)
-                cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - len(candidate_ids) - 1)
+        candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random)).astype(np.int64)
 
-            candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random)).astype(np.int64)
-
-        return candidate_ids
+        return candidate_ids, not_in_cand
 
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
@@ -102,22 +102,43 @@ class YamadaDataset(object):
 
         return context
 
-    def __getitem__(self, index):
-        if isinstance(index, slice):
-            return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
+    def _gen_features(self, mention_str, candidate_ids):
 
         # Initialize
-        exact_match = np.zeros(self.num_candidates).astype(np.float32)
+        exact = np.zeros(self.num_candidates).astype(np.float32)
         contains = np.zeros(self.num_candidates).astype(np.float32)
         priors = np.zeros(self.num_candidates).astype(np.float32)
         conditionals = np.zeros(self.num_candidates).astype(np.float32)
-        true_not_in_cand = 1  # if true entity is not in the candidates
+
+        # Populate
+        for cand_idx, cand_id in enumerate(candidate_ids):
+            ent_str = self.id2ent.get(cand_id, '')
+            if mention_str == ent_str or mention_str in ent_str:
+                exact[cand_idx] = 1
+            if ent_str.startswith(mention_str) or ent_str.endswith(mention_str):
+                contains[cand_idx] = 1
+
+            priors[cand_idx] = self.ent_prior.get(cand_id, 0)
+            nf = normalise_form(mention_str)
+            if nf in self.ent_conditional:
+                conditionals[cand_idx] = self.ent_conditional[nf].get(cand_id, 0)
+            else:
+                conditionals[cand_idx] = 0
+
+        return {'exact': exact,
+                'contains': contains,
+                'priors': priors,
+                'conditionals': conditionals}
+
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
 
         context_id, example = self.examples[index]
         context = self.processed_id2context[context_id]
         mention_str, ent_str, _, _ = example
         ent_str = self.redirects.get(ent_str, ent_str)
-        true_ent = self.ent2id.get(ent_str, 0)
+        candidate_ids = self._gen_cands(ent_str, mention_str)
 
         if self.corpus_flag:
             if self.rand_docs:
@@ -128,31 +149,6 @@ class YamadaDataset(object):
                 corpus_context = np.vstack(full_corpus)
             else:
                 corpus_context = self.corpus_context
-
-        nfs = get_normalised_forms(mention_str)
-        candidate_ids = []
-        for nf in nfs:
-            if nf in self.necounts:
-                candidate_ids.extend(self.necounts[nf])
-
-        if true_ent in candidate_ids:
-            true_not_in_cand = 0
-            candidate_ids.remove(true_ent)
-        candidate_ids = self._gen_cands(true_ent, candidate_ids)
-
-        for cand_idx, cand_id in enumerate(candidate_ids):
-            ent_str = self.id2ent.get(cand_id, '')
-            if mention_str == ent_str or mention_str in ent_str:
-                exact_match[cand_idx] = 1
-            if ent_str.startswith(mention_str) or ent_str.endswith(mention_str):
-                contains[cand_idx] = 1
-
-            priors[cand_idx] = self.ent_prior.get(cand_id, 0)
-            nf = normalise_form(mention_str)
-            if nf in self.ent_conditional:
-                conditionals[cand_idx] = self.ent_conditional[nf].get(cand_id, 0)
-            else:
-                conditionals[cand_idx] = 0
 
         if self.corpus_flag:
             return ent_ignore, true_not_in_cand, context, candidate_ids, priors, conditionals, exact_match, contains, corpus_context
