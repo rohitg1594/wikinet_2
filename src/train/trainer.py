@@ -62,6 +62,8 @@ class Trainer(object):
                     data[i] = data[i].cuda(self.args.device)
                 labels = labels.cuda(self.args.device)
             else:
+                for i in range(len(data)):
+                    data[i] = data[i].cuda(self.args.device[0])
                 labels = labels.cuda(self.args.device[0])
 
         return tuple(data), labels

@@ -263,7 +263,7 @@ class CombinedValidator:
                 check_errors(preds, gold, mention_gram, self.id2ent, self.id2gram, [1, 10, 100])
                 print()
 
-        if self.args.use_cuda:
-            send_to_cuda(self.args.device, model)
+#        if self.args.use_cuda:
+#            send_to_cuda(self.args.device, model)
 
         return results

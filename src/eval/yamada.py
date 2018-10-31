@@ -23,19 +23,18 @@ class YamadaValidator:
         self.data_type = data_type
         self.run = run
 
-    def _get_next_batch(self, data):
-        data = list(data)
-        for i in range(len(data)):
-            data[i] = Variable(data[i])
+    def _get_next_batch(self, data_dict):
+        for k, v in data_dict.items():
+            data_dict[k] = Variable(v)
 
-        labels = np.zeros(data[0].shape[0])
+        labels = np.zeros(v.shape[0])
 
         if self.args.use_cuda:
-            if isinstance(self.args.device, int):
-                for i in range(len(data)):
-                    data[i] = data[i].cuda(self.args.device)
+            device = self.arge.device if isinstance(self.args.device, int) else self.args.device[0]
+            for k, v in data_dict.items():
+                data_dict[k] = v.cuda(device)
 
-        return tuple(data), labels
+        return data_dict, labels
 
     def get_pred_str(self, batch_no, ids, context, scores, candidates):
 
