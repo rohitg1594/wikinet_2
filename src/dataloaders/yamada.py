@@ -130,6 +130,18 @@ class YamadaDataset(object):
                 'priors': priors,
                 'conditionals': conditionals}
 
+    def _get_corpus_context(self, context_id):
+        if self.rand_docs:
+            other_docs = [self.processed_id2context[index]
+                          for index in np.random.randint(0, high=len(self.processed_id2context),
+                                                         size=self.args.num_docs - 1)]
+            full_corpus = list(self.processed_id2context[context_id][None, :]) + other_docs
+            corpus_context = np.vstack(full_corpus)
+        else:
+            corpus_context = self.corpus_context
+
+        return corpus_context
+
     def __getitem__(self, index):
         if isinstance(index, slice):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
@@ -138,22 +150,19 @@ class YamadaDataset(object):
         context = self.processed_id2context[context_id]
         mention_str, ent_str, _, _ = example
         ent_str = self.redirects.get(ent_str, ent_str)
-        candidate_ids = self._gen_cands(ent_str, mention_str)
+        candidate_ids, not_in_cand = self._gen_cands(ent_str, mention_str)
+        features_dict = self._gen_features(mention_str, candidate_ids)
+
+        output = {'candidate_ids': candidate_ids,
+                  'not_in_cand': not_in_cand,
+                  'context': context,
+                  **features_dict}
 
         if self.corpus_flag:
-            if self.rand_docs:
-                other_docs = [self.processed_id2context[index]
-                              for index in np.random.randint(0, high=len(self.processed_id2context),
-                                                             size=self.args.num_docs - 1)]
-                full_corpus = list(self.processed_id2context[context_id][None, :]) + other_docs
-                corpus_context = np.vstack(full_corpus)
-            else:
-                corpus_context = self.corpus_context
+            corpus_context = self._get_corpus_context(context_id)
+            output['corpus_context'] = corpus_context
 
-        if self.corpus_flag:
-            return ent_ignore, true_not_in_cand, context, candidate_ids, priors, conditionals, exact_match, contains, corpus_context
-        else:
-            return ent_ignore, true_not_in_cand, context, candidate_ids, priors, conditionals, exact_match, contains
+        return output
 
     def __len__(self):
         return len(self.examples)
