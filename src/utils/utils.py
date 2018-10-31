@@ -12,6 +12,7 @@ from collections import defaultdict
 
 import torch
 from torch.nn import DataParallel
+from torch.nn.parallel import DistributedDataParallel
 import torch.nn as nn
 
 from src.models.models import Models
@@ -202,7 +203,7 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
 
 def send_to_cuda(device, model):
     if isinstance(device, tuple):
-        model = DataParallel(model, device)
+        model = DistributedDataParallel(model, device)
     else:
         model.cuda(device)
 
