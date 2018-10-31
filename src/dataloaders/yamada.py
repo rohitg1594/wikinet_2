@@ -125,7 +125,7 @@ class YamadaDataset(object):
             else:
                 conditionals[cand_idx] = 0
 
-        return {'exact': exact,
+        return {'exact_match': exact,
                 'contains': contains,
                 'priors': priors,
                 'conditionals': conditionals}

@@ -15,10 +15,15 @@ class YamadaContextStatsString(YamadaBase, Loss):
         self.hidden = nn.Linear(5 + 2 * self.emb_dim, self.args.hidden_size)
         self.output = nn.Linear(self.args.hidden_size, 1)
 
-    def forward(self, inputs):
+    def forward(self, input_dict):
 
         # Unpack
-        _, _, context, candidate_ids, priors, conditionals, exact_match, contains = inputs
+        candidate_ids = input_dict['candidate_ids']
+        context = input_dict['context']
+        priors = input_dict['priors']
+        conditionals = input_dict['conditionals']
+        exact_match = input_dict['exact_match']
+        contains = input_dict['contains']
         b, num_cand = candidate_ids.shape
 
         # Get the embeddings
