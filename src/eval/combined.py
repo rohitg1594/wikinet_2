@@ -62,24 +62,24 @@ class CombinedValidator:
         """Creates numpy arrays containing gram and word token ids for each entity."""
 
         # Init Tokens
-        ent_gram_tokens = np.zeros((len(self.ent_dict) + 1, self.args.max_gram_size)).astype(np.int32)
-        ent_word_tokens = np.zeros((len(self.ent_dict) + 1, self.args.max_word_size)).astype(np.int32)
+        ent_gram_tokens = np.zeros((len(self.ent2id) + 1, self.args.max_gram_size)).astype(np.int32)
+        ent_word_tokens = np.zeros((len(self.ent2id) + 1, self.args.max_word_size)).astype(np.int32)
 
         # For each entity
-        for ent_str, ent_id in self.ent_dict.items():
+        for ent_str, ent_id in self.ent2id.items():
 
             # Remove underscore
             ent_str = ent_str.replace('_', ' ')
 
             # Gram tokens
             gram_tokens = self.gram_tokenizer(ent_str)
-            gram_indices = [self.gram_dict.get(token, 0) for token in gram_tokens]
+            gram_indices = [self.gram2id.get(token, 0) for token in gram_tokens]
             gram_indices = equalize_len(gram_indices, self.args.max_gram_size)
             ent_gram_tokens[ent_id] = gram_indices
 
             # Word tokens
             word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(ent_str)]
-            word_indices = [self.word_dict.get(token, 0) for token in word_tokens]
+            word_indices = [self.word2id.get(token, 0) for token in word_tokens]
             word_indices = equalize_len(word_indices, self.args.max_word_size)
             ent_word_tokens[ent_id] = word_indices
 
