@@ -6,6 +6,9 @@ import torch.nn as nn
 from src.models.combined.base import CombinedBase
 from src.models.loss import Loss
 
+import numpy as np
+np.set_printoptions(threshold=10**8)
+
 
 class FullContext(CombinedBase, Loss):
 
@@ -41,9 +44,7 @@ class FullContext(CombinedBase, Loss):
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
 
-        print(f'MENTION WORD : {mention_word_tokens[:20]}')
-        print(f'CANDS : {candidate_ids[:20]}')
-        print(f'CONTEXT : {context_tokens[:20]}')
+        print(f'CONTEXT : {context_tokens[:, :20]}')
 
         # Get the embeddings
         mention_embs = self.mention_embs(mention_word_tokens)
