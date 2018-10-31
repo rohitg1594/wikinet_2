@@ -218,8 +218,8 @@ class CombinedValidator:
         return s
 
     def validate(self, model=None, error=True):
-        model = model.eval()
-        model = model.cpu()
+        model.eval()
+        # model = model.cpu()
         flag = False
         results = {}
 
