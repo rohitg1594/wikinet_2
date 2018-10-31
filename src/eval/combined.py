@@ -236,8 +236,8 @@ class CombinedValidator:
             input = self._get_data(data_type=data_type, cuda=True)
             _, ent_combined_embs, mention_combined_embs = model(input)
 
-            ent_combined_embs = ent_combined_embs.detach().numpy()
-            mention_combined_embs = mention_combined_embs.detach().numpy()
+            ent_combined_embs = ent_combined_embs.cpu().data.numpy()
+            mention_combined_embs = mention_combined_embs.cpu().data.numpy()
 
             if not flag:
                 # Create / search in Faiss Index
