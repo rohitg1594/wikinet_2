@@ -234,7 +234,6 @@ class CombinedValidator:
 
         for data_type in self.data_types:
             input = self._get_data(data_type=data_type, cuda=True)
-            print()
             _, ent_combined_embs, mention_combined_embs = model(input)
 
             ent_combined_embs = ent_combined_embs.detach().numpy()

@@ -61,22 +61,16 @@ class YamadaValidator:
         inc_pred_str = ''
 
         for batch_no, data in enumerate(self.loader, 0):
-            data, labels = self._get_next_batch(data)
-            scores, _, _ = model(data)
+            data_dict, labels = self._get_next_batch(data)
+            scores, _, _ = model(data_dict)
             scores = scores.cpu().data.numpy()
 
-            ent_ignore, true_not_in_cand, context, candidates = data[:4]
-            ent_ignore, true_not_in_cand, context, candidates = ent_ignore.cpu().data.numpy(), \
-                                                                true_not_in_cand.cpu().data.numpy(), \
-                                                                context.cpu().data.numpy(), \
-                                                                candidates.cpu().data.numpy()
-            total_ent_ignore += ent_ignore.sum()
-
-            scores = scores[ent_ignore != 1]
-            labels = labels[ent_ignore != 1]
-            context = context[ent_ignore != 1]
-            candidates = candidates[ent_ignore != 1]
-            true_not_in_cand = true_not_in_cand[ent_ignore != 1]
+            context = data_dict['context']
+            candidate_ids = data_dict['candidate_ids']
+            not_in_cand = data_dict['not_in_cand']
+            not_in_cand, context, candidates = not_in_cand.cpu().data.numpy(), \
+                                               context.cpu().data.numpy(), \
+                                               candidate_ids.cpu().data.numpy()
 
             preds = np.argmax(scores, axis=1)
             num_cor = (np.equal(preds, labels)).sum()
@@ -91,7 +85,7 @@ class YamadaValidator:
 
             total_correct += num_cor
             total_in_dict += scores.shape[0]
-            total_not_in_cand += true_not_in_cand[cor_ids].sum()
+            total_not_in_cand += not_in_cand[cor_ids].sum()
 
         with open(join(self.args.model_dir, f'inc_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(inc_pred_str)
