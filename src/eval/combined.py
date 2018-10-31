@@ -175,6 +175,8 @@ class CombinedValidator:
             data = (mention_word, mention_gram, ent_gram, ent_ids)
         elif self.model_name == 'small_context':
             data = (mention_word, ent_ids, small_context)
+        elif self.model_name == 'full_context':
+            data = (mention_word, ent_ids, context)
         elif self.model_name == 'position':
             pos_indices = get_absolute_pos(mention_word)
             data = (mention_word, pos_indices, ent_ids)
@@ -183,7 +185,7 @@ class CombinedValidator:
         elif self.model_name == 'pre_train':
             data = (context, ent_ids)
         else:
-            logger.error(f'model {data_type} not implemented')
+            logger.error(f'model {self.args.model_name} not implemented')
             sys.exit(1)
 
         return data
