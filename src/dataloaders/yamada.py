@@ -72,11 +72,14 @@ class YamadaDataset(object):
             if nf in self.necounts:
                 candidate_ids.extend(self.necounts[nf])
 
-        if ent_id != 0 and ent_id not in candidate_ids:
-            not_in_cand = 1
-        else:
-            candidate_ids.remove(ent_id)
+        if ent_id == 0:
             not_in_cand = 0
+        else:
+            if ent_id in candidate_ids:
+                candidate_ids.remove(ent_id)
+                not_in_cand = 0
+            else:
+                not_in_cand = 1
 
         if len(candidate_ids) > self.num_cand_gen:
             cand_generation = np.random.choice(np.array(candidate_ids), replace=False, size=self.num_cand_gen)
