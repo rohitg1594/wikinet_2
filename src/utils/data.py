@@ -172,3 +172,6 @@ def load_data(data_type, args):
 
     return res
 
+
+def load_gensim():
+    """Load model trained with gensim, fill in the ent and word vector matrix and return them."""

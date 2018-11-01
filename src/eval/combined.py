@@ -228,7 +228,6 @@ class CombinedValidator:
 
     def validate(self, model=None, error=True):
         model.eval()
-        # model = model.cpu()
         flag = False
         results = {}
 
@@ -270,8 +269,5 @@ class CombinedValidator:
                 mention_gram = mention_gram[self.wiki_mask, :] if data_type == 'wiki' else mention_gram
                 check_errors(preds, gold, mention_gram, self.id2ent, self.id2gram, [1, 10, 100])
                 print()
-
-#        if self.args.use_cuda:
-#            send_to_cuda(self.args.device, model)
 
         return results

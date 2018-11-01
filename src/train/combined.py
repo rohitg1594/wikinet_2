@@ -9,7 +9,7 @@ from torch.nn import DataParallel
 
 import configargparse
 
-from src.utils.utils import str2bool, normal_initialize, get_model
+from src.utils.utils import str2bool, normal_initialize, get_model, send_to_cuda
 from src.utils.data import load_vocab, pickle_load, load_data
 from src.eval.combined import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
@@ -228,11 +228,7 @@ def train(args=None,
                       word_embs=word_embs,
                       gram_embs=gram_embs)
     if args.use_cuda:
-        if isinstance(args.device, tuple):
-            model = model.cuda(args.device[0])
-            model = DataParallel(model, args.device)
-        else:
-            model = model.cuda(args.device)
+        model = send_to_cuda(args.device, model)
 
     logger.info("Validating untrained model.....")
     results = validator.validate(model=model, error=args.error)
