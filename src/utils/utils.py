@@ -203,8 +203,8 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
 
 def send_to_cuda(device, model):
     if isinstance(device, tuple):
-        model = DataParallel(model, device)
         model = model.cuda(device[0])
+        model = DataParallel(model, device)
     else:
         model = model.cuda(device)
 
