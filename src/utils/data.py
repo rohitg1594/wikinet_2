@@ -6,6 +6,7 @@ import os
 from os.path import join
 import sys
 import logging
+import gensim
 
 import pickle
 
@@ -173,5 +174,31 @@ def load_data(data_type, args):
     return res
 
 
-def load_gensim():
+def load_gensim(data_path=None, model_dir=None, emb_dim=128, yamada_model=None):
     """Load model trained with gensim, fill in the ent and word vector matrix and return them."""
+    word2id = yamada_model['word_dict']
+    ent2id = yamada_model['ent_dict']
+
+    model = gensim.models.KeyedVectors.load(join(data_path, 'w2v', model_dir, 'model'))
+    wv = model.wv
+    index2word = wv.index2word
+    vectors = wv.vectors
+
+    ent_indices = [i for i, word in enumerate(index2word) if word.startswith('e__')]
+    ent_ids = [int(word[3:]) for i, word in enumerate(index2word) if word.startswith('e__')]
+
+    word_indices = [i for i, word in enumerate(index2word) if not word.startswith('e__')]
+    words = [word for i, word in enumerate(index2word) if not word.startswith('e__')]
+
+    ent_vectors = np.zeros((len(ent2id) + 1, emb_dim))
+    for ent_index, ent_id in zip(ent_indices, ent_ids):
+        ent_vectors[ent_id] = vectors[ent_index]
+
+    word_vectors = np.zeros((len(word2id) + 1, emb_dim))
+    for word_index, word in zip(word_indices, words):
+        if word in word2id:
+            word_id = word2id[word]
+            word_vectors[word_id] = vectors[word_index]
+
+    return {'ent': ent_vectors,
+            'word': word_vectors}
