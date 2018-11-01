@@ -186,16 +186,11 @@ class CombinedDataSet(object):
     def _getitem_small_context(self, example):
         """getitem for prior with small context window."""
 
-        _, mention_word_tokens = self._init_tokens(flag='word')
         mention, ent_str, span, small_context = example
-        cand_ids = np.zeros(self.args.num_candidates).astype(np.int64)
+        mention_word_tokens = self._get_tokens(mention, flag='word')
+        cand_ids = self._get_candidates(ent_str, mention)
 
-        if ent_str in self.ent2id:
-            ent_id = self.ent2id[ent_str]
-            mention_word_tokens = self._get_tokens(mention, flag='word')
-            cand_ids = self._get_candidates(ent_id, mention)
-
-        return mention_word_tokens.astype(np.int64), cand_ids.astype(np.int64), small_context.astype(np.int64)
+        return mention_word_tokens, cand_ids, small_context
 
     def _getitem_full_context(self, context_id, example):
         """getitem for prior with small context window."""
@@ -211,12 +206,9 @@ class CombinedDataSet(object):
         """getitem for pre train model."""
 
         mention, ent_str, span, small_context = example
-        cand_ids = np.zeros(self.args.num_candidates).astype(np.int64)
         context_tokens = self.processed_id2context[context_id]
-
-        if ent_str in self.ent2id:
-            ent_id = self.ent2id[ent_str]
-            cand_ids = self._get_candidates(ent_id, mention)
+        ent_id = self.ent2id[ent_str]
+        cand_ids = self._get_candidates(ent_str, mention)
 
         return context_tokens, cand_ids
 

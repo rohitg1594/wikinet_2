@@ -188,7 +188,7 @@ def setup(args=None, logger=None):
     logger.info(f'Embeddings loaded, word_embs : {word_embs.shape}, ent_embs : {ent_embs.shape}')
     print('word embs')
     print(word_embs[:50, :10])
-    print('word embs')
+    print('ent embs')
     print(ent_embs[:50, :10])
 
     # Training Data
