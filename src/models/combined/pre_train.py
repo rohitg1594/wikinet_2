@@ -12,17 +12,17 @@ class PreTrain(CombinedBase, Loss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # Context embeddings
-        self.context_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.context_word_dim,
-                                         padding_idx=0, sparse=self.args.sparse)
-        self.context_embs.weight.data.normal_(0, self.args.init_stdv)
-        self.context_embs.weight.data[0] = 0
-
-        # Entity mention embeddings
-        self.ent_mention_embs = nn.Embedding(self.ent_embs.weight.shape[0], self.args.ent_mention_dim,
-                                             padding_idx=0, sparse=self.args.sparse)
-        self.ent_mention_embs.weight.data.normal_(0, self.args.init_stdv)
-        self.ent_mention_embs.weight.data[0] = 0
+        # # Context embeddings
+        # self.context_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.context_word_dim,
+        #                                  padding_idx=0, sparse=self.args.sparse)
+        # self.context_embs.weight.data.normal_(0, self.args.init_stdv)
+        # self.context_embs.weight.data[0] = 0
+        #
+        # # Entity mention embeddings
+        # self.ent_mention_embs = nn.Embedding(self.ent_embs.weight.shape[0], self.args.ent_mention_dim,
+        #                                      padding_idx=0, sparse=self.args.sparse)
+        # self.ent_mention_embs.weight.data.normal_(0, self.args.init_stdv)
+        # self.ent_mention_embs.weight.data[0] = 0
 
         # Linear
         if self.args.combined_linear:
@@ -35,8 +35,8 @@ class PreTrain(CombinedBase, Loss):
         context_tokens, candidate_ids = inputs
 
         # Get the embeddings
-        context_repr = self.context_embs(context_tokens)
-        candidate_repr = self.ent_mention_embs(candidate_ids)
+        context_repr = self.word_embs(context_tokens)
+        candidate_repr = self.ent_embs(candidate_ids)
 
         # Sum the embeddings / pass through linear
         context_repr = torch.mean(context_repr, dim=1)
