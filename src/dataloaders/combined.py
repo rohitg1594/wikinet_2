@@ -207,7 +207,6 @@ class CombinedDataSet(object):
 
         mention, ent_str, span, small_context = example
         context_tokens = self.processed_id2context[context_id]
-        ent_id = self.ent2id[ent_str]
         cand_ids = self._get_candidates(ent_str, mention)
 
         return context_tokens, cand_ids
