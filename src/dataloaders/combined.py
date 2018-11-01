@@ -207,17 +207,18 @@ class CombinedDataSet(object):
 
         return mention_word_tokens, cand_ids, context_tokens
 
-    def _getitem_pre_train(self, context_ids, example):
+    def _getitem_pre_train(self, context_id, example):
         """getitem for pre train model."""
 
         mention, ent_str, span, small_context = example
         cand_ids = np.zeros(self.args.num_candidates).astype(np.int64)
+        context_tokens = self.processed_id2context[context_id]
 
         if ent_str in self.ent2id:
             ent_id = self.ent2id[ent_str]
             cand_ids = self._get_candidates(ent_id, mention)
 
-        return context_ids, cand_ids
+        return context_tokens, cand_ids
 
     def __getitem__(self, index):
         """Main getitem function, this calls other getitems based on model type params in self.args."""
