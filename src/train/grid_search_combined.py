@@ -26,8 +26,6 @@ def grid_search():
     pd_results = list()
 
     for param_dict in list(ParameterSampler(param_grid, n_iter=20)):
-        param_dict['context_word_dim'] = param_dict['ent_mention_dim'] // 2
-        param_dict['mention_word_dim'] = param_dict['ent_mention_dim'] // 2
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
