@@ -59,7 +59,7 @@ def parse_args():
 
     # Model Type
     model_selection = parser.add_argument_group('Type of model to train.')
-    model_selection.add_argument('--init_embs', type=str, choices=['yamada', 'gensim', 'random'],
+    model_selection.add_argument('--init_emb', type=str, choices=['yamada', 'gensim', 'random'],
                                  help='how to initialize word and entity embeddings')
     model_selection.add_argument('--gensim_model', type=str,
                                  help='name of gensim model (used if embeddings are initialized with gensim')
