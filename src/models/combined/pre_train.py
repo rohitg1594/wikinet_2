@@ -37,7 +37,6 @@ class PreTrain(CombinedBase, Loss):
         # Get the embeddings
         context_repr = self.word_embs(context_tokens)
         candidate_repr = self.ent_embs(candidate_ids)
-        print(f'context :  {context_repr.shape}, candidate : {candidate_repr.shape}')
 
         # Sum the embeddings / pass through linear
         context_repr = torch.mean(context_repr, dim=1)
