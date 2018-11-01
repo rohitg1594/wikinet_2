@@ -27,7 +27,8 @@ max_context_size:100
 max_ent_size:35
 
 # Model types
-init_yamada:True
+init_emb:gensim
+gensim_model:w2v-yamada-128-20-3
 model_name:pre_train
 init_stdv:0.001
 

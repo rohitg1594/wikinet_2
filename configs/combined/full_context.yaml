@@ -29,7 +29,7 @@ max_ent_size:35
 # Model types
 init_emb:yamada
 gensim_model:None
-model_name:small_context
+model_name:full_context
 init_stdv:0.001
 
 # Model Params

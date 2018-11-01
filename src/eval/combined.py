@@ -25,15 +25,16 @@ class CombinedValidator:
     def __init__(self,
                  gram_tokenizer=None,
                  gram_dict=None,
-                 yamada_model=None,
+                 word2id=None,
+                 ent2id=None,
                  data=None,
                  args=None,):
 
         self.gram_tokenizer = gram_tokenizer
         self.word_tokenizer = RegexpTokenizer()
-        self.word2id = yamada_model['word_dict']
+        self.word2id = word2id
         self.id2word = reverse_dict(self.word2id)
-        self.ent2id = yamada_model['ent_dict']
+        self.ent2id = ent2id
         self.id2ent = reverse_dict(self.ent2id)
         self.gram2id = gram_dict
         self.id2gram = reverse_dict(self.gram2id)
@@ -166,7 +167,7 @@ class CombinedValidator:
             small_context = small_context[self.wiki_mask, :]
 
         if cuda and isinstance(self.args.device, int):
-            device = self.args.device 
+            device = self.args.device
             mention_gram = mention_gram.cuda(device)
             mention_word = mention_word.cuda(device)
             context = context.cuda(device)

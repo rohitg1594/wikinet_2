@@ -1,4 +1,5 @@
 # Main training file
+import sys
 import os
 from os.path import join
 from datetime import datetime
@@ -58,8 +59,10 @@ def parse_args():
 
     # Model Type
     model_selection = parser.add_argument_group('Type of model to train.')
-    model_selection.add_argument('--init_yamada', type=str2bool,
-                                 help='whether to initialize the combined model randomly')
+    model_selection.add_argument('--init_embs', type=str, choices=['yamada', 'gensim', 'random'],
+                                 help='how to initialize word and entity embeddings')
+    model_selection.add_argument('--gesim_model', type=str,
+                                 help='name of gensim model (used if embeddings are initialized with gensim')
     model_selection.add_argument('--model_name', type=str, help='type of model to train')
     model_selection.add_argument('--init_mention', type=str, help='how to initialize mention and ent mention embs')
     model_selection.add_argument('--init_mention_model', type=str,
@@ -168,17 +171,20 @@ def setup(args=None, logger=None):
     logger.info(f"Gram embeddings created of shape: {gram_embs.shape}")
 
     # Word and Entity Embeddings
-    if args.init_emb == 'yamada':
+    if args.init_emb == 'random':
         logger.info("Initializing word and entity embeddings randomly.....")
         word_embs = normal_initialize(yamada_model['word_emb'].shape[0], yamada_model['word_emb'].shape[1])
         ent_embs = normal_initialize(yamada_model['ent_emb'].shape[0], yamada_model['ent_emb'].shape[1])
         logger.info("Embeddings initialized.")
     elif args.init_emb == 'gensim':
-        ent_embs, word_embs = load_gensim()
-    else:
+        ent_embs, word_embs = load_gensim(args.data_path, model_dir=args.gensim_model, yamada_model=yamada_model)
+    elif args.init_emb == 'yamada':
         logger.info("Using pre-trained word and entity embeddings from Yamada.")
         ent_embs = yamada_model['ent_emb']
         word_embs = yamada_model['word_emb']
+    else:
+        logger.error(f'init_emb {args.init_emb} option not recognized, exiting....')
+        sys.exit(1)
 
     # Training Data
     logger.info("Loading training data.....")
@@ -191,7 +197,8 @@ def setup(args=None, logger=None):
     logger.info("Creating validator.....")
     validator = CombinedValidator(gram_dict=gram_dict,
                                   gram_tokenizer=gram_tokenizer,
-                                  yamada_model=yamada_model,
+                                  word2id=yamada_model['word_dict'],
+                                  ent2id=yamada_model['ent_dict'],
                                   data=dev_data,
                                   args=args)
     logger.info("Validator created.")

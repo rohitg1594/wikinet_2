@@ -174,7 +174,7 @@ def load_data(data_type, args):
     return res
 
 
-def load_gensim(data_path=None, model_dir=None, emb_dim=128, yamada_model=None):
+def load_gensim(data_path=None, model_dir=None, yamada_model=None):
     """Load model trained with gensim, fill in the ent and word vector matrix and return them."""
     word2id = yamada_model['word_dict']
     ent2id = yamada_model['ent_dict']
@@ -183,6 +183,7 @@ def load_gensim(data_path=None, model_dir=None, emb_dim=128, yamada_model=None):
     wv = model.wv
     index2word = wv.index2word
     vectors = wv.vectors
+    emb_dim = vectors.shape[1]
 
     ent_indices = [i for i, word in enumerate(index2word) if word.startswith('e__')]
     ent_ids = [int(word[3:]) for i, word in enumerate(index2word) if word.startswith('e__')]
