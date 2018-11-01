@@ -19,9 +19,8 @@ DATA_TYPES = ['wiki', 'conll', 'msnbc', 'ace2004']
 def grid_search():
     param_grid = {
                   'lr': [5e-2, 1e-2, 5e-3, 1e-3],
-                  'wd': [1e-5, 1e-6, 1e-7],
-                  'init_stdv': [1e-2, 5e-2, 1e-3],
-                  'dp': [0, 1e-1, 2e-1, 3e-1],
+                  'wd': [1e-7, 1e-6, 1e-5],
+                  'dp': [1e-1, 2e-1],
                   }
     results = {}
     pd_results = list()
