@@ -165,8 +165,8 @@ class CombinedValidator:
             context = context[self.wiki_mask, :]
             small_context = small_context[self.wiki_mask, :]
 
-        if cuda:
-            device = self.args.device if isinstance(self.args.device, int) else self.args.device[0]
+        if cuda and isinstance(self.args.device, int):
+            device = self.args.device 
             mention_gram = mention_gram.cuda(device)
             mention_word = mention_word.cuda(device)
             context = context.cuda(device)

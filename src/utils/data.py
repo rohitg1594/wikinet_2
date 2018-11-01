@@ -190,15 +190,14 @@ def load_gensim(data_path=None, model_dir=None, emb_dim=128, yamada_model=None):
     word_indices = [i for i, word in enumerate(index2word) if not word.startswith('e__')]
     words = [word for i, word in enumerate(index2word) if not word.startswith('e__')]
 
-    ent_vectors = np.zeros((len(ent2id) + 1, emb_dim))
+    ent_embs = np.zeros((len(ent2id) + 1, emb_dim))
     for ent_index, ent_id in zip(ent_indices, ent_ids):
-        ent_vectors[ent_id] = vectors[ent_index]
+        ent_embs[ent_id] = vectors[ent_index]
 
-    word_vectors = np.zeros((len(word2id) + 1, emb_dim))
+    word_embs = np.zeros((len(word2id) + 1, emb_dim))
     for word_index, word in zip(word_indices, words):
         if word in word2id:
             word_id = word2id[word]
-            word_vectors[word_id] = vectors[word_index]
+            word_embs[word_id] = vectors[word_index]
 
-    return {'ent': ent_vectors,
-            'word': word_vectors}
+    return ent_embs, word_embs

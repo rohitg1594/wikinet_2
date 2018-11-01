@@ -10,7 +10,7 @@ from torch.nn import DataParallel
 import configargparse
 
 from src.utils.utils import str2bool, normal_initialize, get_model, send_to_cuda
-from src.utils.data import load_vocab, pickle_load, load_data
+from src.utils.data import load_vocab, pickle_load, load_data, load_gensim
 from src.eval.combined import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenizer.gram_tokenizer import get_gram_tokenizer
@@ -168,11 +168,13 @@ def setup(args=None, logger=None):
     logger.info(f"Gram embeddings created of shape: {gram_embs.shape}")
 
     # Word and Entity Embeddings
-    if not args.init_yamada:
+    if args.init_emb == 'yamada':
         logger.info("Initializing word and entity embeddings randomly.....")
         word_embs = normal_initialize(yamada_model['word_emb'].shape[0], yamada_model['word_emb'].shape[1])
         ent_embs = normal_initialize(yamada_model['ent_emb'].shape[0], yamada_model['ent_emb'].shape[1])
         logger.info("Embeddings initialized.")
+    elif args.init_emb == 'gensim':
+        ent_embs, word_embs = load_gensim()
     else:
         logger.info("Using pre-trained word and entity embeddings from Yamada.")
         ent_embs = yamada_model['ent_emb']
