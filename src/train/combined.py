@@ -183,7 +183,7 @@ def setup(args=None, logger=None):
         word_embs = yamada_model['word_emb']
     elif args.init_emb == 'ckpt':
         logger.info(f"Using pre-trained word and entity embeddings from {args.ckpt}.")
-        state_dict = torch.load(args.ckpt)['state_dict']
+        state_dict = torch.load(args.ckpt, map_location=torch.device('cpu'))['state_dict']
         ent_embs = state_dict['ent_embs.weight'].cpu().numpy()
         word_embs = state_dict['word_embs.weight'].cpu().numpy()
         W = state_dict['combine_linear.weight'].cpu().numpy()
