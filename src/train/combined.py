@@ -188,6 +188,10 @@ def setup(args=None, logger=None):
         word_embs = state_dict['word_embs.weight'].cpu().numpy()
         W = state_dict['combine_linear.weight'].cpu().numpy()
         b = state_dict['combine_linear.bias'].cpu().numpy()
+
+        # TODO: This is ugly and will cause confusion later, think of a better solution
+        yamada_model['W'] = W
+        yamada_model['b'] = b
     else:
         logger.error(f'init_emb {args.init_emb} option not recognized, exiting....')
         sys.exit(1)
