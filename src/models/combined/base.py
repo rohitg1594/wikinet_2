@@ -35,9 +35,8 @@ class CombinedBase(nn.Module):
 
         # Linear Layer
         self.orig_linear = nn.Linear(*W.shape)
-        if self.args.init_emb == 'yamada':
-            self.orig_linear.weight.data.copy_(torch.from_numpy(W))
-            self.orig_linear.bias.data.copy_(torch.from_numpy(b))
+        self.orig_linear.weight.data.copy_(torch.from_numpy(W))
+        self.orig_linear.bias.data.copy_(torch.from_numpy(b))
         self.orig_linear.requires_grad = self.args.train_linear
 
     def forward(self, inputs):

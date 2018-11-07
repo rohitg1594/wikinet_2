@@ -186,6 +186,8 @@ def setup(args=None, logger=None):
         state_dict = torch.load(args.ckpt)['state_dict']
         ent_embs = state_dict['ent_embs.weight'].cpu().numpy()
         word_embs = state_dict['word_embs.weight'].cpu().numpy()
+        W = state_dict['combine_linear.weight'].cpu().numpy()
+        b = state_dict['combine_linear.bias'].cpu().numpy()
     else:
         logger.error(f'init_emb {args.init_emb} option not recognized, exiting....')
         sys.exit(1)

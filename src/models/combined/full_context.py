@@ -47,7 +47,7 @@ class FullContext(CombinedBase, Loss):
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
-        context_embs_agg = torch.mean(context_embs, dim=1)
+        context_embs_agg = self.orig_linear(torch.mean(context_embs, dim=1))
 
         # Cat the embs
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
@@ -57,13 +57,13 @@ class FullContext(CombinedBase, Loss):
 
         # Normalize
         if self.args.norm_final:
-            candidate_embs = F.normalize(cand_repr, dim=1)
+            cand_repr = F.normalize(cand_repr, dim=1)
             mention_repr = F.normalize(mention_repr, dim=1)
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
             mention_repr.unsqueeze_(1)
-            scores = torch.matmul(mention_repr, cand_repr.transpose(1, 2)).squeeze(1)
+            scores = torch.matmul(mention_repr, cand_repr.transpose(0, 1)).squeeze(1)
         else:
             scores = torch.Tensor([0])
 
