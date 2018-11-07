@@ -30,11 +30,15 @@ max_ent_size:35
 init_emb:yamada
 gensim_model:None
 model_name:full_context
-init_stdv:0.001
 
 # Model Params
 measure:ip
 dp:0
+mention_word_dim:128
+ent_mention_dim:128
+context_word_dim:128
+combined_linear:True
+init_stdv:0.001
 
 # Normalization
 norm_gram:False

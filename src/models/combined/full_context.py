@@ -38,7 +38,9 @@ class FullContext(CombinedBase, Loss):
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
-
+        print(f"mention word tokens:{mention_word_tokens[:10, :10]}, cand id: {candidate_ids[:10]},"
+              f" context : {context_tokens[:10, :10]}")
+        
         # Get the embeddings
         mention_embs = self.mention_embs(mention_word_tokens)
         context_embs = self.word_embs(context_tokens)
@@ -47,11 +49,11 @@ class FullContext(CombinedBase, Loss):
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
-        context_embs_agg = self.orig_linear(torch.mean(context_embs, dim=1))
+        context_embs_agg = F.normalize(self.orig_linear(torch.mean(context_embs, dim=1)))
 
         # Cat the embs
-        mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
         cat_dim = 2 if len(candidate_ids.shape) == 2 else 1
+        mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
         cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs), dim=cat_dim)
         if self.args.combined_linear:
             mention_repr = self.combine_linear(mention_repr)
