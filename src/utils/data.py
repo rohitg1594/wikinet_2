@@ -133,7 +133,7 @@ def load_data(data_type, args):
     """
     res = {}
     splits = ['train', 'dev', 'test']
-    if 'proto' in data_type:
+    if data_type == 'proto':
         logger.info("Loading Wikipedia proto training data.....")
         for split in ['train', 'dev']:
             id2context, examples = pickle_load(join(args.data_path, 'training_files', 'proto', f'{split}.pickle'))
@@ -143,27 +143,29 @@ def load_data(data_type, args):
 
         res['test'] = {}, []
 
-    # TODO: CHANGE THIS TO ID2CONTEXT FORMAT
-    elif data_type in ['abstract', 'mention']:
+    elif data_type == 'full':
         logger.info("Loading Wikipedia orig training data.....")
-        data = []
-        for i in range(args.num_shards):
-            data.extend(pickle_load(join(args.data_path, 'training_files', f'{data_type}', f'data_{i}.pickle')))
+        id2context, examples = pickle_load(join(args.data_path, 'training_files', 'full', 'full.pickle'))
 
         train_data = []
         dev_data = []
         test_data = []
-        for d in data:
+        for ex in examples:
             if len(train_data) == args.train_size:
                 break
             r = np.random.random()
             if r < 0.90:
-                train_data.append(d)
+                train_data.append(ex)
 
             elif 0.9 < r < 0.95:
-                dev_data.append(d)
+                dev_data.append(ex)
             else:
-                test_data.append(d)
+                test_data.append(ex)
+
+        res = {'train': (id2context, train_data),
+               'dev': (id2context, dev_data),
+               'test': (id2context, test_data)
+               }
     elif data_type == 'conll':
         for split in splits:
             res[split] = pickle_load(join(args.data_path, 'training_files', f'conll-{split}.pickle'))

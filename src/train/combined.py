@@ -3,12 +3,10 @@ import sys
 import os
 from os.path import join
 from datetime import datetime
+import configargparse
 
 import numpy as np
-
-from torch.nn import DataParallel
-
-import configargparse
+import torch
 
 from src.utils.utils import str2bool, normal_initialize, get_model, send_to_cuda
 from src.utils.data import load_vocab, pickle_load, load_data, load_gensim
@@ -59,7 +57,7 @@ def parse_args():
 
     # Model Type
     model_selection = parser.add_argument_group('Type of model to train.')
-    model_selection.add_argument('--init_emb', type=str, choices=['yamada', 'gensim', 'random'],
+    model_selection.add_argument('--init_emb', type=str, choices=['yamada', 'gensim', 'random', 'ckpt'],
                                  help='how to initialize word and entity embeddings')
     model_selection.add_argument('--gensim_model', type=str,
                                  help='name of gensim model (used if embeddings are initialized with gensim')
@@ -67,6 +65,7 @@ def parse_args():
     model_selection.add_argument('--init_mention', type=str, help='how to initialize mention and ent mention embs')
     model_selection.add_argument('--init_mention_model', type=str,
                                  help='ckpt file to initialize mention and ent mention embs')
+    model_selection.add_argument('--ckpt', type=str, help='model ckpt to load word and ent embs')
 
     # Model params
     model_params = parser.add_argument_group("Parameters for chosen model.")
@@ -182,6 +181,11 @@ def setup(args=None, logger=None):
         logger.info("Using pre-trained word and entity embeddings from Yamada.")
         ent_embs = yamada_model['ent_emb']
         word_embs = yamada_model['word_emb']
+    elif args.init_emb == 'ckpt':
+        logger.info(f"Using pre-trained word and entity embeddings from {args.ckpt}.")
+        state_dict = torch.load(args.ckpt)['state_dict']
+        ent_embs = state_dict['ent_embs.weight'].cpu().numpy()
+        word_embs = state_dict['word_embs.weight'].cpu().numpy()
     else:
         logger.error(f'init_emb {args.init_emb} option not recognized, exiting....')
         sys.exit(1)

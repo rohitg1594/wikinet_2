@@ -289,3 +289,8 @@ def eval_ranking(I, gold, ks):
 
     return topks[0], topks[1], topks[2], mrr
 
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]

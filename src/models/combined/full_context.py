@@ -22,12 +22,6 @@ class FullContext(CombinedBase, Loss):
         self.mention_embs.weight.data.normal_(0, self.args.init_stdv)
         self.mention_embs.weight.data[0] = 0
 
-        # Context embeddings
-        self.context_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.context_word_dim,
-                                         padding_idx=0, sparse=self.args.sparse)
-        self.context_embs.weight.data.normal_(0, self.args.init_stdv)
-        self.context_embs.weight.data[0] = 0
-
         # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(self.ent_embs.weight.shape[0], self.args.ent_mention_dim,
                                              padding_idx=0, sparse=self.args.sparse)
@@ -37,7 +31,7 @@ class FullContext(CombinedBase, Loss):
         # Linear
         if self.args.combined_linear:
             self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim,
-                                            self.args.ent_mention_dim)
+                                            self.args.mention_word_dim + self.args.context_word_dim)
 
         # Dropout
         self.dp = nn.Dropout(self.args.dp)
@@ -47,8 +41,9 @@ class FullContext(CombinedBase, Loss):
 
         # Get the embeddings
         mention_embs = self.mention_embs(mention_word_tokens)
-        context_embs = self.mention_embs(context_tokens)
-        candidate_embs = self.ent_mention_embs(candidate_ids)
+        context_embs = self.word_embs(context_tokens)
+        candidate_mention_embs = self.ent_mention_embs(candidate_ids)
+        candidate_context_embs = self.ent_embs(candidate_ids)
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
@@ -56,12 +51,13 @@ class FullContext(CombinedBase, Loss):
 
         # Cat the embs
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
+        cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs), dim=1)
         if self.args.combined_linear:
             mention_repr = self.combine_linear(mention_repr)
 
         # Normalize
         if self.args.norm_final:
-            candidate_embs = F.normalize(candidate_embs, dim=1)
+            candidate_embs = F.normalize(cand_repr, dim=1)
             mention_repr = F.normalize(mention_repr, dim=1)
 
         # Dot product over last dimension only during training
