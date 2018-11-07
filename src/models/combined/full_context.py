@@ -63,7 +63,6 @@ class FullContext(CombinedBase, Loss):
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
-            print(f"cand id : {candidate_ids.shape}, mention_repr : {mention_repr.shape}, cand repr: {cand_repr.shape}")
             mention_repr.unsqueeze_(1)
             scores = torch.matmul(mention_repr, cand_repr.transpose(1, 2)).squeeze(1)
         else:
