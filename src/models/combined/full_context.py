@@ -63,11 +63,11 @@ class FullContext(CombinedBase, Loss):
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
             mention_repr.unsqueeze_(1)
-            scores = torch.matmul(mention_repr, candidate_embs.transpose(1, 2)).squeeze(1)
+            scores = torch.matmul(mention_repr, cand_repr.transpose(1, 2)).squeeze(1)
         else:
             scores = torch.Tensor([0])
 
-        return scores, candidate_embs, mention_repr
+        return scores, cand_repr, mention_repr
 
     def loss(self, scores, labels):
         return self.cross_entropy(scores, labels)

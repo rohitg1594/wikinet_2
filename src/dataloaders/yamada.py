@@ -47,7 +47,6 @@ class YamadaDataset(object):
         id2context, examples = data
         self.examples = examples
         self.id2context = id2context
-        print(f'len examples: {len(examples)}, len id2contex: {len(id2context)}')
         self.processed_id2context = {}
         for index in self.id2context.keys():
             self.processed_id2context[index] = self._init_context(index)
