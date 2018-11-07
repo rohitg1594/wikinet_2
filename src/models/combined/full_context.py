@@ -58,7 +58,7 @@ class FullContext(CombinedBase, Loss):
 
         # Normalize
         if self.args.norm_final:
-            cand_repr = F.normalize(cand_repr, dim=2)
+            cand_repr = F.normalize(cand_repr, dim=cat_dim)
             mention_repr = F.normalize(mention_repr, dim=1)
 
         # Dot product over last dimension only during training
