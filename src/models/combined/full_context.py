@@ -38,8 +38,8 @@ class FullContext(CombinedBase, Loss):
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids, context_tokens = inputs
-        print(f"mention word tokens:{mention_word_tokens[:10, :10]}, cand id: {candidate_ids[:10]},"
-              f" context : {context_tokens[:10, :10]}")
+        print(f"mention word tokens:{mention_word_tokens.shape}, cand ids:{candidate_ids.shape}, context : {context_tokens.shape}")
+        print(f"mention word tokens:{mention_word_tokens[:5, :10]}, cand id: {candidate_ids[:5]}, context : {context_tokens[:5, :10]}")
 
         # Get the embeddings
         mention_embs = self.mention_embs(mention_word_tokens)
