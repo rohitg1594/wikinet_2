@@ -238,6 +238,7 @@ class CombinedValidator:
 
             ent_combined_embs = ent_combined_embs.cpu().data.numpy()
             mention_combined_embs = mention_combined_embs.cpu().data.numpy()
+            print(ent_combined_embs.shape, mention_combined_embs.shape)
 
             if not flag:
                 # Create / search in Faiss Index
