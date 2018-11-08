@@ -21,7 +21,6 @@ def grid_search():
                   'lr': [5e-2, 1e-3, 5e-3, 1e-2],
                   'wd': [1e-7, 1e-6, 1e-5],
                   'dp': [1e-1, 2e-1],
-                  'combined_linear': ['True', 'False']
                   }
     results = {}
     pd_results = list()
