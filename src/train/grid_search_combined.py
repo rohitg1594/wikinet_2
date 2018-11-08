@@ -18,9 +18,10 @@ DATA_TYPES = ['wiki', 'conll', 'msnbc', 'ace2004']
 
 def grid_search():
     param_grid = {
-                  'lr': [5e-2, 1e-2, 5e-3, 1e-3],
+                  'lr': [5e-2, 1e-3, 5e-3, 1e-2],
                   'wd': [1e-7, 1e-6, 1e-5],
                   'dp': [1e-1, 2e-1],
+                  'combined_linear': ['True', 'False']
                   }
     results = {}
     pd_results = list()
@@ -64,7 +65,6 @@ def grid_search():
         logger.info("Finished Training")
 
         pd_results.append({**param_dict, **best_results})
-        print('PD RESULTS: {}'.format(pd_results))
         df = pd.DataFrame(pd_results)
         df.to_csv(join(model_dir, 'hyper_df.csv'))
 
