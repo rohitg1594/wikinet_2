@@ -229,18 +229,18 @@ class CombinedValidator:
 
     def validate(self, model=None, error=True):
         model.eval()
-        flag = False
+        first_data = True
         results = {}
 
         for data_type in self.data_types:
             input = self._get_data(data_type=data_type, cuda=True)
             _, ent_combined_embs, mention_combined_embs = model(input)
 
-            ent_combined_embs = ent_combined_embs.cpu().data.numpy()
             mention_combined_embs = mention_combined_embs.cpu().data.numpy()
             print(ent_combined_embs.shape, mention_combined_embs.shape)
 
-            if not flag:
+            if first_data:
+                ent_combined_embs = ent_combined_embs.cpu().data.numpy()
                 # Create / search in Faiss Index
                 if self.args.measure == 'ip':
                     index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
@@ -249,7 +249,7 @@ class CombinedValidator:
                     index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
                     logger.info("Using IndexFlatL2")
                 index.add(ent_combined_embs)
-                flag = True
+                first_data = False
 
             logger.info(f"Searching in index with query size : {mention_combined_embs.shape}.....")
             _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
