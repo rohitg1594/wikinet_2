@@ -123,6 +123,7 @@ def get_normalised_forms(sf):
 def equalize_len(data, max_size):
     d = data.copy()
     l = len(d)
+
     if l >= max_size:
         return d[:max_size]
     else:
@@ -130,6 +131,20 @@ def equalize_len(data, max_size):
             d.append(0)
 
         return d
+
+
+def equalize_len_w_eot(data, max_size, eot=None):
+    l = len(data)
+    arr = np.zeros(max_size, dtype=np.int64)
+
+    if l >= max_size:
+        arr[:max_size] = data[:max_size]
+        arr[max_size - 1] = eot
+    else:
+        arr[:l] = data
+        arr[l] = eot
+
+    return arr
 
 
 def str2bool(v):
@@ -190,6 +205,12 @@ def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=
     kwargs['conv_weights'] = conv_weights
     kwargs['mention_embs'] = mention_embs
     kwargs['ent_mention_embs'] = ent_mention_embs
+
+    if args.model_name == 'full_context_string':
+        autonecoder_state_dict = torch.load(args.autoencoder_ckpt)['state_dict']
+        kwargs['char_embs'] = autonecoder_state_dict['char_embs.weight']
+        kwargs['hidden_size'] = autonecoder_state_dict['lin2.weight'].shape[0]
+        kwargs['autoencoder_state_dict'] = autonecoder_state_dict
 
     model_type = getattr(Models, args.model_name)
     model = model_type(**kwargs)

@@ -40,6 +40,7 @@ def parse_args():
     data.add_argument('--conll_split', type=str, choices=['train', 'dev', 'test'],
                       help='which split of connl data to evaluate on')
     data.add_argument('--yamada_model', type=str, help='name of yamada model')
+    data.add_argument('--autoencoder_ckpt', type=str, help='path of autoencoder checkpoint')
 
     # Gram
     gram = parser.add_argument_group('Gram (uni / bi / tri) Settings.')
@@ -52,6 +53,7 @@ def parse_args():
     padding.add_argument('--max_word_size', type=int, help='max number of words')
     padding.add_argument('--max_context_size', type=int, help='max number of context')
     padding.add_argument('--max_gram_size', type=int, help='max number of grams')
+    padding.add_argument('--max_char_size', type=int, help='max number of grams')
     padding.add_argument('--max_ent_size', type=int, help='max number of entities considered in abstract')
     padding.add_argument('--ignore_init', type=str2bool, help='whether to ignore first five tokens of context')
 

@@ -8,7 +8,8 @@ import numpy as np
 import torch
 import torch.utils.data
 
-from src.utils.utils import reverse_dict, equalize_len, get_normalised_forms, get_absolute_pos
+from src.utils.utils import reverse_dict, equalize_len, get_normalised_forms, get_absolute_pos, equalize_len_w_eot
+from src.utils.data import pickle_load
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
 logger = getLogger(__name__)
@@ -42,6 +43,10 @@ class CombinedDataSet(object):
         self.args = args
         self.word_tokenizer = RegexpTokenizer(lower=self.args.gram_lower)
         self.model_name = self.args.model_name
+
+        autoencoder_data = pickle_load(join(self.args.data_path, 'autoencoder/data.pickle'))
+        self.char_dict = autoencoder_data['char_dict']
+        self.max_char_size = self.args.max_char_size
 
         self.num_cand_gen = self.args.num_candidates // 2
         id2context, examples = data
@@ -128,6 +133,14 @@ class CombinedDataSet(object):
 
         return cand_tokens, mention_tokens
 
+    def _get_char_tokens(self, s):
+        """return char token ids based on self.char_dict for string s."""
+
+        char_ids = [self.char_dict[char] for char in list(s)]
+        char_ids = equalize_len_w_eot(char_ids, self.max_char_size, self.char_dict['EOT'])
+
+        return char_ids
+
     def _get_tokens(self, mention, flag='gram'):
         """Tokenize mention based on flag and then pad them."""
 
@@ -188,28 +201,58 @@ class CombinedDataSet(object):
 
         mention, ent_str, span, small_context = example
         mention_word_tokens = self._get_tokens(mention, flag='word')
-        cand_ids = self._get_candidates(ent_str, mention)
+        candidate_ids = self._get_candidates(ent_str, mention)
 
-        return mention_word_tokens, cand_ids, small_context
+        output = {'mention_word_tokens': mention_word_tokens,
+                  'candidate_ids': candidate_ids,
+                  'small_context': small_context}
+
+        return output
 
     def _getitem_full_context(self, context_id, example):
-        """getitem for prior with small context window."""
+        """getitem for full context model"""
 
         mention, ent_str, span, small_context = example
         context_tokens = self.processed_id2context[context_id]
         mention_word_tokens = self._get_tokens(mention, flag='word')
-        cand_ids = self._get_candidates(ent_str, mention)
+        candidate_ids = self._get_candidates(ent_str, mention)
 
-        return mention_word_tokens, cand_ids, context_tokens
+        output = {'mention_word_tokens': mention_word_tokens,
+                  'candidate_ids': candidate_ids,
+                  'context_tokens': context_tokens}
+
+        return output
+
+    def _getitem_full_context_string(self, context_id, example):
+        """getitem for full context string model"""
+
+        mention, ent_str, span, small_context = example
+        context_tokens = self.processed_id2context[context_id]
+        mention_word_tokens = self._get_tokens(mention, flag='word')
+        candidate_ids = self._get_candidates(ent_str, mention)
+        mention_char_tokens = self._get_char_tokens(mention)
+        cand_strs = [self.id2ent.get(cand_id, '') for cand_id in candidate_ids]
+        candidate_char_tokens = np.vstack([self._get_char_tokens(cand_str) for cand_str in cand_strs])
+
+        output = {'mention_word_tokens': mention_word_tokens,
+                  'mention_char_tokens': mention_char_tokens,
+                  'context_tokens': context_tokens,
+                  'candidate_ids': candidate_ids,
+                  'candidate_char_tokens': candidate_char_tokens}
+
+        return output
 
     def _getitem_pre_train(self, context_id, example):
         """getitem for pre train model."""
 
         mention, ent_str, span, small_context = example
         context_tokens = self.processed_id2context[context_id]
-        cand_ids = self._get_candidates(ent_str, mention)
+        candidate_ids = self._get_candidates(ent_str, mention)
 
-        return context_tokens, cand_ids
+        output = {'context_tokens': context_tokens,
+                  'candidate_ids': candidate_ids}
+
+        return output
 
     def __getitem__(self, index):
         """Main getitem function, this calls other getitems based on model type params in self.args."""
@@ -232,6 +275,8 @@ class CombinedDataSet(object):
             return self._getitem_small_context(example)
         elif self.model_name == 'full_context':
             return self._getitem_full_context(context_id, example)
+        elif self.model_name == 'full_context':
+            return self._getitem_full_context_string(context_id, example)
         elif self.model_name == 'full_context_attention':
             return self._getitem_full_context(context_id, example)
         elif self.model_name == 'pre_train':
