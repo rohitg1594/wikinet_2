@@ -10,6 +10,7 @@ import torch
 
 from src.utils.utils import str2bool, normal_initialize, get_model, send_to_cuda
 from src.utils.data import load_vocab, pickle_load, load_data, load_gensim
+from src.utils.dictionary import Dictionary
 from src.eval.combined import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenizer.gram_tokenizer import get_gram_tokenizer
