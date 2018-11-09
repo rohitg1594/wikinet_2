@@ -42,8 +42,9 @@ class FullContextString(CombinedBase, Loss):
         max_char_size = self.args.max_char_size
         char_embs = kwargs['char_embs']
 
-        self.string_encoder = StringAutoEncoder(max_char_size=max_char_size, hidden_size=hidden_size, char_embs=char_embs)
-        self.string_encoder.load_state_dict(autoencoder_state_dict)
+        self.autoencoder = StringAutoEncoder(max_char_size=max_char_size, hidden_size=hidden_size, char_embs=char_embs)
+        self.autoencoder.load_state_dict(autoencoder_state_dict)
+        self.autoencoder.eval()
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
