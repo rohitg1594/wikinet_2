@@ -4,7 +4,7 @@ exp_name:pre_train
 debug:False
 
 # Data
-data_path:/home/rogupta/wikinet_2/data
+data_path:/work/rogupta/wikinet_data
 data_type:splits
 num_shards:100
 train_size:1000000
@@ -16,9 +16,6 @@ yamada_model:yamada_model.pickle
 gram_type:trigram
 gram_lower:True
 gram_dim:64
-mention_word_dim:64
-context_word_dim:128
-ent_mention_dim:128
 
 # Max padding
 max_word_size:5
@@ -36,6 +33,9 @@ init_stdv:0.001
 measure:ip
 dp:0
 combined_linear:True
+mention_word_dim:64
+context_word_dim:128
+ent_mention_dim:128
 
 # Normalization
 norm_gram:False
