@@ -91,7 +91,7 @@ class CombinedValidator:
 
             # Char tokens
             char_tokens = list(ent_str)
-            char_indices = [self.char_dict.get(token, 0) for token in char_tokens]
+            char_indices = [self.char_dict[token] for token in char_tokens]
             char_indices = equalize_len_w_eot(char_indices, self.args.max_char_size, self.char_dict['EOT'])
             ent_char_indices[ent_id] = char_indices
 
@@ -147,7 +147,7 @@ class CombinedValidator:
 
             # Mention Char
             mention_char_tokens = list(mention)
-            mention_char_indices = [self.char_dict.get(token, 0) for token in mention_char_tokens]
+            mention_char_indices = [self.char_dict[token] for token in mention_char_tokens]
             mention_char_indices = equalize_len_w_eot(mention_char_indices, self.args.max_char_size, self.char_dict['EOT'])
             all_mention_char_indices.append(np.array(mention_char_indices).astype(np.int64))
 
