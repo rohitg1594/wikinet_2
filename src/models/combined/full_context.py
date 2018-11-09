@@ -53,6 +53,7 @@ class FullContext(CombinedBase, Loss):
         cat_dim = 2 if len(candidate_ids.shape) == 2 else 1
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg), dim=1)
         cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs), dim=cat_dim)
+
         if self.args.combined_linear:
             mention_repr = self.combine_linear(mention_repr)
 
