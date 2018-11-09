@@ -4,7 +4,7 @@ exp_name:prior_full_context
 debug:False
 
 # Data
-data_path:/home/rogupta/wikinet_2/data
+data_path:/work/rogupta/wikinet_data
 data_type:proto
 num_shards:100
 train_size:100000
