@@ -12,18 +12,6 @@ class PreTrain(CombinedBase, Loss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # # Context embeddings
-        # self.context_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.context_word_dim,
-        #                                  padding_idx=0, sparse=self.args.sparse)
-        # self.context_embs.weight.data.normal_(0, self.args.init_stdv)
-        # self.context_embs.weight.data[0] = 0
-        #
-        # # Entity mention embeddings
-        # self.ent_mention_embs = nn.Embedding(self.ent_embs.weight.shape[0], self.args.ent_mention_dim,
-        #                                      padding_idx=0, sparse=self.args.sparse)
-        # self.ent_mention_embs.weight.data.normal_(0, self.args.init_stdv)
-        # self.ent_mention_embs.weight.data[0] = 0
-
         # Linear
         if self.args.combined_linear:
             self.combine_linear = nn.Linear(self.args.context_word_dim, self.args.ent_mention_dim)
@@ -32,7 +20,8 @@ class PreTrain(CombinedBase, Loss):
         self.dp = nn.Dropout(self.args.dp)
 
     def forward(self, inputs):
-        context_tokens, candidate_ids = inputs
+        context_tokens = inputs['context_tokens']
+        candidate_ids = inputs['candidate_ids']
 
         # Get the embeddings
         context_repr = self.word_embs(context_tokens)
