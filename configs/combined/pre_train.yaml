@@ -5,7 +5,7 @@ debug:False
 
 # Data
 data_path:/work/rogupta/wikinet_data
-data_type:splits
+data_type:proto
 num_shards:100
 train_size:1000000
 query_size:5000
