@@ -49,22 +49,7 @@ class Trainer(object):
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', verbose=True, patience=5)
         self.loader_index = 0
 
-    def _get_next_batch(self, data):
-        data = list(data)
-        for i in range(len(data)):
-            data[i] = Variable(data[i])
-
-        labels = Variable(torch.zeros(data[0].shape[0]).type(torch.LongTensor), requires_grad=False)
-
-        if self.args.use_cuda:
-            device = self.args.device if isinstance(self.args.device, int) else self.args.device[0]
-            for i in range(len(data)):
-                data[i] = data[i].cuda(device)
-            labels = labels.cuda(device)
-
-        return tuple(data), labels
-
-    def _get_next_batch_yamada(self, data_dict):
+    def _get_next_batch(self, data_dict):
         for k, v in data_dict.items():
             data_dict[k] = Variable(v)
 
@@ -79,10 +64,7 @@ class Trainer(object):
         return data_dict, labels
 
     def step(self, data):
-        if self.model_type == 'combined':
-            data, labels = self._get_next_batch(data)
-        elif self.model_type == 'yamada':
-            data, labels = self._get_next_batch_yamada(data)
+        data, labels = self._get_next_batch(data)
         scores, _, _ = self.model(data)
         loss = self.model.loss(scores, labels)
 
