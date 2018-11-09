@@ -14,7 +14,10 @@ class PreTrain(CombinedBase, Loss):
 
         # Linear
         if self.args.combined_linear:
-            self.combine_linear = nn.Linear(self.args.context_word_dim, self.args.ent_mention_dim)
+            if self.orig_linear.weight.shape == (self.args.context_word_dim, self.args.ent_mention_dim):
+                self.combine_linear = self.orig_linear
+            else:
+                self.combine_linear = nn.Linear(self.args.context_word_dim, self.args.ent_mention_dim)
 
         # Dropout
         self.dp = nn.Dropout(self.args.dp)
