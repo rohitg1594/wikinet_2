@@ -22,6 +22,7 @@ max_word_size:5
 max_gram_size:35
 max_context_size:100
 max_ent_size:35
+max_char_size:40
 
 # Model types
 init_emb:gensim
