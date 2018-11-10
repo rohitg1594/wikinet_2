@@ -204,41 +204,40 @@ class CombinedValidator:
             context = context.cuda(device)
             small_context = small_context.cuda(device)
 
-        data = {'mention_word_tokens': mention_word,
-                'mention_char_tokens': mention_char,
-                'mention_gram_tokens': mention_gram,
-                'candidate_word_tokens': ent_word,
-                'candidate_char_tokens': ent_char,
-                'candidate_gram_tokens': ent_gram,
-                'candidate_ids': ent_ids,
-                'context_tokens': context,
-                'small_context': small_context,
-                }
+        total_data = {'mention_word_tokens': mention_word,
+                      'mention_char_tokens': mention_char,
+                      'mention_gram_tokens': mention_gram,
+                      'candidate_word_tokens': ent_word,
+                      'candidate_char_tokens': ent_char,
+                      'candidate_gram_tokens': ent_gram,
+                      'candidate_ids': ent_ids,
+                      'context_tokens': context,
+                      'small_context': small_context,
+                      }
 
-        # if self.model_name == 'weigh_concat':
-        #     data = (mention_gram, context, ent_gram, ent_ids)
-        # elif self.model_name == 'mention_prior':
-        #     data = (mention_gram, mention_word, context, ent_gram, ent_ids)
-        # elif self.model_name in ['average', 'linear', 'multi_linear', 'rnn']:
-        #     data = (mention_word, ent_ids)
-        # elif self.model_name == 'with_string':
-        #     data = (mention_word, mention_gram, ent_gram, ent_ids)
-        # elif self.model_name == 'small_context':
-        #     data = (mention_word, ent_ids, small_context)
-        # elif self.model_name == 'full_context':
-        #     data = (mention_word, ent_ids, context)
-        # elif self.model_name == 'full_context_attention':
-        #     data = (mention_word, ent_ids, context)
-        # elif self.model_name == 'position':
-        #     pos_indices = get_absolute_pos(mention_word)
-        #     data = (mention_word, pos_indices, ent_ids)
-        # elif self.model_name == 'conv':
-        #     data = (mention_gram, ent_ids)
-        # elif self.model_name == 'pre_train':
-        #     data = (context, ent_ids)
-        # else:
-        #     logger.error(f'model {self.args.model_name} not implemented')
-        #     sys.exit(1)
+        if self.model_name == 'weigh_concat':
+            keys = ['mention_gram_tokens', 'context_tokens', 'candidate_gram_tokens', 'candidate_ids']
+        elif self.model_name == 'mention_prior':
+            keys = ['mention_gram_tokens', 'mention_word_tokens', 'context_tokens', 'candidate_gram_tokens',
+                    'candidate_ids']
+        elif self.model_name in ['average', 'linear', 'multi_linear', 'rnn']:
+            keys = ['mention_word_tokens', 'candidate_ids']
+        elif self.model_name == 'with_string':
+            keys = ['mention_gram_tokens', 'mention_word_tokens', 'candidate_gram_tokens', 'candidate_ids']
+        elif self.model_name == 'small_context':
+            keys = ['mention_word_tokens', 'small_context', 'candidate_ids']
+        elif self.model_name in ['full_context', 'full_context']:
+            keys = ['mention_word_tokens', 'context_tokens', 'candidate_ids']
+        elif self.model_name == 'full_context_strig':
+            keys = ['mention_gram_tokens', 'mention_char_tokens', 'context_tokens', 'candidate_char_tokens',
+                    'candidate_ids']
+        elif self.model_name == 'pre_train':
+            keys = ['context_tokens', 'candidate_ids']
+        else:
+            logger.error(f'model {self.args.model_name} not implemented')
+            sys.exit(1)
+
+        data = {k: total_data[k] for k in keys}
 
         return data
 
