@@ -136,8 +136,7 @@ class Trainer(object):
                 training_losses.append(loss)
 
             # Free memory allocated by data
-            data = data.cpu()
-            del(data)
+            del data
             gc.collect()
 
             logger.info('Epoch - {}, Training Loss - {:.4}'.format(epoch, loss))
