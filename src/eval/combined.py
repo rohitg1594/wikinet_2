@@ -1,6 +1,7 @@
 # Validator class
 import numpy as np
 import faiss
+import gc
 
 from os.path import join
 import sys
@@ -274,6 +275,9 @@ class CombinedValidator:
         for data_type in self.data_types:
             input = self._get_data(data_type=data_type, cuda=True)
             _, ent_combined_embs, mention_combined_embs = model(input)
+            input = input.cpu()
+            del input
+            gc.collect()
 
             mention_combined_embs = mention_combined_embs.cpu().data.numpy()
             print(ent_combined_embs.shape, mention_combined_embs.shape)
