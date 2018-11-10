@@ -3,6 +3,7 @@ import logging
 import sys
 from os.path import join
 import cProfile
+import gc
 
 import torch
 from torch.autograd import Variable
@@ -133,6 +134,11 @@ class Trainer(object):
                     logger.info("Now on batch - {}".format(batch_no))
                 loss = self.step(data)
                 training_losses.append(loss)
+
+            # Free memory allocated by data
+            data = data.cpu()
+            del(data)
+            gc.collect()
 
             logger.info('Epoch - {}, Training Loss - {:.4}'.format(epoch, loss))
             if epoch % self.args.save_every == 0 and epoch != 0:
