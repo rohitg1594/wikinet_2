@@ -52,7 +52,6 @@ class CombinedDataSet(object):
         id2context, examples = data
         self.examples = examples
         self.id2context = id2context
-        self.logger.info(f'len examples: {len(examples)}, len id2contex: {len(id2context)}')
 
         self.processed_id2context = {}
         for index in self.id2context.keys():

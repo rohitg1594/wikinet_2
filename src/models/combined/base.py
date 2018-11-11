@@ -14,7 +14,7 @@ class CombinedBase(nn.Module):
         ent_embs = kwargs['ent_embs']
         W = kwargs['W']
         b = kwargs['b']
-        gram_embs = kwargs['gram_embs']
+        # gram_embs = kwargs['gram_embs']
 
         self.args = args
 
@@ -23,10 +23,10 @@ class CombinedBase(nn.Module):
         self.word_embs.weight.data.copy_(torch.from_numpy(word_embs))
         self.word_embs.weight.requires_grad = self.args.train_word
 
-        # Gram embeddings
-        self.gram_embs = nn.Embedding(*gram_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.gram_embs.weight.data.copy_(torch.from_numpy(gram_embs))
-        self.gram_embs.weight.requires_grad = self.args.train_gram
+        # # Gram embeddings
+        # self.gram_embs = nn.Embedding(*gram_embs.shape, padding_idx=0, sparse=self.args.sparse)
+        # self.gram_embs.weight.data.copy_(torch.from_numpy(gram_embs))
+        # self.gram_embs.weight.requires_grad = self.args.train_gram
 
         # Entity embeddings
         self.ent_embs = nn.Embedding(*ent_embs.shape, padding_idx=0, sparse=self.args.sparse)

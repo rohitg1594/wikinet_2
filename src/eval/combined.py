@@ -275,14 +275,16 @@ class CombinedValidator:
         for data_type in self.data_types:
             input = self._get_data(data_type=data_type, cuda=True)
             _, ent_combined_embs, mention_combined_embs = model(input)
+
+            # Free up memory
+            input = {k: input[k].cpu() for k in input.keys()}
             del input
             gc.collect()
 
             mention_combined_embs = mention_combined_embs.cpu().data.numpy()
-            print(ent_combined_embs.shape, mention_combined_embs.shape)
+            ent_combined_embs = ent_combined_embs.cpu().data.numpy()
 
             if first_data:
-                ent_combined_embs = ent_combined_embs.cpu().data.numpy()
                 # Create / search in Faiss Index
                 if self.args.measure == 'ip':
                     index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
