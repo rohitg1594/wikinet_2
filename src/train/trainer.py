@@ -136,6 +136,7 @@ class Trainer(object):
                 training_losses.append(loss)
 
             # Free memory allocated by data
+            data = {k: data[k].cpu() for k in data.keys()}
             del data
             gc.collect()
 
