@@ -129,6 +129,7 @@ class Trainer(object):
 
         for epoch in range(self.num_epochs):
             self.model.train()
+            assert self.model.train()
             for batch_no, data in enumerate(self.loader, 0):
                 if batch_no % tenth_batch == 0:
                     logger.info("Now on batch - {}".format(batch_no))
