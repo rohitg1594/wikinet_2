@@ -39,7 +39,7 @@ class FullContextString(CombinedBase, Loss):
 
         self.autoencoder = StringAutoEncoder(max_char_size=max_char_size, hidden_size=hidden_size, char_embs=char_embs)
         self.autoencoder.load_state_dict(autoencoder_state_dict)
-        self.autoencoder.eval()
+        self.autoencoder.requires_grad = False
 
         # Linear
         if self.args.combined_linear:
