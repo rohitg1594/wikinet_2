@@ -27,7 +27,7 @@ max_ent_size:35
 
 # Model types
 init_emb:ckpt
-emn_ckpt:/work/rogupta/wikinet_data/models/2018_11_10/pre_train_dim_128_epoch_50/best_model.ckpt
+emb_ckpt:/work/rogupta/wikinet_data/models/2018_11_10/pre_train_dim_128_epoch_50/best_model.ckpt
 gensim_model:None
 model_name:full_context_string
 
