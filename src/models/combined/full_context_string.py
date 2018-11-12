@@ -28,11 +28,6 @@ class FullContextString(CombinedBase, Loss):
         self.ent_mention_embs.weight.data.normal_(0, self.args.init_stdv)
         self.ent_mention_embs.weight.data[0] = 0
 
-        # Linear
-        if self.args.combined_linear:
-            self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim,
-                                            self.args.mention_word_dim + self.args.context_word_dim)
-
         # Dropout
         self.dp = nn.Dropout(self.args.dp)
 
@@ -45,6 +40,11 @@ class FullContextString(CombinedBase, Loss):
         self.autoencoder = StringAutoEncoder(max_char_size=max_char_size, hidden_size=hidden_size, char_embs=char_embs)
         self.autoencoder.load_state_dict(autoencoder_state_dict)
         self.autoencoder.eval()
+
+        # Linear
+        if self.args.combined_linear:
+            self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + char_embs.shape[1],
+                                            self.args.mention_word_dim + self.args.context_word_dim + char_embs.shape[1])
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
