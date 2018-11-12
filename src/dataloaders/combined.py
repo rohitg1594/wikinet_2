@@ -274,7 +274,7 @@ class CombinedDataSet(object):
             return self._getitem_small_context(example)
         elif self.model_name == 'full_context':
             return self._getitem_full_context(context_id, example)
-        elif self.model_name == 'full_context':
+        elif self.model_name == 'full_context_string':
             return self._getitem_full_context_string(context_id, example)
         elif self.model_name == 'full_context_attention':
             return self._getitem_full_context(context_id, example)
