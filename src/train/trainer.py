@@ -128,7 +128,7 @@ class Trainer(object):
             sys.exit()
 
         for epoch in range(self.num_epochs):
-            self.model = self.model.train()
+            self.model.train()
             for batch_no, data in enumerate(self.loader, 0):
                 if batch_no % tenth_batch == 0:
                     logger.info("Now on batch - {}".format(batch_no))
@@ -138,6 +138,7 @@ class Trainer(object):
             # Free memory allocated by data
             data = {k: data[k].cpu() for k in data.keys()}
             del data
+            torch.cuda.empty_cache()
             gc.collect()
 
             logger.info('Epoch - {}, Training Loss - {:.4}'.format(epoch, loss))

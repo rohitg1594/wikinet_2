@@ -274,11 +274,11 @@ class CombinedValidator:
             # Free up memory
             input = {k: input[k].cpu() for k in input.keys()}
             scores = scores.cpu()
-            del input, scores
-            gc.collect()
-
             mention_combined_embs = mention_combined_embs.cpu().data.numpy()
             ent_combined_embs = ent_combined_embs.cpu().data.numpy()
+            del input, scores
+            torch.cuda.empty_cache()
+            gc.collect()
 
             if first_data:
                 # Create / search in Faiss Index
