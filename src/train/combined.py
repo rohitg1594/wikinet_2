@@ -68,7 +68,7 @@ def parse_args():
     model_selection.add_argument('--init_mention', type=str, help='how to initialize mention and ent mention embs')
     model_selection.add_argument('--init_mention_model', type=str,
                                  help='ckpt file to initialize mention and ent mention embs')
-    model_selection.add_argument('--ckpt', type=str, help='model ckpt to load word and ent embs')
+    model_selection.add_argument('--emb_ckpt', type=str, help='model ckpt to load word and ent embs')
 
     # Model params
     model_params = parser.add_argument_group("Parameters for chosen model.")
@@ -185,13 +185,12 @@ def setup(args=None, logger=None):
         ent_embs = yamada_model['ent_emb']
         word_embs = yamada_model['word_emb']
     elif args.init_emb == 'ckpt':
-        logger.info(f"Using pre-trained word and entity embeddings from {args.ckpt}.")
-        state_dict = torch.load(args.ckpt, map_location=torch.device('cpu'))['state_dict']
+        logger.info(f"Using pre-trained word and entity embeddings from {args.emb_ckpt}.")
+        state_dict = torch.load(args.emb_ckpt, map_location=torch.device('cpu'))['state_dict']
         ent_embs = state_dict['ent_embs.weight'].cpu().numpy()
         word_embs = state_dict['word_embs.weight'].cpu().numpy()
         W = state_dict['combine_linear.weight'].cpu().numpy()
         b = state_dict['combine_linear.bias'].cpu().numpy()
-
         # TODO: This is ugly and will cause confusion later, think of a better solution
         yamada_model['W'] = W
         yamada_model['b'] = b

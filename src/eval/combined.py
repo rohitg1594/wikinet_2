@@ -191,20 +191,6 @@ class CombinedValidator:
             context = context[self.wiki_mask, :]
             small_context = small_context[self.wiki_mask, :]
 
-        # if cuda and isinstance(self.args.device, int):
-        #     device = self.args.device
-        #     ent_gram = ent_gram.cuda(device)
-        #     ent_char = ent_char.cuda(device)
-        #     ent_word = ent_word.cuda(device)
-        #     ent_ids = ent_ids.cuda(device)
-        #
-        #     mention_gram = mention_gram.cuda(device)
-        #     mention_word = mention_word.cuda(device)
-        #     mention_char = mention_char.cuda(device)
-        #
-        #     context = context.cuda(device)
-        #     small_context = small_context.cuda(device)
-
         total_data = {'mention_word_tokens': mention_word,
                       'mention_char_tokens': mention_char,
                       'mention_gram_tokens': mention_gram,
