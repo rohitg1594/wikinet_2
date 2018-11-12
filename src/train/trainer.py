@@ -73,7 +73,7 @@ class Trainer(object):
         loss.backward()
         self.optimizer.step()
 
-        return loss.data[0]
+        return loss.item()
 
     def combined_validate(self, epoch):
         results = self.validator.validate(model=self.model, error=self.args.error)
