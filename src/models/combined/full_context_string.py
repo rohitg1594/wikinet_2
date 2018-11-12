@@ -43,8 +43,8 @@ class FullContextString(CombinedBase, Loss):
 
         # Linear
         if self.args.combined_linear:
-            self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + char_embs.shape[1],
-                                            self.args.mention_word_dim + self.args.context_word_dim + char_embs.shape[1])
+            self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
+                                            self.args.mention_word_dim + self.args.context_word_dim + hidden_size)
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
