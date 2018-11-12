@@ -21,9 +21,7 @@ class StringAutoEncoder(nn.Module):
         self.lin4 = nn.Linear(2 * hidden_size, self.max_char_size * self.embs_size)
 
     def forward(self, input):
-        b, max_char_size = input.shape
-
-        input = self.char_embs(input).view(b, -1)
+        input = self.char_embs(input).view(*input.shape[:-1], -1)
         hidden = self.lin2(F.relu(self.lin1(input)))
         output = self.lin4(F.relu(self.lin3(hidden)))
 
