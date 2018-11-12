@@ -10,7 +10,7 @@ import torch
 
 from src.utils.utils import str2bool, normal_initialize, get_model, send_to_cuda
 from src.utils.data import load_vocab, pickle_load, load_data, load_gensim
-from src.utils.dictionary import Dictionary
+from src.utils.dictionary import Dictionary  # needed because of autoencoder
 from src.eval.combined import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet
 from src.tokenizer.gram_tokenizer import get_gram_tokenizer
@@ -168,7 +168,6 @@ def setup(args=None, logger=None):
     gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
     logger.info(f"Using gram tokenizer {gram_tokenizer.__name__}")
     gram_dict = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_type + '.tsv'), plus_one=True)
-    logger.info(f"Gram dictionary loaded of length: {len(gram_dict)}")
     gram_embs = normal_initialize(len(gram_dict) + 1, args.gram_dim)
     logger.info(f"Gram embeddings created of shape: {gram_embs.shape}")
 
