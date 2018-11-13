@@ -19,7 +19,7 @@ hidden_size:64
 
 # Training Settings
 num_epochs:20
-batch_size:32
+batch_size:100000
 lr:1e-03
 wd:1e-06
 

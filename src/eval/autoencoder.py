@@ -138,13 +138,14 @@ class AutoencoderValidator:
 
         _, ent_encoded, _ = model(self.ent_arr)
         ent_encoded = ent_encoded.detach().cpu().numpy()
-        index = faiss.IndexFlatL2(ent_encoded.shape[1])
-        index.add(ent_encoded)
-
         _, mentions_encoded, _ = model(self.mention_arr)
         mentions_encoded = mentions_encoded.detach().cpu().numpy()
 
-        _, predictions = index.search(mentions_encoded, 200)
+        index = faiss.IndexFlatL2(ent_encoded.shape[1])
+        index.add(ent_encoded)
+
+        _, predictions = index.search(mentions_encoded, 100)
+        print(f'predictions : {predictions.shape}, gold: {len(self.gold)}')
         results = eval_ranking(predictions, self.gold, [1, 10, 100])
         self.valid_metrics.append(results[0])
 
