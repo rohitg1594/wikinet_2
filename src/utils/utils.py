@@ -320,6 +320,8 @@ def chunks(l, n):
 def create_arr(strs, max_char, char_dict, ent2id=None):
     dim_0 = len(strs) + 1 if ent2id else len(strs)
     arr = np.zeros((dim_0, max_char), dtype=np.int64)
+    if ent2id:
+        strs = [s.replace('_', ' ') for s in strs]
 
     for i, s in enumerate(strs):
         char_ids = [char_dict[char] for char in list(s)]
