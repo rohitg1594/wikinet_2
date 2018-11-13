@@ -315,3 +315,40 @@ def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
         yield l[i:i + n]
+
+
+def create_ent_arr(ents, max_char, char_dict, ent2id):
+    arr = np.zeros((len(ents) + 1, max_char), dtype=np.int64)
+
+    for i, ent in enumerate(ents):
+        char_ids = [char_dict[char] for char in list(ent)]
+        ent_id = ent2id[ent]
+        arr[ent_id] = equalize_len_w_eot(char_ids, max_char, char_dict['EOT'])
+
+    return arr
+
+
+def create_arr_data(mentions, max_char, char_dict):
+    arr = np.zeros((len(mentions), max_char), dtype=np.int64)
+
+    for i, mention in enumerate(mentions):
+        if i % 10 ** 5 == 0:
+            print(i)
+        char_ids = [char_dict[char] for char in list(mention)]
+        arr[i] = equalize_len(char_ids, max_char, char_dict)
+
+    return arr
+
+
+def decode(arr, char_dict):
+    s = ''
+    for c_id in arr:
+        if c_id:
+            s += char_dict[int(c_id)]
+    return s
+
+
+def mse(input, target):
+    b = input.shape[0]
+
+    return ((input - target) * (input - target)).sum() / b

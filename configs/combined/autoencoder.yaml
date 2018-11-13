@@ -1,0 +1,26 @@
+# General
+seed:-1
+exp_name:autoencoder
+debug:False
+
+# Data
+data_path:/work/rogupta/wikinet_data
+data_type:proto
+
+# Max padding
+max_char_size:40
+
+# Model Params
+measure:ip
+dp:0
+char_dim:8
+
+# Training Settings
+num_epochs:20
+batch_size:32
+lr:1e-03
+wd:1e-06
+
+# Cuda
+use_cuda:True
+device:0

@@ -280,7 +280,7 @@ class CombinedValidator:
             # ent_combined_embs = ent_combined_embs.cpu().data.numpy()
             # del input, scores
             # torch.cuda.empty_cache()
-            # gc.collect()
+            # gc.collect()q
 
             if first_data:
                 # Create / search in Faiss Index
