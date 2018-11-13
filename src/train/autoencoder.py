@@ -62,9 +62,6 @@ def parse_args():
     logger = get_logger(args)
 
     # Setup
-    if args.wd > 0:
-        assert not args.sparse
-
     if args.use_cuda:
         devices = args.device.split(",")
         if len(devices) > 1:
