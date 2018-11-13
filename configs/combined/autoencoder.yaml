@@ -5,7 +5,6 @@ debug:False
 
 # Data
 data_path:/work/rogupta/wikinet_data
-data_type:proto
 
 # Max padding
 max_char_size:40
