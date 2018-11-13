@@ -88,7 +88,7 @@ def parse_args():
     return args, logger, model_dir
 
 
-def setup(args=None, logger=None):
+def setup(args=None, logger=None, model_dir=None):
     # Yamada model
     print()
     logger.info("Loading Yamada model.")
@@ -136,7 +136,8 @@ def setup(args=None, logger=None):
                                      mention_arr=mention_arr,
                                      args=args,
                                      dev_arr=dev_arr,
-                                     gold=gold)
+                                     gold=gold,
+                                     model_dir=model_dir)
 
     return validator, char_dict, train_arr
 
@@ -205,7 +206,7 @@ def train(args=None,
 
 if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
-    Validator, Char_dict, Train_arr = setup(args=Args, logger=Logger)
+    Validator, Char_dict, Train_arr = setup(args=Args, logger=Logger, model_dir=Model_dir)
     Logger.info("Starting training.....")
     train(args=Args,
           validator=Validator,
