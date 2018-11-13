@@ -10,7 +10,6 @@ data_path:/work/rogupta/wikinet_data
 max_char_size:40
 
 # Model Params
-measure:ip
 dp:0
 char_dim:8
 
