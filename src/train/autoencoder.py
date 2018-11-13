@@ -48,7 +48,7 @@ def parse_args():
     model_params.add_argument('--char_dim', type=int, help='dimension of char embeddings')
     model_params.add_argument('--hidden_size', type=int, help='latent code size')
     model_params.add_argument('--dp', type=float, help='drop out')
-    model_params.add_argument('--activat', type=float, help='drop out')
+    model_params.add_argument('--activate', type=float, help='activation function after dropout')
     model_params.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
 
     # Training
