@@ -4,7 +4,7 @@ import torch
 from logging import getLogger
 from os.path import join
 
-from src.utils.utils import eval_ranking, equalize_len_w_eot, chunks, mse
+from src.utils.utils import eval_ranking, equalize_len_w_eot, chunks, mse, normalize
 
 import faiss
 import numpy as np
@@ -145,6 +145,8 @@ class AutoencoderValidator:
             index = faiss.IndexFlatL2(ent_encoded.shape[1])
         elif self.args.measure == 'ip':
             index = faiss.IndexFlatIP(ent_encoded.shape[1])
+            ent_encoded = normalize(ent_encoded)
+            mentions_encoded = normalize(mentions_encoded)
         index.add(ent_encoded)
 
         _, predictions = index.search(mentions_encoded, 100)
