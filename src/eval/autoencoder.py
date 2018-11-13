@@ -2,11 +2,14 @@
 import torch
 
 from logging import getLogger
+from os.path import join
 
 from src.utils.utils import eval_ranking, equalize_len_w_eot, chunks, mse
 
 import faiss
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn import manifold
 
@@ -28,7 +31,8 @@ class AutoencoderValidator:
                  mention_arr=None,
                  args=None,
                  dev_arr=None,
-                 gold=None):
+                 gold=None,
+                 model_dir=None):
 
         self.dev_strs = dev_strs
         self.dev_arr = dev_arr
@@ -39,6 +43,7 @@ class AutoencoderValidator:
         self.verbose = verbose
         self.args = args
         self.max_char_size = self.args.max_char_size
+        self.model_dir = model_dir
 
         self.valid_mask = np.random.choice(len(self.dev_strs), self.rank_sample)
         self.valid_strs = [self.dev_strs[i] for i in self.valid_mask]
@@ -78,18 +83,17 @@ class AutoencoderValidator:
 
         return tsne_strs, tsne_arr
 
-    def plot_embedding(self, X):
+    def plot_embedding(self, X, epoch):
         x_min, x_max = np.min(X, 0), np.max(X, 0)
         X = (X - x_min) / (x_max - x_min)
 
         plt.figure(figsize=(12, 12))
-        ax = plt.subplot(111)
         for i in range(X.shape[0]):
             plt.text(X[i, 0], X[i, 1], self.tsne_strs[i], fontdict={'weight': 'bold', 'size': 9})
 
-        plt.show()
+        plt.savefig(join(self.model_dir, f'tsne-{epoch}.png'))
 
-    def plot_tsne(self, model):
+    def plot_tsne(self, model, epoch):
         model.eval()
         _, X, _ = model(self.tsne_arr)
 
@@ -100,7 +104,7 @@ class AutoencoderValidator:
         X_tsne = tsne.fit_transform(X.detach().cpu().numpy())
         self.X_init = X_tsne
 
-        self.plot_embedding(X_tsne)
+        self.plot_embedding(X_tsne, epoch)
 
     @staticmethod
     def id_to_str(strs, ranks):
@@ -115,7 +119,7 @@ class AutoencoderValidator:
 
         return s
 
-    def validate(self, model, plot_tsne=True):
+    def validate(self, model, plot_tsne=True, epoch=None):
         model.eval()
         full_loss = 0
         all_hidden = np.zeros((len(self.dev_strs), self.args.hidden_size))
@@ -130,7 +134,7 @@ class AutoencoderValidator:
             loss = mse(input, output)
             full_loss += loss.item()
 
-        if plot_tsne: self.plot_tsne(model)
+        if plot_tsne: self.plot_tsne(model, epoch)
 
         _, ent_encoded, _ = model(self.ent_arr)
         ent_encoded = ent_encoded.detach().cpu().numpy()

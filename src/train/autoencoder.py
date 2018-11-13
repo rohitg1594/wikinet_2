@@ -188,7 +188,7 @@ def train(args=None,
 
         if epoch % 5 == 0:
             logger.info("validating")
-            valid_loss, results = validator.validate(model,  plot_tsne=plot_tsne)
+            valid_loss, results = validator.validate(model,  plot_tsne=plot_tsne, epoch=epoch)
             if valid_loss < best_valid_loss:
                 best_valid_loss = valid_loss
                 best_model = deepcopy(model)
