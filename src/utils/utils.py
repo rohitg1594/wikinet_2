@@ -325,7 +325,7 @@ def create_arr(strs, max_char, char_dict, ent2id=None):
 
     for i, s in enumerate(strs):
         char_ids = [char_dict[char] for char in list(s)]
-        index = ent2id[s] if ent2id else i
+        index = ent2id.get(s, 0) if ent2id else i
         arr[index] = equalize_len_w_eot(char_ids, max_char, char_dict['EOT'])
 
     return arr
