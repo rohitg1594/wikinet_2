@@ -15,6 +15,7 @@ max_char_size:40
 # Model Params
 dp:0
 char_dim:8
+hidden_size:64
 
 # Training Settings
 num_epochs:20

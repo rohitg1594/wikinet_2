@@ -45,7 +45,8 @@ def parse_args():
 
     # Model params
     model_params = parser.add_argument_group("Parameters for chosen model.")
-    model_params.add_argument('--char_dim', type=int, help='dimension of mention word embeddings')
+    model_params.add_argument('--char_dim', type=int, help='dimension of char embeddings')
+    model_params.add_argument('--hidden_size', type=int, help='latent code size')
     model_params.add_argument('--dp', type=float, help='drop out')
 
     # Training
