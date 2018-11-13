@@ -48,6 +48,7 @@ def parse_args():
     model_params.add_argument('--char_dim', type=int, help='dimension of char embeddings')
     model_params.add_argument('--hidden_size', type=int, help='latent code size')
     model_params.add_argument('--dp', type=float, help='drop out')
+    model_params.add_argument('--activat', type=float, help='drop out')
     model_params.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
 
     # Training
@@ -172,7 +173,8 @@ def train(args=None,
           model_dir=None):
 
     char_embs = normal_initialize(len(char_dict), args.char_dim)
-    model = StringAutoEncoder(max_char_size=args.max_char_size, hidden_size=args.hidden_size, char_embs=char_embs, dp=args.dp)
+    model = StringAutoEncoder(max_char_size=args.max_char_size, hidden_size=args.hidden_size, char_embs=char_embs,
+                              dp=args.dp, activate=args.activate)
 
     if args.use_cuda:
         model = send_to_cuda(args.device, model)
