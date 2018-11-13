@@ -36,6 +36,7 @@ def parse_args():
     data = parser.add_argument_group('Data Settings.')
     data.add_argument('--data_path', type=str, help='location of data dir')
     data.add_argument('--yamada_model', type=str, help='name of yamada model')
+    data.add_argument('--data_type', type=str, help='dataset to train on.')
 
     # Max Padding
     padding = parser.add_argument_group('Max Padding for batch.')

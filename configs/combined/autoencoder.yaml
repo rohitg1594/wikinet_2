@@ -6,6 +6,7 @@ debug:False
 # Data
 data_path:/work/rogupta/wikinet_data
 yamada_model:yamada_model.pickle
+data_type:proto
 
 # Max padding
 max_char_size:40
