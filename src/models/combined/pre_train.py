@@ -7,7 +7,7 @@ from src.models.combined.base import CombinedBase
 from src.models.loss import Loss
 
 
-class PreTrain(q, Loss):
+class PreTrain(CombinedBase, Loss):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
