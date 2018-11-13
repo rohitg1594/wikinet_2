@@ -11,7 +11,7 @@ import numpy as np
 import torch
 import torch.optim as optim
 
-from src.utils.utils import str2bool, get_model, send_to_cuda, create_arr_data, create_ent_arr, chunks, mse, normal_initialize
+from src.utils.utils import str2bool, get_model, send_to_cuda, create_arr, chunks, mse, normal_initialize
 from src.utils.data import load_vocab, pickle_load, load_data, save_checkpoint
 from src.utils.dictionary import Dictionary  # needed because of autoencoder
 from src.eval.autoencoder import AutoencoderValidator
@@ -98,26 +98,29 @@ def setup(args=None, logger=None):
     logger.info("Loading training data.....")
     res = load_data(args.data_type, args)
     train_data, dev_data, test_data = res['train'], res['dev'], res['test']
-    logger.info("Training data loaded.")
-    logger.info(f"Train : {len(train_data[1])}, Dev : {len(dev_data[1])}, Test :{len(test_data)}")
-
     data = pickle_load(join(args.data_path, 'autoencoder/data.pickle'))
     dev_arr = data['dev']
+    train_arr = data['train']
     dev_strs = data['dev_strs']
     char_dict = data['char_dict']
+    logger.info("Training data loaded.")
 
     # Create ent_arr
+    logger.info("Creating ent arr.....")
     ent2id = yamada_model['ent_dict']
     ent_items = sorted(ent2id.items(), key=operator.itemgetter(1))
     ent_keys = [item[0] for item in ent_items]
-    ent_arr = torch.from_numpy(create_ent_arr(ent_keys, args.max_char_size, char_dict, ent2id))
+    ent_arr = torch.from_numpy(create_arr(ent_keys, args.max_char_size, char_dict, ent2id))
+    logger.info("ent arr created.")
 
     # Create mention_arr
+    logger.info("Creating mention arr.....")
     examples = train_data[1]
     sample = random.sample(examples, 1000)
     mentions = [ex[1][0] for ex in sample]
     ents = [ex[1][1] for ex in sample]
-    mention_arr = torch.from_numpy(create_arr_data(mentions, args.max_char_size, char_dict))
+    mention_arr = torch.from_numpy(create_arr(mentions, args.max_char_size, char_dict))
+    logger.info("ent arr created.")
 
     gold = [ent2id[ent] if ent in ent2id else -1 for ent in ents]
 
@@ -134,7 +137,7 @@ def setup(args=None, logger=None):
                                      dev_arr=dev_arr,
                                      gold=gold)
 
-    return validator
+    return validator, char_dict, train_arr
 
 
 def train_epoch(model, optimizer, data, args):
@@ -201,4 +204,11 @@ def train(args=None,
 
 if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
-    Validator = setup(args=Args, logger=Logger)
+    Validator, Char_dict, Train_arr = setup(args=Args, logger=Logger)
+    Logger.info("Starting training.....")
+    train(args=Args,
+          validator=Validator,
+          logger=Logger,
+          char_dict=Char_dict,
+          train_arr=Train_arr,
+          model_dir=Model_dir)
