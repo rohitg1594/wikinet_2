@@ -51,7 +51,7 @@ class AutoencoderValidator:
         if self.args.use_cuda:
             self.ent_arr = self.ent_arr.cuda(self.args.device)
             self.mention_arr = self.mention_arr.cuda(self.args.device)
-            self.tsne_arr = self.tsne_arr.cuda(self.args.device)
+            self.tsne_arr = (torch.from_numpy(self.tsne_arr)).cuda(self.args.device)
 
         # Gold
         self.gold = gold

@@ -120,7 +120,7 @@ def setup(args=None, logger=None):
     mentions = [ex[1][0] for ex in sample]
     ents = [ex[1][1] for ex in sample]
     mention_arr = torch.from_numpy(create_arr(mentions, args.max_char_size, char_dict))
-    logger.info("ent arr created.")
+    logger.info("mention arr created.")
 
     gold = [ent2id[ent] if ent in ent2id else -1 for ent in ents]
 
