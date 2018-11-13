@@ -181,7 +181,7 @@ def train(args=None,
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=args.wd)
 
     best_model = deepcopy(model)
-    best_valid_loss = 10 ** 6
+    best_top1 = 10 ** 6
     train_loss = 100
 
     for epoch in range(args.num_epochs):
@@ -193,8 +193,9 @@ def train(args=None,
         if epoch % 5 == 0:
             logger.info("validating")
             valid_loss, results = validator.validate(model,  plot_tsne=plot_tsne, epoch=epoch)
-            if valid_loss < best_valid_loss:
-                best_valid_loss = valid_loss
+            top1 = results[0]
+            if top1 > best_top1:
+                best_top1 = top1
                 best_model = deepcopy(model)
             logger.info('EPOCH - {}, TRAIN LOSS - {:.4f}, VALID LOSS - {:.5f}, Top1:{}, Top10:{}, Top100:{}'
                   .format(epoch, train_loss, valid_loss, results[0], results[1], results[2]))
