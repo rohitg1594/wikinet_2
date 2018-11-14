@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 
+import numpy as np
+
 
 class StringAutoEncoder(nn.Module):
 
@@ -13,7 +15,9 @@ class StringAutoEncoder(nn.Module):
         self.embs_size = char_embs.shape[1]
 
         self.char_embs = nn.Embedding(*char_embs.shape, padding_idx=0)
-        self.char_embs.weight.data.copy_(torch.from_numpy(char_embs))
+        if isinstance(char_embs, np.ndarray):
+            char_embs = torch.from_numpy(char_embs)
+        self.char_embs.weight.data.copy_(char_embs)
 
         self.lin1 = nn.Linear(self.max_char_size * self.embs_size, 2 * hidden_size)
         self.lin2 = nn.Linear(2 * hidden_size, hidden_size)
