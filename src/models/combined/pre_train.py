@@ -19,9 +19,10 @@ class PreTrain(CombinedBase, Loss):
         # Linear
         if self.args.combined_linear:
             if self.orig_linear.weight.shape == (self.args.context_word_dim, self.args.ent_mention_dim):
-                logger.info("Using orignal linear layer ")
+                logger.info("Using original linear layer ")
                 self.combine_linear = self.orig_linear
             else:
+                logger.info("Using new linear layer ")
                 self.combine_linear = nn.Linear(self.args.context_word_dim, self.args.ent_mention_dim)
 
         # Dropout
@@ -38,7 +39,7 @@ class PreTrain(CombinedBase, Loss):
         # Sum the embeddings / pass through linear
         context_repr = torch.mean(context_repr, dim=1)
         if self.args.combined_linear:
-            context_repr = self.combine_linear(context_repr)
+            context_repr = self.orig_linear(context_repr)
 
         # Normalize
         if self.args.norm_final:
