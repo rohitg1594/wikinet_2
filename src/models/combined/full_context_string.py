@@ -50,6 +50,11 @@ class FullContextString(CombinedBase, Loss):
             self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
                                             self.args.mention_word_dim + self.args.context_word_dim + hidden_size)
 
+        # Combination weights
+        prior_w = nn.Parameter()
+        context_w = nn.Parameter()
+        str_w = nn.Parameter()
+
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
         mention_char_tokens = inputs['mention_char_tokens']
@@ -60,26 +65,32 @@ class FullContextString(CombinedBase, Loss):
         # Get string reps
         _, mention_str_rep, _ = self.autoencoder(mention_char_tokens)
         _, candidate_str_rep, _ = self.autoencoder(candidate_char_tokens)
-        mention_str_rep = F.normalize(mention_str_rep)
-        candidate_str_rep = F.normalize(candidate_str_rep)
 
         # Get the embeddings
-        mention_embs = self.mention_embs(mention_word_tokens)
-        context_embs = self.word_embs(context_tokens)
-        candidate_mention_embs = self.ent_mention_embs(candidate_ids)
-        candidate_context_embs = self.ent_embs(candidate_ids)
+        mention_embs = self.dp(self.mention_embs(mention_word_tokens))
+        context_embs = self.dp(self.word_embs(context_tokens))
+        candidate_mention_embs = self.dp(self.ent_mention_embs(candidate_ids))
+        candidate_context_embs = self.dp(self.ent_embs(candidate_ids))
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
-        context_embs_agg = F.normalize(self.orig_linear(torch.mean(context_embs, dim=1)))
+        context_embs_agg = self.orig_linear(torch.mean(context_embs, dim=1))
+
+        # Normalize
+        mention_embs_agg = F.normalize(mention_embs_agg)
+        candidate_mention_embs = F.normalize(candidate_mention_embs)
+        context_embs_agg = F.normalize(context_embs_agg)
+        candidate_context_embs = F.normalize(candidate_context_embs)
+        mention_str_rep = F.normalize(mention_str_rep)
+        candidate_str_rep = F.normalize(candidate_str_rep)
 
         # Cat the embs
         cat_dim = 2 if len(candidate_ids.shape) == 2 else 1
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
         cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim)
 
-        if self.args.combined_linear:
-            mention_repr = self.combine_linear(mention_repr)
+        # if self.args.combined_linear:
+        #     mention_repr = self.combine_linear(mention_repr)
 
         # Normalize
         if self.args.norm_final:
