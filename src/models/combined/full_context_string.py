@@ -51,9 +51,10 @@ class FullContextString(CombinedBase, Loss):
                                             self.args.mention_word_dim + self.args.context_word_dim + hidden_size)
 
         # Combination weights
-        self.prior_w = nn.Parameter()
-        self.context_w = nn.Parameter()
-        self.str_w = nn.Parameter()
+        i_w = 0.333
+        self.prior_w = nn.Parameter([i_w])
+        self.context_w = nn.Parameter([i_w])
+        self.str_w = nn.Parameter([i_w])
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
