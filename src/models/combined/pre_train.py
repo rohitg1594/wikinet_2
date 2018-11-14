@@ -6,6 +6,10 @@ import torch.nn as nn
 from src.models.combined.base import CombinedBase
 from src.models.loss import Loss
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 
 class PreTrain(CombinedBase, Loss):
 
@@ -15,6 +19,7 @@ class PreTrain(CombinedBase, Loss):
         # Linear
         if self.args.combined_linear:
             if self.orig_linear.weight.shape == (self.args.context_word_dim, self.args.ent_mention_dim):
+                logger.info("Using orignal linear layer ")
                 self.combine_linear = self.orig_linear
             else:
                 self.combine_linear = nn.Linear(self.args.context_word_dim, self.args.ent_mention_dim)
