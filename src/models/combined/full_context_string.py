@@ -56,6 +56,8 @@ class FullContextString(CombinedBase, Loss):
         # Get string reps
         _, mention_str_rep, _ = self.autoencoder(mention_char_tokens)
         _, candidate_str_rep, _ = self.autoencoder(candidate_char_tokens)
+        mention_str_rep = F.normalize(mention_str_rep)
+        candidate_str_rep = F.normalize(candidate_str_rep)
 
         # Get the embeddings
         mention_embs = self.mention_embs(mention_word_tokens)
