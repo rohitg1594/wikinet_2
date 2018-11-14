@@ -51,9 +51,9 @@ class FullContextString(CombinedBase, Loss):
                                             self.args.mention_word_dim + self.args.context_word_dim + hidden_size)
 
         # Combination weights
-        prior_w = nn.Parameter()
-        context_w = nn.Parameter()
-        str_w = nn.Parameter()
+        self.prior_w = nn.Parameter()
+        self.context_w = nn.Parameter()
+        self.str_w = nn.Parameter()
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
@@ -77,12 +77,12 @@ class FullContextString(CombinedBase, Loss):
         context_embs_agg = self.orig_linear(torch.mean(context_embs, dim=1))
 
         # Normalize
-        mention_embs_agg = F.normalize(mention_embs_agg)
-        candidate_mention_embs = F.normalize(candidate_mention_embs)
-        context_embs_agg = F.normalize(context_embs_agg)
-        candidate_context_embs = F.normalize(candidate_context_embs)
-        mention_str_rep = F.normalize(mention_str_rep)
-        candidate_str_rep = F.normalize(candidate_str_rep)
+        mention_embs_agg = self.prior_w * F.normalize(mention_embs_agg)
+        candidate_mention_embs = self.prior_w * F.normalize(candidate_mention_embs)
+        context_embs_agg = self.context_w * F.normalize(context_embs_agg)
+        candidate_context_embs = self.context_w * F.normalize(candidate_context_embs)
+        mention_str_rep = self.str_w * F.normalize(mention_str_rep)
+        candidate_str_rep = self.str_w * F.normalize(candidate_str_rep)
 
         # Cat the embs
         cat_dim = 2 if len(candidate_ids.shape) == 2 else 1
