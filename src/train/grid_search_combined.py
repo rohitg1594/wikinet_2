@@ -11,6 +11,7 @@ import pandas as pd
 from src.train.combined import parse_args, setup
 from src.utils.utils import get_model
 from src.train.trainer import Trainer
+from src.utils.dictionary import Dictionary  # needed because of autoencoder
 
 np.warnings.filterwarnings('ignore')
 DATA_TYPES = ['wiki', 'conll', 'msnbc', 'ace2004']
