@@ -35,7 +35,7 @@ class CombinedBase(nn.Module):
 
         # Linear Layer
         self.orig_linear = nn.Linear(*W.shape)
-        self.orig_linear.weight.data.copy_(torch.from_numpy(W))
+        self.orig_linear.weight.data.copy_(torch.from_numpy(W.T))
         self.orig_linear.bias.data.copy_(torch.from_numpy(b))
         self.orig_linear.requires_grad = self.args.train_linear
 
