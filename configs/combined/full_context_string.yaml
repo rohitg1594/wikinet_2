@@ -11,7 +11,7 @@ train_size:1000000
 query_size:5000
 conll_split:dev
 yamada_model:yamada_model.pickle
-autoencoder_ckpt:/work/rogupta/wikinet_data/autoencoder/max_char_40_hidden_64.ckpt
+autoencoder_ckpt:/work/rogupta/wikinet_data/autoencoder/max_char_40_hidden_32.ckpt
 
 # Gram Settings
 gram_type:trigram
