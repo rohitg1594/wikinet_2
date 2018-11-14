@@ -77,6 +77,7 @@ def parse_args():
     model_params.add_argument('--ent_mention_dim', type=int, help='dimension of mention entity embeddings')
     model_params.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
     model_params.add_argument('--dp', type=float, help='drop out')
+    model_params.add_argument('--activate', type=str, help='activation function after dropout')
     model_params.add_argument('--init_stdv', type=float,
                               help='standard deviation to initialize embeddings in small context')
     model_params.add_argument('--combined_linear', type=str2bool,

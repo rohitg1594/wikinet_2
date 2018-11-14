@@ -37,7 +37,11 @@ class FullContextString(CombinedBase, Loss):
         max_char_size = self.args.max_char_size
         char_embs = kwargs['char_embs']
 
-        self.autoencoder = StringAutoEncoder(max_char_size=max_char_size, hidden_size=hidden_size, char_embs=char_embs)
+        self.autoencoder = StringAutoEncoder(max_char_size=max_char_size,
+                                             hidden_size=hidden_size,
+                                             char_embs=char_embs,
+                                             dp=self.args.dp,
+                                             activate=self.args.activate)
         self.autoencoder.load_state_dict(autoencoder_state_dict)
         self.autoencoder.requires_grad = False
 
