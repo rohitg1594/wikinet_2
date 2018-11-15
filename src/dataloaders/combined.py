@@ -8,8 +8,7 @@ import numpy as np
 import torch
 import torch.utils.data
 
-from src.utils.utils import reverse_dict, equalize_len, get_normalised_forms, get_absolute_pos, equalize_len_w_eot
-from src.utils.data import pickle_load
+from src.utils.utils import *
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
 logger = getLogger(__name__)
