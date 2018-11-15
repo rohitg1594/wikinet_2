@@ -322,7 +322,6 @@ def get_context_embs(data_path=None, emb_option=None, yamada_model=None):
     else:
         logger.error(f'init_emb {emb_option} option not recognized, exiting....')
         sys.exit(1)
-    logger.info(f'Context embeddings loaded, word_embs : {word_embs.shape}, ent_embs : {ent_embs.shape}')
 
     word_embs[0] = 0
     ent_embs[0] = 0
