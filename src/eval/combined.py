@@ -306,6 +306,12 @@ class CombinedValidator:
                                   'top100': top100,
                                   'mrr': mrr}
 
+            # Print combination weights
+            if self.args.model_name == "full_context_string":
+                for k, v in model.state_dict():
+                    if type(v) == torch.nn.Parameter:
+                        print(k, v)
+
             # Error analysis
             if error:
                 print(f'{data_type.upper()}\n')

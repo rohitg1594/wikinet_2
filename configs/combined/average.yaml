@@ -1,13 +1,13 @@
 # General
 seed:-1
-exp_name:full_context_string
+exp_name:only_prior_average
 debug:False
 
 # Data
 data_path:/work/rogupta/wikinet_data
-data_type:proto
+data_type:full
 num_shards:100
-train_size:1000000
+train_size:10000000000
 query_size:5000
 conll_split:dev
 yamada_model:yamada_model.pickle
