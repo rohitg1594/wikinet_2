@@ -61,12 +61,12 @@ def parse_args():
     model_embs.add_argument('--init_context_embs', type=str, help="initialize context embeddings")
     model_embs.add_argument('--init_mention_embs', type=str, help="initialize mention embeddings")
     model_embs.add_argument('--init_char_embs', type=str, help="initialize char embeddings")
+    model_embs.add_argument('--mention_word_dim', type=int, help='dimension of mention word embeddings')
+    model_embs.add_argument('--context_word_dim', type=int, help='dimension of mention word embeddings')
+    model_embs.add_argument('--mention_ent_dim', type=int, help='dimension of mention entity embeddings')
 
     # Model params
     model_params = parser.add_argument_group("Parameters for chosen model.")
-    model_params.add_argument('--mention_word_dim', type=int, help='dimension of mention word embeddings')
-    model_params.add_argument('--context_word_dim', type=int, help='dimension of mention word embeddings')
-    model_params.add_argument('--ent_mention_dim', type=int, help='dimension of mention entity embeddings')
     model_params.add_argument('--measure', type=str, default='ip', choices=['ip', 'l2'], help='faiss index')
     model_params.add_argument('--dp', type=float, help='drop out')
     model_params.add_argument('--activate', type=str, help='activation function after dropout')
