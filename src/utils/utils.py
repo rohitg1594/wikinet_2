@@ -304,7 +304,7 @@ def get_context_embs(data_path=None, emb_option=None, yamada_model=None):
         W = normal_initialize(word_dim, ent_dim)
         b = np.random.randn(ent_dim)
     elif 'w2v' in emb_option:
-        logger.info(f"Loading context embs from {args.init_context_emb}.....")
+        logger.info(f"Loading context embs from {emb_option}.....")
         ent_embs, word_embs = load_gensim(data_path, model_dir=emb_option, yamada_model=yamada_model)
         W = normal_initialize(word_dim, ent_dim)
         b = np.random.randn(ent_dim)
@@ -315,7 +315,7 @@ def get_context_embs(data_path=None, emb_option=None, yamada_model=None):
         W = yamada_model['W']
         b = yamada_model['b']
     elif emb_option.endswith('ckpt'):
-        logger.info(f"Loading context embs from ckpt {args.init_context_emb}.")
+        logger.info(f"Loading context embs from ckpt {emb_option}.")
         state_dict = torch.load(emb_option, map_location=torch.device('cpu'))['state_dict']
         ent_embs = state_dict['ent_embs.weight'].cpu().numpy()
         word_embs = state_dict['word_embs.weight'].cpu().numpy()
