@@ -25,7 +25,7 @@ class FullContextString(CombinedBase, Loss):
 
         # Mention embeddings
         self.mention_word_embs = nn.Embedding(*mention_word_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.mention_embs.weight.data.copy_(mention_word_embs)
+        self.mention_word_embs.weight.data.copy_(mention_word_embs)
 
         # Entity mention embeddings
         self.ent_mention_embs = nn.Embedding(*mention_ent_embs.shape, padding_idx=0, sparse=self.args.sparse)
