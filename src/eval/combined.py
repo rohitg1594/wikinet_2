@@ -103,7 +103,7 @@ class CombinedValidator:
                 char_indices = equalize_len_w_eot(char_indices, self.args.max_char_size, self.char_dict['EOT'])
                 ent_char_indices[ent_id] = char_indices
 
-            with open(join(self.args.data_path, 'eval_ent_tokens'), 'wb') as f:
+            with open(out_f, 'wb') as f:
                 ent_tokens_dict = {'ent_gram_indices': ent_gram_indices,
                                    'ent_word_indices': ent_word_indices,
                                    'ent_char_indices': ent_char_indices}
@@ -187,7 +187,7 @@ class CombinedValidator:
                       'small_context': np.vstack(all_small_context_indices).astype(np.int32)
                       }
 
-            with open(join(self.args.data_path, 'eval_mention_tokens'), 'wb') as f:
+            with open(out_f, 'wb') as f:
                 pickle.dump(output, f)
 
         return output
