@@ -16,8 +16,6 @@ import gensim
 
 import pickle
 
-from src.utils.utils import normalize, reverse_dict
-
 import torch
 from torch.nn import DataParallel
 
