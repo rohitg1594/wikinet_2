@@ -8,11 +8,12 @@ import numpy as np
 
 class StringAutoEncoder(nn.Module):
 
-    def __init__(self, max_char_size=None, hidden_size=None, char_embs=None, dp=None, activate=None):
+    def __init__(self, max_char_size=None, hidden_size=None, char_embs=None, dp=None, activate=None, norm=False):
         super().__init__()
 
         self.max_char_size = max_char_size
         self.embs_size = char_embs.shape[1]
+        self.norm = norm
 
         self.char_embs = nn.Embedding(*char_embs.shape, padding_idx=0)
         if isinstance(char_embs, np.ndarray):
@@ -39,7 +40,7 @@ class StringAutoEncoder(nn.Module):
         input = self.char_embs(input).view(*input.shape[:-1], -1)
         input = self.dp(input)
         hidden = self.lin2(F.relu(self.dp(self.lin1(input))))
-        if self.args.norm:
+        if self.norm:
             hidden = F.normalize(hidden)
         if self.activate:
             hidden = self.activate(hidden)

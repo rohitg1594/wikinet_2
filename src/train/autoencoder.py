@@ -174,7 +174,7 @@ def train(args=None,
 
     char_embs = normal_initialize(len(char_dict), args.char_dim)
     model = StringAutoEncoder(max_char_size=args.max_char_size, hidden_size=args.hidden_size, char_embs=char_embs,
-                              dp=args.dp, activate=args.activate)
+                              dp=args.dp, activate=args.activate, norm=args.norm)
 
     if args.use_cuda:
         model = send_to_cuda(args.device, model)
