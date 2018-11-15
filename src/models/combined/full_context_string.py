@@ -6,7 +6,7 @@ import torch.nn as nn
 from src.models.combined.base import CombinedBase
 from src.models.combined.string_autoencoder import StringAutoEncoder
 from src.models.loss import Loss
-from src.utils.utils import *
+from src.utils.utils import numpy_to_tensor
 
 import numpy as np
 np.set_printoptions(threshold=10**8)

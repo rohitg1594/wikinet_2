@@ -1,18 +1,6 @@
 # Validator class
-import numpy as np
 import faiss
-import pickle
-import os
-
-from os.path import join
-import sys
-
-import re
-
 from logging import getLogger
-
-import torch
-from torch.nn import DataParallel
 
 from src.utils.utils import *
 from src.tokenizer.regexp_tokenizer import RegexpTokenizer

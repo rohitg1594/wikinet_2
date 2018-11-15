@@ -5,7 +5,7 @@ import torch.nn as nn
 
 from src.models.combined.base import CombinedBase
 from src.models.loss import Loss
-from src.utils.utils import *
+from src.utils.utils import numpy_to_tensor
 
 
 class Average(CombinedBase, Loss):
