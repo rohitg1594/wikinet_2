@@ -14,6 +14,12 @@ import numpy as np
 import torch
 from torch.nn import DataParallel
 
+def np_to_tensor(a):
+    if isinstance(a, np.ndarray):
+        return torch.from_numpy(a)
+    else:
+        return a
+
 from src.models.models import Models
 
 use_cuda = torch.cuda.is_available()
@@ -22,13 +28,6 @@ RE_WIKI_ENT = re.compile(r'.*wiki\/(.*)')
 RE_WS = re.compile('\s+')
 
 logger = logging.getLogger(__name__)
-
-
-def np_to_tensor(a):
-    if isinstance(a, np.ndarray):
-        return torch.from_numpy(a)
-    else:
-        return a
 
 
 def gen_wrapper(gen):
