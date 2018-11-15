@@ -60,7 +60,7 @@ class CombinedDataSet(object):
             for index in self.id2context.keys():
                 self.processed_id2context[index] = self._init_context(index)
             with open(processed_f_name, 'wb') as f:
-                pickle.dump(self.processed_id2context, processed_f_name)
+                pickle.dump(self.processed_id2context, f)
 
         # Candidates
         if not self.args.cand_gen_rand:
