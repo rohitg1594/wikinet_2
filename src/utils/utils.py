@@ -1,21 +1,16 @@
 # Various Utility Functions to be used elsewhere
-import numpy as np
-
 import string
 import re
 import random
 from collections import defaultdict
-
-import numpy as np
-
 import os
 from os.path import join
 import sys
 import logging
 import gensim
-
 import pickle
 
+import numpy as np
 import torch
 from torch.nn import DataParallel
 
