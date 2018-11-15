@@ -13,23 +13,23 @@ class Average(CombinedBase, Loss):
         super().__init__(**kwargs)
 
         # Unpack args
-        mention_embs = kwargs['mention_embs']
-        ent_mention_embs = kwargs['ent_mention_embs']
+        mention_word_embs = kwargs['mention_word_embs']
+        mention_ent_embs = kwargs['mention_ent_embs']
 
         # Mention embeddings
-        self.mention_embs = nn.Embedding(*mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.mention_embs.weight.data.copy_(mention_embs)
+        self.mention_word_embs = nn.Embedding(*mention_word_embs.shape, padding_idx=0, sparse=self.args.sparse)
+        self.mention_embs.weight.data.copy_(mention_word_embs)
 
         # Entity mention embeddings
-        self.ent_mention_embs = nn.Embedding(*ent_mention_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.ent_mention_embs.weight.data.copy_(ent_mention_embs)
+        self.ent_mention_embs = nn.Embedding(*mention_ent_embs.shape, padding_idx=0, sparse=self.args.sparse)
+        self.ent_mention_embs.weight.data.copy_(mention_ent_embs)
 
     def forward(self, inputs):
         mention_word_tokens, candidate_ids = inputs
 
         # Get the embeddings
-        mention_embs = self.mention_embs(mention_word_tokens)
-        candidate_embs = self.ent_mention_embs(candidate_ids)
+        mention_embs = self.mention_word_embs(mention_word_tokens)
+        candidate_embs = self.mention_ent_embs(candidate_ids)
 
         # Sum the embeddings over the small and large tokens dimension
         mention_repr = torch.mean(mention_embs, dim=1)
