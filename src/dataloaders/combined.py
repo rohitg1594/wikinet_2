@@ -52,9 +52,15 @@ class CombinedDataSet(object):
         self.examples = examples
         self.id2context = id2context
 
-        self.processed_id2context = {}
-        for index in self.id2context.keys():
-            self.processed_id2context[index] = self._init_context(index)
+        processed_f_name = join(self.args.data_path, 'processed_id2context')
+        if os.path.exists(processed_f_name):
+            self.processed_id2context = pickle_load(processed_f_name)
+        else:
+            self.processed_id2context = {}
+            for index in self.id2context.keys():
+                self.processed_id2context[index] = self._init_context(index)
+            with open(processed_f_name, 'wb') as f:
+                pickle.dump(self.processed_id2context, processed_f_name)
 
         # Candidates
         if not self.args.cand_gen_rand:
