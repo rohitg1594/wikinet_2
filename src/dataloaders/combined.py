@@ -40,7 +40,7 @@ class CombinedDataSet(object):
         self.id2word = reverse_dict(self.word_dict)
         self.gram_tokenizer = gram_tokenizer
         self.args = args
-        self.word_tokenizer = RegexpTokenizer(lower=self.args.gram_lower)
+        self.word_tokenizer = RegexpTokenizer(lower=True)
         self.model_name = self.args.model_name
 
         autoencoder_data = pickle_load(join(self.args.data_path, 'autoencoder/data.pickle'))

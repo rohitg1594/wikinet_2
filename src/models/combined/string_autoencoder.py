@@ -39,7 +39,10 @@ class StringAutoEncoder(nn.Module):
         input = self.char_embs(input).view(*input.shape[:-1], -1)
         input = self.dp(input)
         hidden = self.lin2(F.relu(self.dp(self.lin1(input))))
-        if self.activate: hidden = self.activate(hidden)
+        if self.args.norm:
+            hidden = F.normalize(hidden)
+        if self.activate:
+            hidden = self.activate(hidden)
         output = self.lin4(F.relu(self.lin3(hidden)))
 
         return input, hidden, output
