@@ -8,6 +8,7 @@ data_path:/work/rogupta/wikinet_data
 yamada_model:yamada_model.pickle
 data_type:proto
 train_size:10000000
+eval_sample:10000
 
 # Max padding
 max_char_size:40
@@ -16,6 +17,9 @@ max_char_size:40
 dp:0.2
 char_dim:8
 hidden_size:64
+norm:True
+activate:tanh
+measure:ip
 
 # Training Settings
 num_epochs:200

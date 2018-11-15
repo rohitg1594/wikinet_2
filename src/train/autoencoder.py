@@ -37,6 +37,7 @@ def parse_args():
     data.add_argument('--yamada_model', type=str, help='name of yamada model')
     data.add_argument('--data_type', type=str, help='dataset to train on.')
     data.add_argument('--train_size', type=int, help='number of training abstracts')
+    data.add_argument('--eval_sample', type=int, help='number of strs to evaluate')
 
     # Max Padding
     padding = parser.add_argument_group('Max Padding for batch.')
@@ -57,7 +58,6 @@ def parse_args():
     train_params.add_argument("--batch_size", type=int, default=32, help="Batch size")
     train_params.add_argument('--lr', type=float, help='learning rate')
     train_params.add_argument('--wd', type=float, help='weight decay')
-    train_params.add_argument('--optim', type=str, choices=['adagrad', 'adam', 'rmsprop'], help='optimizer')
 
     # cuda and profiler
     parser.add_argument("--device", type=str, help="cuda device")
@@ -119,7 +119,7 @@ def setup(args=None, logger=None, model_dir=None):
     # Create mention_arr
     logger.info("Creating mention arr.....")
     examples = train_data[1]
-    sample = random.sample(examples, 1000)
+    sample = random.sample(examples, args.eval_sample)
     mentions = [ex[1][0] for ex in sample]
     ents = [ex[1][1] for ex in sample]
     mention_arr = torch.from_numpy(create_arr(mentions, args.max_char_size, char_dict))
