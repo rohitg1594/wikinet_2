@@ -26,7 +26,8 @@ class Average(CombinedBase, Loss):
         self.mention_ent_embs.weight.data.copy_(np_to_tensor(mention_ent_embs))
 
     def forward(self, inputs):
-        mention_word_tokens, candidate_ids = inputs
+        mention_word_tokens = inputs['mention_word_tokens']
+        candidate_ids = inputs['candidate_ids']
 
         # Get the embeddings
         mention_embs = self.mention_word_embs(mention_word_tokens)

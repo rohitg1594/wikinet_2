@@ -272,8 +272,6 @@ class CombinedValidator:
 
         for data_type in self.data_types:
             input = self._get_data(data_type=data_type, cuda=True)
-            for i in input:
-                print(type(i), input.shape, input[0])
             scores, ent_combined_embs, mention_combined_embs = model(input)
 
             # # Free up memory
