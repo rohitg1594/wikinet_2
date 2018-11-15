@@ -1,7 +1,8 @@
 # Validator class
 import numpy as np
 import faiss
-import gc
+import pickle
+import os
 
 from os.path import join
 import sys
@@ -66,35 +67,48 @@ class CombinedValidator:
 
     def _get_ent_tokens(self):
         """Creates numpy arrays containing gram and word token ids for each entity."""
+        out_f = join(self.args.data_path, 'eval_ent_tokens')
+        if os.path.exists(out_f):
+            logger.info(f"Loading eval ent tokens from {out_f}")
+            ent_tokens_dict = pickle_load(out_f)
+            ent_gram_indices = ent_tokens_dict['ent_gram_indices']
+            ent_word_indices = ent_tokens_dict['ent_word_indices']
+            ent_char_indices = ent_tokens_dict['ent_char_indices']
+        else:
+            # Init Tokens
+            ent_gram_indices = np.zeros((len(self.ent2id) + 1, self.args.max_gram_size)).astype(np.int32)
+            ent_word_indices = np.zeros((len(self.ent2id) + 1, self.args.max_word_size)).astype(np.int32)
+            ent_char_indices = np.zeros((len(self.ent2id) + 1, self.args.max_char_size)).astype(np.int32)
 
-        # Init Tokens
-        ent_gram_indices = np.zeros((len(self.ent2id) + 1, self.args.max_gram_size)).astype(np.int32)
-        ent_word_indices = np.zeros((len(self.ent2id) + 1, self.args.max_word_size)).astype(np.int32)
-        ent_char_indices = np.zeros((len(self.ent2id) + 1, self.args.max_char_size)).astype(np.int32)
+            # For each entity
+            for ent_str, ent_id in self.ent2id.items():
 
-        # For each entity
-        for ent_str, ent_id in self.ent2id.items():
+                # Remove underscore
+                ent_str = ent_str.replace('_', ' ')
 
-            # Remove underscore
-            ent_str = ent_str.replace('_', ' ')
+                # Gram tokens
+                gram_tokens = self.gram_tokenizer(ent_str)
+                gram_indices = [self.gram2id.get(token, 0) for token in gram_tokens]
+                gram_indices = equalize_len(gram_indices, self.args.max_gram_size)
+                ent_gram_indices[ent_id] = gram_indices
 
-            # Gram tokens
-            gram_tokens = self.gram_tokenizer(ent_str)
-            gram_indices = [self.gram2id.get(token, 0) for token in gram_tokens]
-            gram_indices = equalize_len(gram_indices, self.args.max_gram_size)
-            ent_gram_indices[ent_id] = gram_indices
+                # Word tokens
+                word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(ent_str)]
+                word_indices = [self.word2id.get(token, 0) for token in word_tokens]
+                word_indices = equalize_len(word_indices, self.args.max_word_size)
+                ent_word_indices[ent_id] = word_indices
 
-            # Word tokens
-            word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(ent_str)]
-            word_indices = [self.word2id.get(token, 0) for token in word_tokens]
-            word_indices = equalize_len(word_indices, self.args.max_word_size)
-            ent_word_indices[ent_id] = word_indices
+                # Char tokens
+                char_tokens = list(ent_str)
+                char_indices = [self.char_dict[token] for token in char_tokens]
+                char_indices = equalize_len_w_eot(char_indices, self.args.max_char_size, self.char_dict['EOT'])
+                ent_char_indices[ent_id] = char_indices
 
-            # Char tokens
-            char_tokens = list(ent_str)
-            char_indices = [self.char_dict[token] for token in char_tokens]
-            char_indices = equalize_len_w_eot(char_indices, self.args.max_char_size, self.char_dict['EOT'])
-            ent_char_indices[ent_id] = char_indices
+            with open(join(self.args.data_path, 'eval_ent_tokens'), 'wb') as f:
+                ent_tokens_dict = {'ent_gram_indices': ent_gram_indices,
+                                   'ent_word_indices': ent_word_indices,
+                                   'ent_char_indices': ent_char_indices}
+                pickle.dump(ent_tokens_dict, f)
 
         return ent_gram_indices, ent_word_indices, ent_char_indices
 
@@ -102,71 +116,80 @@ class CombinedValidator:
         """ Creates numpy arrays containing gram and word token ids or each mention and
         word tokens for context in abstract. Also output gold entity labels. Out put is a dictionary."""
 
-        # Init lists
-        all_mention_gram_indices = []
-        all_mention_word_indices = []
-        all_mention_char_indices = []
-        all_context_word_indices = []
-        all_small_context_indices = []
-        all_gold = []
-
-        if data_type == 'wiki':
-            data = self.data
-        elif data_type == 'msnbc':
-            data = pickle_load(join(self.args.data_path, 'training_files', 'msnbc.pickle'))
-        elif data_type == 'ace2004':
-            data = pickle_load(join(self.args.data_path, 'training_files', 'ace2004.pickle'))
-        elif data_type == 'conll':
-            data = pickle_load(join(self.args.data_path, 'training_files', f'conll-{self.args.conll_split}.pickle'))
+        out_f = join(self.args.data_path, 'eval_mention_tokens')
+        if os.path.exists(out_f):
+            logger.info(f"Loading eval mention tokens from {out_f}")
+            output = pickle_load(out_f)
         else:
-            logger.info('Data type not understood, choose one of msnbc, wiki, ace2004 and conll')
-            sys.exit(1)
 
-        id2context, examples = data
+            # Init lists
+            all_mention_gram_indices = []
+            all_mention_word_indices = []
+            all_mention_char_indices = []
+            all_context_word_indices = []
+            all_small_context_indices = []
+            all_gold = []
 
-        # For each abstract
-        for example in examples:
-            context_id, (mention, ent_str, mention_char_span, small_context_tokens) = example
+            if data_type == 'wiki':
+                data = self.data
+            elif data_type == 'msnbc':
+                data = pickle_load(join(self.args.data_path, 'training_files', 'msnbc.pickle'))
+            elif data_type == 'ace2004':
+                data = pickle_load(join(self.args.data_path, 'training_files', 'ace2004.pickle'))
+            elif data_type == 'conll':
+                data = pickle_load(join(self.args.data_path, 'training_files', f'conll-{self.args.conll_split}.pickle'))
+            else:
+                logger.info('Data type not understood, choose one of msnbc, wiki, ace2004 and conll')
+                sys.exit(1)
 
-            # Check if entity is relevant
-            ent_id = self.ent2id.get(ent_str, 0)
+            id2context, examples = data
 
-            # Gold
-            all_gold.append(ent_id)
+            # For each abstract
+            for example in examples:
+                context_id, (mention, ent_str, mention_char_span, small_context_tokens) = example
 
-            # Mention Gram
-            mention_gram_tokens = [token for token in self.gram_tokenizer(mention)]
-            mention_gram_indices = [self.gram2id.get(token, 0) for token in mention_gram_tokens]
-            mention_gram_indices = equalize_len(mention_gram_indices, self.args.max_gram_size)
-            all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
+                # Check if entity is relevant
+                ent_id = self.ent2id.get(ent_str, 0)
 
-            # Mention Word
-            mention_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(mention)]
-            mention_word_indices = [self.word2id.get(token, 0) for token in mention_word_tokens]
-            mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
-            all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
+                # Gold
+                all_gold.append(ent_id)
 
-            # Mention Char
-            mention_char_tokens = list(mention)
-            mention_char_indices = [self.char_dict[token] for token in mention_char_tokens]
-            mention_char_indices = equalize_len_w_eot(mention_char_indices, self.args.max_char_size, self.char_dict['EOT'])
-            all_mention_char_indices.append(np.array(mention_char_indices).astype(np.int64))
+                # Mention Gram
+                mention_gram_tokens = [token for token in self.gram_tokenizer(mention)]
+                mention_gram_indices = [self.gram2id.get(token, 0) for token in mention_gram_tokens]
+                mention_gram_indices = equalize_len(mention_gram_indices, self.args.max_gram_size)
+                all_mention_gram_indices.append(np.array(mention_gram_indices).astype(np.int64))
 
-            # Context Word
-            context_word_indices = [self.word2id.get(token, 0) for token in id2context[context_id]]
-            context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
-            all_context_word_indices.append(np.array(context_word_indices).astype(np.int64))
+                # Mention Word
+                mention_word_tokens = [token.text.lower() for token in self.word_tokenizer.tokenize(mention)]
+                mention_word_indices = [self.word2id.get(token, 0) for token in mention_word_tokens]
+                mention_word_indices = equalize_len(mention_word_indices, self.args.max_word_size)
+                all_mention_word_indices.append(np.array(mention_word_indices).astype(np.int64))
 
-            # Small Context
-            all_small_context_indices.append(small_context_tokens)
+                # Mention Char
+                mention_char_tokens = list(mention)
+                mention_char_indices = [self.char_dict[token] for token in mention_char_tokens]
+                mention_char_indices = equalize_len_w_eot(mention_char_indices, self.args.max_char_size, self.char_dict['EOT'])
+                all_mention_char_indices.append(np.array(mention_char_indices).astype(np.int64))
 
-        output = {'gold': np.array(all_gold).astype(np.int32),
-                  'mention_gram': np.vstack(all_mention_gram_indices).astype(np.int32),
-                  'mention_word': np.vstack(all_mention_word_indices).astype(np.int32),
-                  'mention_char': np.vstack(all_mention_char_indices).astype(np.int32),
-                  'context': np.vstack(all_context_word_indices).astype(np.int32),
-                  'small_context': np.vstack(all_small_context_indices).astype(np.int32)
-                  }
+                # Context Word
+                context_word_indices = [self.word2id.get(token, 0) for token in id2context[context_id]]
+                context_word_indices = equalize_len(context_word_indices, self.args.max_context_size)
+                all_context_word_indices.append(np.array(context_word_indices).astype(np.int64))
+
+                # Small Context
+                all_small_context_indices.append(small_context_tokens)
+
+            output = {'gold': np.array(all_gold).astype(np.int32),
+                      'mention_gram': np.vstack(all_mention_gram_indices).astype(np.int32),
+                      'mention_word': np.vstack(all_mention_word_indices).astype(np.int32),
+                      'mention_char': np.vstack(all_mention_char_indices).astype(np.int32),
+                      'context': np.vstack(all_context_word_indices).astype(np.int32),
+                      'small_context': np.vstack(all_small_context_indices).astype(np.int32)
+                      }
+
+            with open(join(self.args.data_path, 'eval_mention_tokens'), 'wb') as f:
+                pickle.dump(output, f)
 
         return output
 
