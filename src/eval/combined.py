@@ -318,7 +318,7 @@ class CombinedValidator:
 
             # Print combination weights
             if self.args.model_name == "full_context_string":
-                for k, v in model.state_dict():
+                for k, v in model.state_dict().items():
                     if isinstance(v, torch.nn.parameter.Parameter):
                         print(k, v)
 
