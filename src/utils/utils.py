@@ -292,8 +292,8 @@ def mse(input, target):
 
 def get_context_embs(data_path=None, emb_option=None, yamada_model=None):
 
-    num_word, word_dim = yamada_model['word_dim'].shape
-    num_ent, ent_dim = yamada_model['ent_dim'].shape
+    num_word, word_dim = yamada_model['word_emb'].shape
+    num_ent, ent_dim = yamada_model['ent_emb'].shape
 
     if emb_option == 'random':
         logger.info(f"Initializing context embs randomly.....")
