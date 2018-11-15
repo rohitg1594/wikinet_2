@@ -3,11 +3,20 @@ import numpy as np
 
 import string
 import re
-import sys
-import logging
-import pickle
 import random
 from collections import defaultdict
+
+import numpy as np
+
+import os
+from os.path import join
+import sys
+import logging
+import gensim
+
+import pickle
+
+from src.utils.utils import normalize, reverse_dict
 
 import torch
 from torch.nn import DataParallel
@@ -347,23 +356,6 @@ def get_mention_embs( emb_option=None, num_word=None, num_ent=None, mention_word
     mention_ent_embs[0] = 0
 
     return mention_word_embs, mention_ent_embs
-
-
-# Utility functions to load and save data
-import torch
-import numpy as np
-
-import os
-from os.path import join
-import sys
-import logging
-import gensim
-
-import pickle
-
-from src.utils.utils import normalize, reverse_dict
-
-logger = logging.getLogger(__name__)
 
 
 def load_vocab(vocab_path, max_vocab=-1, plus_one=False):

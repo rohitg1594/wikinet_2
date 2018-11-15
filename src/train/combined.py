@@ -158,33 +158,29 @@ def setup(args=None, logger=None):
     logger.info("Model loaded.")
 
     # Gram Embeddings
-    if args.init_gram_embs:
-        gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
-        logger.info(f"Using gram tokenizer {gram_tokenizer.__name__}")
-        gram_dict = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_type + '.tsv'), plus_one=True)
-        gram_embs = normal_initialize(len(gram_dict) + 1, args.gram_dim)
-        logger.info(f"Gram embeddings created of shape: {gram_embs.shape}")
+    gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
+    logger.info(f"Using gram tokenizer {gram_tokenizer.__name__}")
+    gram_dict = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_type + '.tsv'), plus_one=True)
+    gram_embs = normal_initialize(len(gram_dict) + 1, args.gram_dim)
+    logger.info(f"Gram embeddings created of shape: {gram_embs.shape}")
 
     # Context Embeddings
-    if args.init_context_embs:
-        word_embs, ent_embs, W, b = get_context_embs(args.data_path, args.init_context_embs, yamada_model)
-        logger.info(f'Context embeddings loaded, word_embs : {word_embs.shape}, ent_embs : {ent_embs.shape}')
+    word_embs, ent_embs, W, b = get_context_embs(args.data_path, args.init_context_embs, yamada_model)
+    logger.info(f'Context embeddings loaded, word_embs : {word_embs.shape}, ent_embs : {ent_embs.shape}')
 
     # Mention Embeddings
-    if args.init_mention_embs:
-        mention_word_embs, mention_ent_embs = get_mention_embs(args.init_mention_embs,
-                                                               num_word=word_embs.shape[0],
-                                                               mention_word_dim=args.mention_word_dim,
-                                                               num_ent=ent_embs.shape[0],
-                                                               mention_ent_dim=args.mention_ent_dim)
+    mention_word_embs, mention_ent_embs = get_mention_embs(args.init_mention_embs,
+                                                           num_word=word_embs.shape[0],
+                                                           mention_word_dim=args.mention_word_dim,
+                                                           num_ent=ent_embs.shape[0],
+                                                           mention_ent_dim=args.mention_ent_dim)
 
     # Char Embeddings for autoencoder
-    if args.init_char_embs:
-        logger.info(f'Loading char embeddings from autoencoder state dict {args.init_char_embs}.....')
-        autoencoder_state_dict = torch.load(args.init_char_embs)['state_dict']
-        char_embs = autoencoder_state_dict['char_embs.weight']
-        hidden_size = autoencoder_state_dict['lin2.weight'].shape[0]
-        logger.info(f'Char embeddings loaded')
+    logger.info(f'Loading char embeddings from autoencoder state dict {args.init_char_embs}.....')
+    autoencoder_state_dict = torch.load(args.init_char_embs)['state_dict']
+    char_embs = autoencoder_state_dict['char_embs.weight']
+    hidden_size = autoencoder_state_dict['lin2.weight'].shape[0]
+    logger.info(f'Char embeddings loaded')
 
     # Training Data
     logger.info("Loading training data.....")
