@@ -30,7 +30,6 @@ model_name:average
 # Model Embs
 init_context_embs:yamada
 init_mention_embs:random
-init_char_embs:None
 mention_word_dim:128
 mention_ent_dim:128
 context_word_dim:128
