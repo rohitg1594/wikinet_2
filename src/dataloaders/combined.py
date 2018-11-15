@@ -162,23 +162,17 @@ class CombinedDataSet(object):
 
         return pad_tokens
 
-    def _getitem_only_prior_word_or_gram(self, example, token_type='word', include_pos=False):
+    def _getitem_only_prior_word_or_gram(self, example, token_type='word'):
         """getitem for only prior and only prior linear models with word or gram tokens."""
 
-        _, mention_tokens = self._init_tokens(flag=token_type)
-        mention, ent_str, _, _ = example
-        cand_ids = np.zeros(self.args.num_candidates).astype(np.int64)
+        mention, ent_str, span, small_context = example
+        candidate_ids = self._get_candidates(ent_str, mention)
+        mention_tokens = self._get_tokens(mention, flag=token_type)
 
-        if ent_str in self.ent2id:
-            mention_tokens = self._get_tokens(mention)
-            ent_id = self.ent2id[ent_str]
-            cand_ids = self._get_candidates(ent_id, mention)
+        output = {f'mention_{token_type}_tokens': mention_tokens,
+                   'candidate_ids': candidate_ids}
 
-        if include_pos:
-            mention_pos = get_absolute_pos(mention_tokens)
-            return mention_tokens, mention_pos, cand_ids
-
-        return mention_tokens, cand_ids
+        return output
 
     def _getitem_only_prior_word_and_gram(self, example):
         """getitem for only prior and only prior linear models with word and gram tokens."""
@@ -268,11 +262,11 @@ class CombinedDataSet(object):
         context_id, example = self.examples[index]
 
         if self.model_name in ['average', 'linear', 'multi_linear', 'rnn']:
-            return self._getitem_only_prior_word_or_gram(example, token_type='word', include_pos=False)
+            return self._getitem_only_prior_word_or_gram(example, token_type='word')
         elif self.model_name == 'only_prior_position':
-            return self._getitem_only_prior_word_or_gram(example, token_type='word', include_pos=True)
+            return self._getitem_only_prior_word_or_gram(example, token_type='word')
         elif self.model_name == 'only_prior_conv':
-            return self._getitem_only_prior_word_or_gram(example, token_type='gram', include_pos=False)
+            return self._getitem_only_prior_word_or_gram(example, token_type='gram')
         elif self.model_name == 'only_prior_with_string':
             return self._getitem_only_prior_word_and_gram(example)
         elif self.model_name == 'small_context':
