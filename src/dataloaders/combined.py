@@ -267,7 +267,7 @@ class CombinedDataSet(object):
         # Context Word Tokens
         context_id, example = self.examples[index]
 
-        if self.model_name in ['only_prior', 'only_prior_linear', 'only_prior_multi_linear', 'only_prior_rnn']:
+        if self.model_name in ['average', 'linear', 'multi_linear', 'rnn']:
             return self._getitem_only_prior_word_or_gram(example, token_type='word', include_pos=False)
         elif self.model_name == 'only_prior_position':
             return self._getitem_only_prior_word_or_gram(example, token_type='word', include_pos=True)
