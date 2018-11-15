@@ -24,6 +24,13 @@ RE_WS = re.compile('\s+')
 logger = logging.getLogger(__name__)
 
 
+def np_to_tensor(a):
+    if isinstance(a, np.ndarray):
+        return torch.from_numpy(a)
+    else:
+        return a
+
+
 def gen_wrapper(gen):
     while True:
         try:
@@ -540,11 +547,3 @@ def load_gensim(data_path=None, model_dir=None, yamada_model=None):
             word_embs[word_id] = vectors[word_index]
 
     return ent_embs, word_embs
-
-
-def numpy_to_tensor(a):
-    if isinstance(a, np.ndarray):
-        return torch.from_numpy(a)
-    else:
-        return a
-
