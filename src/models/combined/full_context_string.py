@@ -16,27 +16,26 @@ class FullContextString(CombinedBase, Loss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        # Unpack args
+        mention_word_embs = kwargs['mention_word_embs']
+        mention_ent_embs = kwargs['mention_ent_embs']
+        autoencoder_state_dict = kwargs['autoencoder_state_dict']
+        hidden_size = kwargs['hidden_size']
+        char_embs = kwargs['char_embs']
+
         # Mention embeddings
-        self.mention_embs = nn.Embedding(self.word_embs.weight.shape[0], self.args.mention_word_dim,
-                                         padding_idx=0, sparse=self.args.sparse)
-        self.mention_embs.weight.data.normal_(0, self.args.init_stdv)
-        self.mention_embs.weight.data[0] = 0
+        self.mention_word_embs = nn.Embedding(*mention_word_embs.shape, padding_idx=0, sparse=self.args.sparse)
+        self.mention_embs.weight.data.copy_(mention_word_embs)
 
         # Entity mention embeddings
-        self.ent_mention_embs = nn.Embedding(self.ent_embs.weight.shape[0], self.args.ent_mention_dim,
-                                             padding_idx=0, sparse=self.args.sparse)
-        self.ent_mention_embs.weight.data.normal_(0, self.args.init_stdv)
-        self.ent_mention_embs.weight.data[0] = 0
+        self.ent_mention_embs = nn.Embedding(*mention_ent_embs.shape, padding_idx=0, sparse=self.args.sparse)
+        self.ent_mention_embs.weight.data.copy_(mention_ent_embs)
 
         # Dropout
         self.dp = nn.Dropout(self.args.dp)
 
         ##### Autoencoder #####
-        autoencoder_state_dict = kwargs['autoencoder_state_dict']
-        hidden_size = kwargs['hidden_size']
         max_char_size = self.args.max_char_size
-        char_embs = kwargs['char_embs']
-
         self.autoencoder = StringAutoEncoder(max_char_size=max_char_size,
                                              hidden_size=hidden_size,
                                              char_embs=char_embs,
