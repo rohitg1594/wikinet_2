@@ -52,7 +52,7 @@ class CombinedDataSet(object):
         self.examples = examples
         self.id2context = id2context
 
-        processed_f_name = join(self.args.data_path, 'processed_id2context')
+        processed_f_name = join(self.args.data_path, 'cache', 'processed_id2context')
         if os.path.exists(processed_f_name):
             self.processed_id2context = pickle_load(processed_f_name)
         else:
