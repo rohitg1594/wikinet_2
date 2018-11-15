@@ -6,6 +6,7 @@ import torch.nn as nn
 from src.models.combined.base import CombinedBase
 from src.models.combined.string_autoencoder import StringAutoEncoder
 from src.models.loss import Loss
+from src.utils.utils import *
 
 import numpy as np
 np.set_printoptions(threshold=10**8)
@@ -25,11 +26,11 @@ class FullContextString(CombinedBase, Loss):
 
         # Mention embeddings
         self.mention_word_embs = nn.Embedding(*mention_word_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.mention_word_embs.weight.data.copy_(mention_word_embs)
+        self.mention_word_embs.weight.data.copy_(numpy_to_tensor(mention_word_embs))
 
         # Entity mention embeddings
-        self.ent_mention_embs = nn.Embedding(*mention_ent_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.ent_mention_embs.weight.data.copy_(mention_ent_embs)
+        self.mention_ent_embs = nn.Embedding(*mention_ent_embs.shape, padding_idx=0, sparse=self.args.sparse)
+        self.mention_ent_embs.weight.data.copy_(numpy_to_tensor(mention_ent_embs))
 
         # Dropout
         self.dp = nn.Dropout(self.args.dp)
@@ -67,9 +68,9 @@ class FullContextString(CombinedBase, Loss):
         _, candidate_str_rep, _ = self.autoencoder(candidate_char_tokens)
 
         # Get the embeddings
-        mention_embs = self.dp(self.mention_embs(mention_word_tokens))
+        mention_embs = self.dp(self.mention_word_embs(mention_word_tokens))
         context_embs = self.dp(self.word_embs(context_tokens))
-        candidate_mention_embs = self.dp(self.ent_mention_embs(candidate_ids))
+        candidate_mention_embs = self.dp(self.mention_ent_embs(candidate_ids))
         candidate_context_embs = self.dp(self.ent_embs(candidate_ids))
 
         # Sum the embeddings over the small and large tokens dimension

@@ -541,3 +541,10 @@ def load_gensim(data_path=None, model_dir=None, yamada_model=None):
 
     return ent_embs, word_embs
 
+
+def numpy_to_tensor(a):
+    if isinstance(a, np.ndarray):
+        return torch.from_numpy(a)
+    else:
+        return a
+
