@@ -8,7 +8,7 @@ import configargparse
 import numpy as np
 import torch
 
-from src.utils.utils import str2bool, normal_initialize, get_model, send_to_cuda
+from src.utils.utils import str2bool, normal_initialize, get_model, send_to_cuda, get_context_embs, get_mention_embs
 from src.utils.data import load_vocab, pickle_load, load_data, load_gensim
 from src.utils.dictionary import Dictionary  # needed because of autoencoder
 from src.eval.combined import CombinedValidator
@@ -60,15 +60,14 @@ def parse_args():
 
     # Model Type
     model_selection = parser.add_argument_group('Type of model to train.')
-    model_selection.add_argument('--init_emb', type=str, choices=['yamada', 'gensim', 'random', 'ckpt'],
-                                 help='how to initialize word and entity embeddings')
-    model_selection.add_argument('--gensim_model', type=str,
-                                 help='name of gensim model (used if embeddings are initialized with gensim')
     model_selection.add_argument('--model_name', type=str, help='type of model to train')
-    model_selection.add_argument('--init_mention', type=str, help='how to initialize mention and ent mention embs')
-    model_selection.add_argument('--init_mention_model', type=str,
-                                 help='ckpt file to initialize mention and ent mention embs')
-    model_selection.add_argument('--emb_ckpt', type=str, help='model ckpt to load word and ent embs')
+
+    # Embeddings
+    model_embs = parser.add_argument_group('Different embedding types')
+    model_embs.add_argument('--init_gram_embs', type=str, help="initialize gram embeddings")
+    model_embs.add_argument('--init_context_embs', type=str, help="initialize context embeddings")
+    model_embs.add_argument('--init_mention_embs', type=str, help="initialize mention embeddings")
+    model_embs.add_argument('--init_char_embs', type=str, help="initialize char embeddings")
 
     # Model params
     model_params = parser.add_argument_group("Parameters for chosen model.")
@@ -166,38 +165,33 @@ def setup(args=None, logger=None):
     logger.info("Model loaded.")
 
     # Gram Embeddings
-    gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
-    logger.info(f"Using gram tokenizer {gram_tokenizer.__name__}")
-    gram_dict = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_type + '.tsv'), plus_one=True)
-    gram_embs = normal_initialize(len(gram_dict) + 1, args.gram_dim)
-    logger.info(f"Gram embeddings created of shape: {gram_embs.shape}")
+    if args.init_gram_embs:
+        gram_tokenizer = get_gram_tokenizer(gram_type=args.gram_type, lower_case=args.gram_lower)
+        logger.info(f"Using gram tokenizer {gram_tokenizer.__name__}")
+        gram_dict = load_vocab(join(args.data_path, 'gram_vocabs', args.gram_type + '.tsv'), plus_one=True)
+        gram_embs = normal_initialize(len(gram_dict) + 1, args.gram_dim)
+        logger.info(f"Gram embeddings created of shape: {gram_embs.shape}")
 
-    # Word and Entity Embeddings
-    if args.init_emb == 'random':
-        logger.info("Initializing word and entity embeddings randomly.....")
-        word_embs = normal_initialize(yamada_model['word_emb'].shape[0], yamada_model['word_emb'].shape[1])
-        ent_embs = normal_initialize(yamada_model['ent_emb'].shape[0], yamada_model['ent_emb'].shape[1])
-        logger.info("Embeddings initialized.")
-    elif args.init_emb == 'gensim':
-        ent_embs, word_embs = load_gensim(args.data_path, model_dir=args.gensim_model, yamada_model=yamada_model)
-    elif args.init_emb == 'yamada':
-        logger.info("Using pre-trained word and entity embeddings from Yamada.")
-        ent_embs = yamada_model['ent_emb']
-        word_embs = yamada_model['word_emb']
-    elif args.init_emb == 'ckpt':
-        logger.info(f"Using pre-trained word and entity embeddings from {args.emb_ckpt}.")
-        state_dict = torch.load(args.emb_ckpt, map_location=torch.device('cpu'))['state_dict']
-        ent_embs = state_dict['ent_embs.weight'].cpu().numpy()
-        word_embs = state_dict['word_embs.weight'].cpu().numpy()
-        W = state_dict['combine_linear.weight'].cpu().numpy()
-        b = state_dict['combine_linear.bias'].cpu().numpy()
-        # TODO: This is ugly and will cause confusion later, think of a better solution
-        yamada_model['W'] = W
-        yamada_model['b'] = b
-    else:
-        logger.error(f'init_emb {args.init_emb} option not recognized, exiting....')
-        sys.exit(1)
-    logger.info(f'Embeddings loaded, word_embs : {word_embs.shape}, ent_embs : {ent_embs.shape}')
+    # Context Embeddings
+    if args.init_context_embs:
+        word_embs, ent_embs, W, b = get_context_embs(args.data_path, args.init_context_embs, yamada_model)
+        logger.info(f'Context embeddings loaded, word_embs : {word_embs.shape}, ent_embs : {ent_embs.shape}')
+
+    # Mention Embeddings
+    if args.init_mention_embs:
+        mention_word_embs, mention_ent_embs = get_mention_embs(args.init_mention_embs,
+                                                               num_word=word_embs.shape[0],
+                                                               mention_word_dim=args.mention_word_dim,
+                                                               num_ent=ent_embs.shape[0],
+                                                               mention_ent_dim=args.mention_ent_dim)
+
+    # Char Embeddings for autoencoder
+    if args.init_char_embs:
+        logger.info(f'Loading char embeddings from autoencoder state dict {args.init_char_embs}.....')
+        autoencoder_state_dict = torch.load(args.init_char_embs)['state_dict']
+        char_embs = autoencoder_state_dict['char_embs.weight']
+        hidden_size = autoencoder_state_dict['lin2.weight'].shape[0]
+        logger.info(f'Char embeddings loaded')
 
     # Training Data
     logger.info("Loading training data.....")
@@ -231,24 +225,32 @@ def setup(args=None, logger=None):
     logger.info("Dataset created.")
     logger.info(f"There will be {len(train_dataset) // args.batch_size + 1} batches.")
 
-    return train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs
+    return {'train_loader':train_loader,
+            'validator': validator,
+            'W': W,
+            'b': b,
+            'ent_embs': ent_embs,
+            'word_embs': word_embs,
+            'mention_word_embs': mention_word_embs,
+            'mention_ent_embs': mention_ent_embs,
+            'gram_embs': gram_embs,
+            'char_embs': char_embs,
+            'hidden_size': hidden_size,
+            'autoencoder_state_dict': autoencoder_state_dict}
 
 
-def train(args=None,
-          yamada_model=None,
-          ent_embs=None,
-          word_embs=None,
-          gram_embs=None,
-          validator=None,
-          logger=None,
-          train_loader=None,
-          model_dir=None):
+def train(**kwargs):
+
+    # Unpack args
+    logger = kwargs['logger']
+    validator = kwargs['validator']
+    model_dir = kwargs['model_dir']
+    train_loader = kwargs['train_loader']
+    args = kwargs['args']
+
     # Model
-    model = get_model(args,
-                      yamada_model=yamada_model,
-                      ent_embs=ent_embs,
-                      word_embs=word_embs,
-                      gram_embs=gram_embs)
+    model = get_model(**kwargs)
+
     if args.use_cuda:
         model = send_to_cuda(args.device, model)
 
@@ -276,13 +278,9 @@ def train(args=None,
 
 if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
-    Train_loader, Validator, Yamada_model, Ent_embs, Word_embs, Gram_embs = setup(args=Args, logger=Logger)
-    train(args=Args,
-          yamada_model=Yamada_model,
-          ent_embs=Ent_embs,
-          word_embs=Word_embs,
-          gram_embs=Gram_embs,
-          validator=Validator,
-          logger=Logger,
-          train_loader=Train_loader,
-          model_dir=Model_dir)
+    setup_dict = setup(args=Args, logger=Logger)
+    setup_dict['logger'] = Logger
+    setup_dict['args'] = Args
+    setup_dict['model_dir'] = Model_dir
+
+    train(**setup_dict)

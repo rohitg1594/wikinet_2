@@ -1,17 +1,16 @@
 # General
 seed:-1
-exp_name:only_prior_average
+exp_name:full_context_string
 debug:False
 
 # Data
 data_path:/work/rogupta/wikinet_data
-data_type:full
+data_type:proto
 num_shards:100
-train_size:10000000000
+train_size:1000000
 query_size:5000
 conll_split:dev
 yamada_model:yamada_model.pickle
-autoencoder_ckpt:/work/rogupta/wikinet_data/autoencoder/max_char_40_hidden_3.ckpt
 
 # Gram Settings
 gram_type:trigram
@@ -26,17 +25,21 @@ max_char_size:40
 max_ent_size:35
 
 # Model types
-init_emb:ckpt
-emb_ckpt:/work/rogupta/wikinet_data/models/2018_11_10/pre_train_dim_128_epoch_50/best_model.ckpt
-gensim_model:None
-model_name:full_context_string
+model_name:average
 
-# Model Params
-measure:ip
-dp:0
+# Model Embs
+init_context_embs:yamada
+init_mention_embs:random
+init_char_embs:None
+
+# Emb dims
 mention_word_dim:128
 ent_mention_dim:128
 context_word_dim:128
+
+# Model hyperparams
+dp:0
+measure:ip
 combined_linear:True
 init_stdv:0.001
 

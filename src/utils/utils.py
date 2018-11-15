@@ -16,6 +16,7 @@ from torch.nn.parallel import DistributedDataParallel
 import torch.nn as nn
 
 from src.models.models import Models
+from src.utils.data import load_gensim
 
 
 use_cuda = torch.cuda.is_available()
@@ -157,60 +158,10 @@ def str2bool(v):
         return False
 
 
-def get_model(args, yamada_model=None, gram_embs=None, ent_embs=None, word_embs=None, init=None):
+def get_model(**kwargs):
     """Based on parameters in args, initialize and return appropriate model."""
 
-    kwargs = {'args': args,
-              'gram_embs': gram_embs,
-              'ent_embs': ent_embs,
-              'word_embs': word_embs,
-              'W': yamada_model['W'],
-              'b': yamada_model['b']}
-
-    weighing_linear = torch.Tensor(ent_embs.shape[1] + gram_embs.shape[1], 1)
-    torch.nn.init.eye(weighing_linear)
-    kwargs['weighing_linear'] = weighing_linear
-
-    if init == 'pre_trained':
-        logger.info("Loading mention and ent mention embs from {}".format(args.init_mention_model))
-        with open(args.init_mention_model, 'rb') as f:
-            ckpt = torch.load(f, map_location='cpu')
-        mention_embs = ckpt['state_dict']['mention_embs.weight']
-        ent_mention_embs = ckpt['state_dict']['ent_mention_embs.weight']
-
-    elif init == 'pca':
-        logger.info("Loading mention and ent mention embs from yamada pca at {}.".format(args.init_mention_model))
-        with open(join(args.data_path, 'yamada', args.init_mention_model), 'rb') as f:
-            d = pickle.load(f)
-        mention_embs = torch.from_numpy(d['word'])
-        ent_mention_embs = torch.from_numpy(d['ent'])
-
-    else:
-        mention_embs = torch.from_numpy(np.random.normal(loc=0, scale=args.init_stdv,
-                                                         size=(word_embs.shape[0], args.mention_word_dim)))
-        ent_mention_embs = torch.from_numpy(np.random.normal(loc=0, scale=args.init_stdv,
-                                                             size=(ent_embs.shape[0], args.ent_mention_dim)))
-    mention_embs[0] = 0
-    ent_mention_embs[0] = 0
-
-    if args.gram_type == 'bigram':
-        kernel = 2
-    else:
-        kernel = 3
-    conv_weights = torch.Tensor(mention_embs.shape[1], mention_embs.shape[1], kernel)
-    if init == 'xavier_uniform':
-        nn.init.xavier_uniform(conv_weights)
-    elif init == 'xavier_normal':
-        nn.init.xavier_normal(conv_weights)
-    kwargs['conv_weights'] = conv_weights
-    kwargs['mention_embs'] = mention_embs
-    kwargs['ent_mention_embs'] = ent_mention_embs
-
-    if args.model_name == 'full_context_string':
-        autonecoder_state_dict = torch.load(args.autoencoder_ckpt)['state_dict']
-        kwargs['char_embs'] = autonecoder_state_dict['char_embs.weight']
-        kwargs['hidden_size'] = autonecoder_state_dict['lin2.weight'].shape[0]
-        kwargs['autoencoder_state_dict'] = autonecoder_state_dict
+    args = kwargs['args']
 
     model_type = getattr(Models, args.model_name)
     model = model_type(**kwargs)
@@ -342,3 +293,63 @@ def mse(input, target):
     b = input.shape[0]
 
     return ((input - target) * (input - target)).sum() / b
+
+
+def get_context_embs(data_path=None, emb_option=None, yamada_model=None):
+
+    num_word, word_dim = yamada_model['word_dim'].shape
+    num_ent, ent_dim = yamada_model['ent_dim'].shape
+
+    if emb_option == 'random':
+        logger.info(f"Initializing context embs randomly.....")
+        word_embs = normal_initialize(num_word, word_dim)
+        ent_embs = normal_initialize(num_ent, ent_dim)
+        W = normal_initialize(word_dim, ent_dim)
+        b = np.random.randn(ent_dim)
+    elif 'w2v' in emb_option:
+        logger.info(f"Loading context embs from {args.init_context_emb}.....")
+        ent_embs, word_embs = load_gensim(data_path, model_dir=emb_option, yamada_model=yamada_model)
+        W = normal_initialize(word_dim, ent_dim)
+        b = np.random.randn(ent_dim)
+    elif emb_option == 'yamada':
+        logger.info("Loading context embs from yamada model.....")
+        ent_embs = yamada_model['ent_emb']
+        word_embs = yamada_model['word_emb']
+        W = yamada_model['W']
+        b = yamada_model['b']
+    elif emb_option.endswith('ckpt'):
+        logger.info(f"Loading context embs from ckpt {args.init_context_emb}.")
+        state_dict = torch.load(emb_option, map_location=torch.device('cpu'))['state_dict']
+        ent_embs = state_dict['ent_embs.weight'].cpu().numpy()
+        word_embs = state_dict['word_embs.weight'].cpu().numpy()
+        W = state_dict['combine_linear.weight'].cpu().numpy()
+        b = state_dict['combine_linear.bias'].cpu().numpy()
+    else:
+        logger.error(f'init_emb {emb_option} option not recognized, exiting....')
+        sys.exit(1)
+    logger.info(f'Context embeddings loaded, word_embs : {word_embs.shape}, ent_embs : {ent_embs.shape}')
+
+    word_embs[0] = 0
+    ent_embs[0] = 0
+
+    return word_embs, ent_embs, W, b
+
+
+def get_mention_embs( emb_option=None, num_word=None, num_ent=None, mention_word_dim=None, mention_ent_dim=None):
+
+    if emb_option.endswith('ckpt'):
+        logger.info(f"Loading mention embs from {emb_option}.....")
+        state_dict = torch.load(emb_option, map_location=torch.device('cpu'))['state_dict']
+        mention_word_embs = state_dict['state_dict']['mention_embs.weight']
+        mention_ent_embs = state_dict['state_dict']['ent_mention_embs.weight']
+    elif emb_option == 'random':
+        mention_word_embs = normal_initialize(num_word, mention_word_dim)
+        mention_ent_embs = normal_initialize(num_ent, mention_ent_dim)
+    else:
+        logger.error(f'init_emb {emb_option} option not recognized, exiting....')
+        sys.exit(1)
+
+    mention_word_embs[0] = 0
+    mention_ent_embs[0] = 0
+
+    return mention_word_embs, mention_ent_embs
