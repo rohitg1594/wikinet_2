@@ -153,7 +153,7 @@ def parse_args():
 def setup(args=None, logger=None):
     # Yamada model
     print()
-    logger.info("Loading Yamada model.")
+    logger.info("Loading Yamada model.....")
     yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
     logger.info("Model loaded.")
 
@@ -169,11 +169,13 @@ def setup(args=None, logger=None):
     logger.info(f'Context embeddings loaded, word_embs : {word_embs.shape}, ent_embs : {ent_embs.shape}')
 
     # Mention Embeddings
+    logger.info("Loading mention embeddings.....")
     mention_word_embs, mention_ent_embs = get_mention_embs(args.init_mention_embs,
                                                            num_word=word_embs.shape[0],
                                                            mention_word_dim=args.mention_word_dim,
                                                            num_ent=ent_embs.shape[0],
                                                            mention_ent_dim=args.mention_ent_dim)
+    logger.info(f'Mention embeddings loaded, mention_word_embs : {mention_word_embs.shape}, mention_ent_embs : {mention_ent_embs.shape}')
 
     # Char Embeddings for autoencoder
     logger.info(f'Loading char embeddings from autoencoder state dict {args.init_char_embs}.....')
