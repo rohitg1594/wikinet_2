@@ -1,15 +1,8 @@
 # Main training file
-import sys
-import os
-from os.path import join
 from datetime import datetime
 import configargparse
 
-import numpy as np
-import torch
-
-from src.utils.utils import str2bool, normal_initialize, get_model, send_to_cuda, get_context_embs, get_mention_embs
-from src.utils.data import load_vocab, pickle_load, load_data, load_gensim
+from src.utils.utils import *
 from src.utils.dictionary import Dictionary  # needed because of autoencoder
 from src.eval.combined import CombinedValidator
 from src.dataloaders.combined import CombinedDataSet

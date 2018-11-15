@@ -11,8 +11,7 @@ import numpy as np
 import torch
 import torch.optim as optim
 
-from src.utils.utils import str2bool, get_model, send_to_cuda, create_arr, chunks, mse, normal_initialize
-from src.utils.data import load_vocab, pickle_load, load_data, save_checkpoint
+from src.utils.utils import *
 from src.utils.dictionary import Dictionary  # needed because of autoencoder
 from src.eval.autoencoder import AutoencoderValidator
 from src.models.combined.string_autoencoder import StringAutoEncoder
