@@ -8,6 +8,7 @@ import gc
 import torch
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from src.utils.utils import save_checkpoint
 
 logger = logging.getLogger()
 
