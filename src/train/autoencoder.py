@@ -212,9 +212,21 @@ if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
     Validator, Char_dict, Train_arr = setup(args=Args, logger=Logger, model_dir=Model_dir)
     Logger.info("Starting training.....")
-    train(args=Args,
-          validator=Validator,
-          logger=Logger,
-          char_dict=Char_dict,
-          train_arr=Train_arr,
-          model_dir=Model_dir)
+
+    for lr in [0.01, 0.05, 0.001, 0.005]:
+        for wd in [10**-4, 10**-5, 10**-5]:
+            for dp in [0.1, 0.2, 0.3, 0.5, 0]:
+                for norm in [True, False]:
+                    for activate in ['relu', 'sigmoid', 'tanh', '']:
+                        Args.lr = lr
+                        Args.wd = wd
+                        Args.dp = dp
+                        Args.norm = norm
+                        Args.activate = activate
+                        logger.info("Using ")
+                        train(args=Args,
+                              validator=Validator,
+                              logger=Logger,
+                              char_dict=Char_dict,
+                              train_arr=Train_arr,
+                              model_dir=Model_dir)

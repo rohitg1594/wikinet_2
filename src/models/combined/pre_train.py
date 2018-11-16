@@ -43,7 +43,7 @@ class PreTrain(CombinedBase, Loss):
 
         # Normalize
         if self.args.norm_final:
-            # candidate_repr = F.normalize(candidate_repr, dim=1)
+            candidate_repr = F.normalize(candidate_repr, dim=1)
             context_repr = F.normalize(context_repr, dim=1)
 
         # Dot product over last dimension only during training

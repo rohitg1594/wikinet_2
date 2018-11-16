@@ -70,14 +70,15 @@ class CombinedDataSet(object):
                 self.necounts = pickle.load(f)
             logger.info('necounts loaded.')
 
-    def _get_candidates(self, ent_str, mention, prior=False):
+    def _get_candidates(self, ent_str, mention):
         """Candidate generation step, can be random or based on necounts."""
 
         ent_str = self.redirects.get(ent_str, ent_str)
         ent_id = self.ent2id.get(ent_str, 0)
         if self.args.cand_gen_rand:
             candidate_ids = np.concatenate((np.array(ent_id)[None],
-                                            np.random.randint(1, self.len_ent + 1, size=self.args.num_candidates - 1))).astype(np.int64)
+                                            np.random.randint(1, self.len_ent + 1,
+                                                              size=self.args.num_candidates - 1))).astype(np.int64)
         else:
             nfs = get_normalised_forms(mention)
             candidate_ids = []
@@ -96,19 +97,7 @@ class CombinedDataSet(object):
 
             candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random)).astype(np.int64)
 
-        if prior:
-            priors = np.zeros(self.args.num_candidates)
-            nfs = get_normalised_forms(mention)
-            for i, cand_id in enumerate(candidate_ids):
-                for nf in nfs:
-                    if nf in self.necounts:
-                        if cand_id in self.necounts[nf]:
-                            priors[i] = self.necounts[nf]
-                            break
-        if not prior:
-            return candidate_ids
-        else:
-            return candidate_ids, priors
+        return candidate_ids
 
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
