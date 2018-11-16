@@ -73,6 +73,7 @@ class CombinedDataSet(object):
     def _get_candidates(self, ent_str, mention, prior=False):
         """Candidate generation step, can be random or based on necounts."""
 
+        ent_str = self.redirects.get(ent_str, ent_str)
         ent_id = self.ent2id.get(ent_str, 0)
         if self.args.cand_gen_rand:
             candidate_ids = np.concatenate((np.array(ent_id)[None],
@@ -175,25 +176,6 @@ class CombinedDataSet(object):
 
         return output
 
-    def _getitem_only_prior_word_and_gram(self, example):
-        """getitem for only prior and only prior linear models with word and gram tokens."""
-
-        cand_gram_tokens, mention_gram_tokens = self._init_tokens(flag='gram')
-        _, mention_word_tokens = self._init_tokens(flag='word')
-        cand_ids = np.zeros(self.args.num_candidates).astype(np.int64)
-
-        mention, ent_str, _, _ = example
-        if ent_str in self.ent2id:
-            ent_id = self.ent2id[ent_str]
-
-            mention_gram_tokens = self._get_tokens(mention, flag='gram')
-            mention_word_tokens = self._get_tokens(mention, flag='word')
-
-            cand_ids = self._get_candidates(ent_id, mention)
-            cand_strs = [self.id2ent.get(candidate_id, '').replace('_', ' ') for candidate_id in cand_ids]
-            cand_gram_tokens = np.array([self._get_tokens(candidate_str, flag='gram') for candidate_str in cand_strs])
-
-        return mention_word_tokens, mention_gram_tokens, cand_gram_tokens, cand_ids
 
     def _getitem_small_context(self, example):
         """getitem for prior with small context window."""
@@ -268,8 +250,6 @@ class CombinedDataSet(object):
             return self._getitem_only_prior_word_or_gram(example, token_type='word')
         elif self.model_name == 'only_prior_conv':
             return self._getitem_only_prior_word_or_gram(example, token_type='gram')
-        elif self.model_name == 'only_prior_with_string':
-            return self._getitem_only_prior_word_and_gram(example)
         elif self.model_name == 'small_context':
             return self._getitem_small_context(example)
         elif self.model_name == 'full_context':
