@@ -27,11 +27,11 @@ class CombinedValidator:
         self.id2ent = reverse_dict(self.ent2id)
         self.gram2id = gram_dict
         self.id2gram = reverse_dict(self.gram2id)
-        self.redirects = pickle_load(join(self.args.data_path, 'redirects.pickle'))
         self.data = data
         self.args = args
         self.model_name = self.args.model_name
 
+        self.redirects = pickle_load(join(self.args.data_path, 'redirects.pickle'))
         autoencoder_data = pickle_load(join(self.args.data_path, 'autoencoder/data.pickle'))
         self.char_dict = autoencoder_data['char_dict']
         self.max_char_size = self.args.max_char_size
