@@ -312,9 +312,10 @@ class CombinedValidator:
 
             # Print combination weights
             if self.args.model_name == "full_context_string":
+                print('----------------COMBINATION WEIGHTS------------------------------')
                 for k, v in model.state_dict().items():
                     if k.endswith('_w'):
-                        print(k, v)
+                        print(k.upper(), v)
 
             # Error analysis
             if error:
