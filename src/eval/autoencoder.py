@@ -151,6 +151,7 @@ class AutoencoderValidator:
         index.add(ent_encoded)
 
         _, predictions = index.search(mentions_encoded, 100)
+        logger.info(f"PREDICTIONS AT EPOCH {epoch} - {predictions[:10, :10]}")
         results = eval_ranking(predictions, self.gold, [1, 10, 100])
         self.valid_metrics.append(results[0])
 
