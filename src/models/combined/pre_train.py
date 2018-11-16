@@ -18,12 +18,12 @@ class PreTrain(CombinedBase, Loss):
 
         # Linear
         if self.args.combined_linear:
-            if self.orig_linear.weight.shape == (self.args.context_word_dim, self.args.ent_mention_dim):
+            if self.orig_linear.weight.shape == (self.args.context_word_dim, self.args.mention_ent_dim):
                 logger.info("Using original linear layer ")
                 self.combine_linear = self.orig_linear
             else:
                 logger.info("Using new linear layer ")
-                self.combine_linear = nn.Linear(self.args.context_word_dim, self.args.ent_mention_dim)
+                self.combine_linear = nn.Linear(self.args.context_word_dim, self.args.mention_ent_dim)
 
         # Dropout
         self.dp = nn.Dropout(self.args.dp)
