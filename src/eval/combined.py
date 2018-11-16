@@ -27,6 +27,7 @@ class CombinedValidator:
         self.id2ent = reverse_dict(self.ent2id)
         self.gram2id = gram_dict
         self.id2gram = reverse_dict(self.gram2id)
+        self.redirects = pickle_load(join(self.args.data_path, 'redirects.pickle'))
         self.data = data
         self.args = args
         self.model_name = self.args.model_name
@@ -69,6 +70,9 @@ class CombinedValidator:
 
             # For each entity
             for ent_str, ent_id in self.ent2id.items():
+
+                # Redirects
+                ent_str = self.redirects.get(ent_str, ent_str)
 
                 # Remove underscore
                 ent_str = ent_str.replace('_', ' ')
@@ -135,7 +139,12 @@ class CombinedValidator:
             for example in examples:
                 context_id, (mention, ent_str, mention_char_span, small_context_tokens) = example
 
+                # Ignore if ent is Nil
+                if ent_str == 'Nil':
+                    continue
+
                 # Check if entity is relevant
+                ent_str = self.redirects.get(ent_str, ent_str)
                 ent_id = self.ent2id.get(ent_str, 0)
 
                 # Gold
@@ -312,7 +321,7 @@ class CombinedValidator:
                 print(f'{data_type.upper()}\n')
                 mention_gram = self.numpy_data[data_type]['mention_gram']
                 mention_gram = mention_gram[self.wiki_mask, :] if data_type == 'wiki' else mention_gram
-                check_errors(preds, gold, mention_gram, self.id2ent, self.id2gram, [1, 10, 100])
+                check_errors(preds, gold, mention_gram, self.id2ent, self.id2gram, self.redirects, [1, 10, 100])
                 print()
         if self.args.use_cuda:
             model = send_to_cuda(self.args.device, model)

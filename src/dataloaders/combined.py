@@ -47,6 +47,7 @@ class CombinedDataSet(object):
         self.char_dict = autoencoder_data['char_dict']
         self.max_char_size = self.args.max_char_size
 
+        self.redirects = pickle_load(join(self.args.data_path, 'redirects.pickle'))
         self.num_cand_gen = self.args.num_candidates // 2
         id2context, examples = data
         self.examples = examples

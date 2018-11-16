@@ -207,7 +207,7 @@ def probe(d, n=10):
         print(k, v)
 
 
-def check_errors(I, gold, gram_indices, rev_ent_dict, rev_gram_dict, ks):
+def check_errors(I, gold, gram_indices, rev_ent_dict, rev_gram_dict, redirects, ks):
     errors = defaultdict(list)
 
     for j, k in enumerate(ks):
