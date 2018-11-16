@@ -17,14 +17,18 @@ np.warnings.filterwarnings('ignore')
 DATA_TYPES = ['wiki', 'conll', 'msnbc', 'ace2004']
 
 
-def grid_search():
+def grid_search(**kwargs):
     param_grid = {
-                  'lr': [5e-2, 1e-3, 5e-3, 1e-2],
+                  'lr': [5e-2, 1e-3, 5e-3],
                   'wd': [1e-7, 1e-6, 1e-5],
                   'dp': [1e-1, 2e-1],
                   }
     results = {}
     pd_results = list()
+    args = kwargs['args']
+    logger = kwargs['logger']
+    train_loader = kwargs['train_loader']
+    validator = kwargs['validator']
 
     for param_dict in list(ParameterSampler(param_grid, n_iter=20)):
         for k, v in param_dict.items():
@@ -34,13 +38,11 @@ def grid_search():
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())
         results[result_key] = {data_type: [] for data_type in DATA_TYPES}
+
+        setup_dict['args'] = args
+
         # Model
-        model = get_model(args,
-                          yamada_model=yamada_model,
-                          ent_embs=ent_embs,
-                          word_embs=word_embs,
-                          gram_embs=gram_embs,
-                          init=args.init_mention)
+        model = get_model(**setup_dict)
 
         logger.info("Validating untrained model.....")
         result = validator.validate(model=model, error=args.error)
@@ -56,7 +58,7 @@ def grid_search():
                           args=args,
                           validator=validator,
                           model=model,
-                          model_dir=model_dir,
+                          model_dir=Model_dir,
                           model_type='combined',
                           result_dict=results,
                           result_key=result_key)
@@ -66,9 +68,9 @@ def grid_search():
 
         pd_results.append({**param_dict, **best_results})
         df = pd.DataFrame(pd_results)
-        df.to_csv(join(model_dir, 'hyper_df.csv'))
+        df.to_csv(join(Model_dir, 'hyper_df.csv'))
 
-        with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
+        with open(join(Model_dir, 'grid_search_results.pickle'), 'wb') as f:
             pickle.dump(results, f)
 
         del model, trainer
@@ -79,8 +81,12 @@ def grid_search():
 
 if __name__ == '__main__':
 
-    args, logger, model_dir = parse_args()
-    train_loader, validator, yamada_model, ent_embs, word_embs, gram_embs = setup(args, logger)
+    Args, Logger, Model_dir = parse_args()
+    setup_dict = setup(args=Args, logger=Logger)
+    setup_dict['logger'] = Logger
+    setup_dict['args'] = Args
+    setup_dict['model_dir'] = Model_dir
+
     result_dict, pd_dict = grid_search()
     df = pd.DataFrame(pd_dict)
-    df.to_csv(join(model_dir, 'hyper_df.csv'))
+    df.to_csv(join(Model_dir, 'hyper_df.csv'))

@@ -91,41 +91,20 @@ def parse_args():
 
 
 def setup(args=None, logger=None, model_dir=None):
-    # Yamada model
+
     print()
-    logger.info("Loading Yamada model.")
-    yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
-    logger.info("Model loaded.")
 
     # Training Data
     logger.info("Loading training data.....")
-    res = load_data(args.data_type, args)
-    train_data, dev_data, test_data = res['train'], res['dev'], res['test']
     data = pickle_load(join(args.data_path, 'autoencoder/data.pickle'))
     dev_arr = data['dev']
     train_arr = data['train']
     dev_strs = data['dev_strs']
     char_dict = data['char_dict']
+    mention_arr = data['mention_arr']
+    ent_arr = data['ent_arr']
+    gold = data['gold']
     logger.info("Training data loaded.")
-
-    # Create ent_arr
-    logger.info("Creating ent arr.....")
-    ent2id = yamada_model['ent_dict']
-    ent_items = sorted(ent2id.items(), key=operator.itemgetter(1))
-    ent_keys = [item[0] for item in ent_items]
-    ent_arr = torch.from_numpy(create_arr(ent_keys, args.max_char_size, char_dict, ent2id))
-    logger.info("ent arr created.")
-
-    # Create mention_arr
-    logger.info("Creating mention arr.....")
-    examples = train_data[1]
-    sample = random.sample(examples, args.eval_sample)
-    mentions = [ex[1][0] for ex in sample]
-    ents = [ex[1][1] for ex in sample]
-    mention_arr = torch.from_numpy(create_arr(mentions, args.max_char_size, char_dict))
-    logger.info("mention arr created.")
-
-    gold = [ent2id[ent] if ent in ent2id else -1 for ent in ents]
 
     # Validator
     validator = AutoencoderValidator(dev_strs=dev_strs,
@@ -219,20 +198,22 @@ if __name__ == '__main__':
     Validator, Char_dict, Train_arr = setup(args=Args, logger=Logger, model_dir=Model_dir)
     Logger.info("Starting training.....")
 
-    for lr in [0.01, 0.05, 0.001, 0.005]:
-        for wd in [10**-4, 10**-5, 10**-5]:
-            for dp in [0.1, 0.2, 0.3, 0.5, 0]:
-                for norm in [True, False]:
-                    for activate in ['relu', 'sigmoid', 'tanh', '']:
-                        Args.lr = lr
-                        Args.wd = wd
-                        Args.dp = dp
-                        Args.norm = norm
-                        Args.activate = activate
-                        logger.info("Using ")
-                        train(args=Args,
-                              validator=Validator,
-                              logger=Logger,
-                              char_dict=Char_dict,
-                              train_arr=Train_arr,
-                              model_dir=Model_dir)
+    train(args=Args,
+          validator=Validator,
+          logger=Logger,
+          char_dict=Char_dict,
+          train_arr=Train_arr,
+          model_dir=Model_dir)
+
+    # for lr in [0.01, 0.05, 0.001, 0.005]:
+    #     for wd in [10**-4, 10**-5, 10**-5]:
+    #         for dp in [0.1, 0.2, 0.3, 0.5, 0]:
+    #             for norm in [True, False]:
+    #                 for activate in ['relu', 'sigmoid', 'tanh', '']:
+    #                     Args.lr = lr
+    #                     Args.wd = wd
+    #                     Args.dp = dp
+    #                     Args.norm = norm
+    #                     Args.activate = activate
+    #                     logger.info("Using ")
+    #

@@ -274,10 +274,9 @@ def chunks(l, n):
 def create_arr(strs, max_char, char_dict, ent2id=None):
     dim_0 = len(strs) + 1 if ent2id else len(strs)
     arr = np.zeros((dim_0, max_char), dtype=np.int64)
-    repl = ' ' if ent2id else ' '
 
     for i, s in enumerate(strs):
-        char_ids = [char_dict[char] for char in list(s.replace('_', repl))]
+        char_ids = [char_dict[char] for char in list(s.replace('_', ' '))]
         index = ent2id.get(s, 0) if ent2id else i
         arr[index] = equalize_len_w_eot(char_ids, max_char, char_dict['EOT'])
 
