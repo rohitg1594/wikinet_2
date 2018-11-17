@@ -107,7 +107,11 @@ class CombinedValidator:
         """ Creates numpy arrays containing gram and word token ids or each mention and
         word tokens for context in abstract. Also output gold entity labels. Out put is a dictionary."""
 
-        out_f = join(self.args.data_path, 'cache', f'eval_mention_tokens_{data_type}')
+        if data_type == 'wiki':
+            out_f = join(self.args.data_path, 'cache',
+                         f'eval_mention_tokens_{data_type}_{self.args.data_type}_{self.args.train_size}')
+        else:
+            out_f = join(self.args.data_path, 'cache', f'eval_mention_tokens_{data_type}')
         if os.path.exists(out_f):
             logger.info(f"Loading eval mention tokens from {out_f}")
             output = pickle_load(out_f)
