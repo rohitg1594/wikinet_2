@@ -36,10 +36,10 @@ mention_ent_dim:128
 context_word_dim:128
 
 # Model hyperparams
-dp:0
+dp:0.2
 measure:ip
 combined_linear:True
-init_stdv:0.001
+init_stdv:0.01
 
 # Normalization
 norm_final:True
