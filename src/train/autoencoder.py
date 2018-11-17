@@ -146,8 +146,7 @@ def train(args=None,
           validator=None,
           logger=None,
           char_dict=None,
-          train_arr=None,
-          model_dir=None):
+          train_arr=None):
 
     logger.info("Inititalizing char embs.....")
     char_embs = normal_initialize(len(char_dict), args.char_dim)
@@ -166,6 +165,7 @@ def train(args=None,
     best_model = deepcopy(model)
     train_loss = 100
     best_top10 = 0
+    best_results = {}
 
     for epoch in range(args.num_epochs):
         if epoch % 20 == 0:
@@ -179,6 +179,7 @@ def train(args=None,
             top10 = results[0]
             if top10 > best_top10:
                 best_top10 = top10
+                best_results = results
                 best_model = deepcopy(model)
             logger.info('EPOCH - {}, TRAIN LOSS - {:.4f}, VALID LOSS - {:.5f}, Top1:{}, Top10:{}, Top100:{}'
                   .format(epoch, train_loss, valid_loss, results[0], results[1], results[2]))
@@ -186,7 +187,7 @@ def train(args=None,
         logger.info("training")
         train_loss = train_epoch(model, optimizer, train_arr, args)
 
-    return best_top10, best_model, optimizer
+    return best_results, best_model, optimizer
 
 
 if __name__ == '__main__':
@@ -194,9 +195,8 @@ if __name__ == '__main__':
     Validator, Char_dict, Train_arr = setup(args=Args, logger=Logger, model_dir=Model_dir)
     Logger.info("Starting training.....")
 
-    results = {}
-    train_loss = 100
-    best_top10 = 0
+    Grid_results = {}
+    Best_top10 = 0
 
     for lr in [10**-4, 5* 10**-4, 0.001, 0.005]:
         for char_dim in [4, 8, 16]:
@@ -220,19 +220,22 @@ if __name__ == '__main__':
 
                             logger.info(f"GRID SETTING - {settings} ")
 
-                            top10, model, optimizer = train(args=Args,
-                                                          validator=Validator,
-                                                          logger=Logger,
-                                                          char_dict=Char_dict,
-                                                          train_arr=Train_arr,
-                                                          model_dir=Model_dir)
-                            results[settings] = top10
+                            Results, Model, Optimizer = train(args=Args,
+                                                            validator=Validator,
+                                                            logger=Logger,
+                                                            char_dict=Char_dict,
+                                                            train_arr=Train_arr)
+                            Grid_results[settings] = Results
+                            Top10 = Results[1]
 
-                            if top10 > best_top10:
-                                best_top10 = top10
-                                best_model = deepcopy(model)
+                            if Top10 > Best_top10:
+                                Best_top10 = Top10
+                                Best_model = deepcopy(Model)
 
                                 save_checkpoint({
-                                    'state_dict': best_model.state_dict(),
-                                    'optimizer': optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
+                                    'state_dict': Best_model.state_dict(),
+                                    'optimizer': Optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
+
+    with open(join(Model_dir, 'grid_search_results.pickle'), 'wb') as f:
+        pickle.dump(Grid_results)
 
