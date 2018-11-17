@@ -165,7 +165,7 @@ def train(args=None,
     best_model = deepcopy(model)
     train_loss = 100
     best_top10 = 0
-    best_results = {}
+    best_results = tuple
 
     for epoch in range(args.num_epochs):
         if epoch % 20 == 0:
@@ -188,6 +188,7 @@ def train(args=None,
 
             # Early Stopping
             if top10 < 0.1:
+                logger.info("Performance below 0.1, stopping training.")
                 return best_results, best_model, optimizer
 
         logger.info(f"Finished EPOCH - {epoch}")
