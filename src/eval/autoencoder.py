@@ -127,7 +127,7 @@ class AutoencoderValidator:
         for (mention_l, pred) in zip(mentions, preds):
             mention = ''.join([self.char_dict[int(c_id)] for c_id in mention_l if c_id not in [0, 2]])
             s += mention + '||'
-            s += ' , '.join([self.id2ent[int(ent_id)] for ent_id in preds[:10]]) + '\n'
+            s += ' , '.join([self.id2ent[int(ent_id)] for ent_id in pred[:10]]) + '\n'
 
         return s
 
