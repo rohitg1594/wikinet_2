@@ -177,6 +177,11 @@ def train(args=None,
             logger.info("validating")
             valid_loss, results = validator.validate(model,  plot_tsne=plot_tsne, epoch=epoch)
             top10 = results[0]
+
+            # Early Stopping
+            if top10 < 0.1:
+                return best_results, best_model, optimizer
+            
             if top10 > best_top10:
                 best_top10 = top10
                 best_results = results
@@ -198,43 +203,47 @@ if __name__ == '__main__':
     Grid_results = {}
     Best_top10 = 0
 
-    for lr in [10**-4, 5* 10**-4, 0.001, 0.005]:
+    for lr in [10**-4, 5*10**-4, 0.001, 0.005]:
         for char_dim in [4, 8, 16]:
             for wd in [10**-4, 10**-5, 10**-6]:
                 for dp in [0.1, 0.2, 0.3, 0.5, 0]:
                     for norm in [True, False]:
                         for activate in ['relu', 'sigmoid', 'tanh', '']:
-                            Args.lr = lr
-                            Args.wd = wd
-                            Args.dp = dp
-                            Args.norm = norm
-                            Args.activate = activate
-                            Args.char_dim = char_dim
+                            for hidden_size in [64, 32, 16]:
 
-                            settings = f'max_char_size - {Args.max_char_size},' \
-                                       f' hidden_size - {Args.hidden_size},' \
-                                       f' dp - {Args.dp},' \
-                                       f' activate - {Args.activate},' \
-                                       f' char_dim - {Args.char_dim},' \
-                                       f' norm - {Args.norm}'
+                                Args.lr = lr
+                                Args.char_dim = char_dim
+                                Args.wd = wd
+                                Args.dp = dp
+                                Args.norm = norm
+                                Args.activate = activate
+                                Args.hidden_size = hidden_size
 
-                            logger.info(f"GRID SETTING - {settings} ")
+                                settings = f'lr - {Args.lr},' \
+                                           f'char_dim - {Args.char_dim},' \
+                                           f'wd - {Args.wd}' \
+                                           f'dp - {Args.dp},' \
+                                           f'norm - {Args.norm}' \
+                                           f'activate - {Args.activate},' \
+                                           f'hidden_size - {Args.hidden_size},' \
 
-                            Results, Model, Optimizer = train(args=Args,
-                                                            validator=Validator,
-                                                            logger=Logger,
-                                                            char_dict=Char_dict,
-                                                            train_arr=Train_arr)
-                            Grid_results[settings] = Results
-                            Top10 = Results[1]
+                                logger.info(f"GRID SETTING - {settings} ")
 
-                            if Top10 > Best_top10:
-                                Best_top10 = Top10
-                                Best_model = deepcopy(Model)
+                                Results, Model, Optimizer = train(args=Args,
+                                                                  validator=Validator,
+                                                                  logger=Logger,
+                                                                  char_dict=Char_dict,
+                                                                  train_arr=Train_arr)
+                                Grid_results[settings] = Results
+                                Top10 = Results[1]
 
-                                save_checkpoint({
-                                    'state_dict': Best_model.state_dict(),
-                                    'optimizer': Optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
+                                if Top10 > Best_top10:
+                                    Best_top10 = Top10
+                                    Best_model = deepcopy(Model)
+
+                                    save_checkpoint({
+                                        'state_dict': Best_model.state_dict(),
+                                        'optimizer': Optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
 
     with open(join(Model_dir, 'grid_search_results.pickle'), 'wb') as f:
         pickle.dump(Grid_results)
