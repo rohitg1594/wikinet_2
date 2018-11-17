@@ -176,7 +176,7 @@ def train(args=None,
         if epoch % 5 == 0:
             logger.info("validating")
             valid_loss, results = validator.validate(model,  plot_tsne=plot_tsne, epoch=epoch)
-            top10 = results[0]
+            top10 = results[1]
 
             if top10 > best_top10:
                 best_top10 = top10
@@ -223,9 +223,9 @@ if __name__ == '__main__':
 
                                 settings = f'lr - {Args.lr},' \
                                            f'char_dim - {Args.char_dim},' \
-                                           f'wd - {Args.wd}' \
+                                           f'wd - {Args.wd},' \
                                            f'dp - {Args.dp},' \
-                                           f'norm - {Args.norm}' \
+                                           f'norm - {Args.norm},' \
                                            f'activate - {Args.activate},' \
                                            f'hidden_size - {Args.hidden_size},' \
 
