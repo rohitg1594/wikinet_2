@@ -178,18 +178,19 @@ def train(args=None,
             valid_loss, results = validator.validate(model,  plot_tsne=plot_tsne, epoch=epoch)
             top10 = results[0]
 
-            # Early Stopping
-            if top10 < 0.1:
-                return best_results, best_model, optimizer
-            
             if top10 > best_top10:
                 best_top10 = top10
                 best_results = results
                 best_model = deepcopy(model)
-            logger.info('EPOCH - {}, TRAIN LOSS - {:.4f}, VALID LOSS - {:.5f}, Top1:{}, Top10:{}, Top100:{}'
-                  .format(epoch, train_loss, valid_loss, results[0], results[1], results[2]))
 
-        logger.info("training")
+            logger.info('EPOCH - {}, TRAIN LOSS - {:.4f}, VALID LOSS - {:.5f}, Top1:{}, Top10:{}, Top100:{}'
+                        .format(epoch, train_loss, valid_loss, results[0], results[1], results[2]))
+
+            # Early Stopping
+            if top10 < 0.1:
+                return best_results, best_model, optimizer
+
+        logger.info(f"Finished EPOCH - {epoch}")
         train_loss = train_epoch(model, optimizer, train_arr, args)
 
     return best_results, best_model, optimizer
