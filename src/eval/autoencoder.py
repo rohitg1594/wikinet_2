@@ -32,7 +32,8 @@ class AutoencoderValidator:
                  args=None,
                  dev_arr=None,
                  gold=None,
-                 model_dir=None):
+                 model_dir=None,
+                 id2ent=None):
 
         self.dev_strs = dev_strs
         self.dev_arr = dev_arr
@@ -44,6 +45,7 @@ class AutoencoderValidator:
         self.args = args
         self.max_char_size = self.args.max_char_size
         self.model_dir = model_dir
+        self.id2ent = id2ent
 
         self.valid_mask = np.random.choice(len(self.dev_strs), self.rank_sample)
         self.valid_strs = [self.dev_strs[i] for i in self.valid_mask]
@@ -119,6 +121,16 @@ class AutoencoderValidator:
 
         return s
 
+    def create_pred_str(self, mentions, preds):
+
+        s = ''
+        for (mention_l, pred) in zip(mentions, preds):
+            mention = ''.join([self.char_dict[c_id] for c_id in mention_l if c_id not in [0, 2]])
+            s += mention + '||'
+            s += ' , '.join([self.id2ent[ent_id] for ent_id in preds[:10]]) + '\n'
+
+        return s
+
     def validate(self, model, plot_tsne=True, epoch=None):
         model.eval()
         full_loss = 0
@@ -151,7 +163,8 @@ class AutoencoderValidator:
         index.add(ent_encoded)
 
         _, predictions = index.search(mentions_encoded, 100)
-        logger.info(f"PREDICTIONS AT EPOCH {epoch} - {predictions[:10, :10]}")
+        pred_str = self.create_pred_str(mentions=mention_arr[:10], predictions[:10])
+        logger.info(f"PREDICTIONS AT EPOCH {epoch}: \n {pred_str}")
         results = eval_ranking(predictions, self.gold, [1, 10, 100])
         self.valid_metrics.append(results[0])
 
