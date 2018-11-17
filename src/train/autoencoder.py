@@ -165,20 +165,20 @@ def train(args=None,
     best_model = deepcopy(model)
     train_loss = 100
     best_top10 = 0
-    best_results = tuple
+    best_results = 0, 0, 0, 0
 
     for epoch in range(args.num_epochs):
-        if epoch % 20 == 0:
-            plot_tsne = True
-        else:
-            plot_tsne = False
+        # if epoch % 20 == 0:
+        #     plot_tsne = True
+        # else:
+        #     plot_tsne = False
 
         if epoch % 5 == 0:
             logger.info("validating")
-            valid_loss, results = validator.validate(model,  plot_tsne=plot_tsne, epoch=epoch)
+            valid_loss, results = validator.validate(model,  plot_tsne=False, epoch=epoch)
             top10 = results[1]
 
-            if top10 > best_top10:
+            if top10 >= best_top10:
                 best_top10 = top10
                 best_results = results
                 best_model = deepcopy(model)
