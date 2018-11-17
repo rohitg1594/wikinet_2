@@ -22,7 +22,7 @@ activate:tanh
 measure:ip
 
 # Training Settings
-num_epochs:200
+num_epochs:50
 batch_size:1000000
 lr:1e-03
 wd:1e-06
