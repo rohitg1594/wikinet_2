@@ -164,8 +164,8 @@ def train(args=None,
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=args.wd)
 
     best_model = deepcopy(model)
-    best_top1 = 10 ** 6
     train_loss = 100
+    best_top10 = 0
 
     for epoch in range(args.num_epochs):
         if epoch % 20 == 0:
@@ -176,9 +176,9 @@ def train(args=None,
         if epoch % 5 == 0:
             logger.info("validating")
             valid_loss, results = validator.validate(model,  plot_tsne=plot_tsne, epoch=epoch)
-            top1 = results[0]
-            if top1 > best_top1:
-                best_top1 = top1
+            top10 = results[0]
+            if top10 > best_top10:
+                best_top10 = top10
                 best_model = deepcopy(model)
             logger.info('EPOCH - {}, TRAIN LOSS - {:.4f}, VALID LOSS - {:.5f}, Top1:{}, Top10:{}, Top100:{}'
                   .format(epoch, train_loss, valid_loss, results[0], results[1], results[2]))
@@ -186,9 +186,7 @@ def train(args=None,
         logger.info("training")
         train_loss = train_epoch(model, optimizer, train_arr, args)
 
-    save_checkpoint({
-        'state_dict': best_model.state_dict(),
-        'optimizer': optimizer.state_dict()}, filename=join(model_dir, 'best_model.ckpt'))
+    return best_top10, best_model, optimizer
 
 
 if __name__ == '__main__':
@@ -196,22 +194,45 @@ if __name__ == '__main__':
     Validator, Char_dict, Train_arr = setup(args=Args, logger=Logger, model_dir=Model_dir)
     Logger.info("Starting training.....")
 
-    train(args=Args,
-          validator=Validator,
-          logger=Logger,
-          char_dict=Char_dict,
-          train_arr=Train_arr,
-          model_dir=Model_dir)
+    results = {}
+    train_loss = 100
+    best_top10 = 0
 
-    # for lr in [0.01, 0.05, 0.001, 0.005]:
-    #     for wd in [10**-4, 10**-5, 10**-5]:
-    #         for dp in [0.1, 0.2, 0.3, 0.5, 0]:
-    #             for norm in [True, False]:
-    #                 for activate in ['relu', 'sigmoid', 'tanh', '']:
-    #                     Args.lr = lr
-    #                     Args.wd = wd
-    #                     Args.dp = dp
-    #                     Args.norm = norm
-    #                     Args.activate = activate
-    #                     logger.info("Using ")
-    #
+    for lr in [10**-4, 5* 10**-4, 0.001, 0.005]:
+        for char_dim in [4, 8, 16]:
+            for wd in [10**-4, 10**-5, 10**-6]:
+                for dp in [0.1, 0.2, 0.3, 0.5, 0]:
+                    for norm in [True, False]:
+                        for activate in ['relu', 'sigmoid', 'tanh', '']:
+                            Args.lr = lr
+                            Args.wd = wd
+                            Args.dp = dp
+                            Args.norm = norm
+                            Args.activate = activate
+                            Args.char_dim = char_dim
+
+                            settings = f'max_char_size - {args.max_char_size},' \
+                                       f' hidden_size - {args.hidden_size},' \
+                                       f' dp - {args.dp},' \
+                                       f' activate - {args.activate},' \
+                                       f' char_dim - {char_dim},' \
+                                       f' norm - {norm}'
+
+                            logger.info(f"GRID SETTING - {settings} ")
+
+                            top10, model, optimizer = train(args=Args,
+                                                          validator=Validator,
+                                                          logger=Logger,
+                                                          char_dict=Char_dict,
+                                                          train_arr=Train_arr,
+                                                          model_dir=Model_dir)
+                            results[settings] = top10
+
+                            if top10 > best_top10:
+                                best_top10 = top10
+                                best_model = deepcopy(model)
+
+                                save_checkpoint({
+                                    'state_dict': best_model.state_dict(),
+                                    'optimizer': optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
+
