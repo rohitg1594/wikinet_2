@@ -211,12 +211,12 @@ if __name__ == '__main__':
                             Args.activate = activate
                             Args.char_dim = char_dim
 
-                            settings = f'max_char_size - {args.max_char_size},' \
-                                       f' hidden_size - {args.hidden_size},' \
-                                       f' dp - {args.dp},' \
-                                       f' activate - {args.activate},' \
-                                       f' char_dim - {char_dim},' \
-                                       f' norm - {norm}'
+                            settings = f'max_char_size - {Args.max_char_size},' \
+                                       f' hidden_size - {Args.hidden_size},' \
+                                       f' dp - {Args.dp},' \
+                                       f' activate - {Args.activate},' \
+                                       f' char_dim - {Args.char_dim},' \
+                                       f' norm - {Args.norm}'
 
                             logger.info(f"GRID SETTING - {settings} ")
 
