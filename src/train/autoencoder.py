@@ -87,6 +87,9 @@ def parse_args():
 def setup(args=None, logger=None, model_dir=None):
 
     print()
+    yamada_model = pickle_load(join(args.data_path, 'yamada', 'yamada_model.pickle'))
+    ent2id = yamada_model['ent_dict']
+    id2ent = reverse_dict(ent2id)
 
     # Training Data
     logger.info("Loading training data.....")
@@ -112,7 +115,8 @@ def setup(args=None, logger=None, model_dir=None):
                                      args=args,
                                      dev_arr=dev_arr,
                                      gold=gold,
-                                     model_dir=model_dir)
+                                     model_dir=model_dir,
+                                     id2ent=id2ent)
 
     return validator, char_dict, train_arr
 
