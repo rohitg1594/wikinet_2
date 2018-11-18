@@ -99,8 +99,8 @@ class FullContextString(CombinedBase, Loss):
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
         cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim)
 
-        # if self.args.combined_linear:
-        #     mention_repr = self.combine_linear(mention_repr)
+        if self.args.combined_linear:
+            mention_repr = self.combine_linear(mention_repr)
 
         # Normalize
         if self.args.norm_final:
