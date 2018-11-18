@@ -66,8 +66,7 @@ class CombinedDataSet(object):
         # Candidates
         if not self.args.cand_gen_rand:
             logger.info(f'Loading necounts candidate generation dict.....')
-            with open(join(self.args.data_path, 'necounts', 'normal_necounts.pickle'), 'rb') as f:
-                self.necounts = pickle.load(f)
+            self.necounts = pickle_load(join(self.args.data_path, 'necounts', 'normal_necounts.pickle'))
             logger.info('necounts loaded.')
 
     def _get_candidates(self, ent_str, mention):
@@ -81,20 +80,16 @@ class CombinedDataSet(object):
                                                               size=self.args.num_candidates - 1))).astype(np.int64)
         else:
             nfs = get_normalised_forms(mention)
-            candidate_ids = []
-            for nf in nfs:
-                if nf in self.necounts:
-                    candidate_ids.extend(self.necounts[nf])
-
-            if ent_id in candidate_ids: candidate_ids.remove(ent_id)  # Remove if true entity is part of candidates
+            candidate_ids = [c_id for nf in nfs for c_id in self.necounts[nf] if nf in self.necounts and c_id != ent_id]
 
             if len(candidate_ids) > self.num_cand_gen:
                 cand_generation = np.random.choice(np.array(candidate_ids), replace=False, size=self.num_cand_gen)
-                cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - self.num_cand_gen - 1)
+                num_rand = self.args.num_candidates - self.num_cand_gen - 1
             else:
                 cand_generation = np.array(candidate_ids)
-                cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - len(candidate_ids) - 1)
+                num_rand = self.args.num_candidates - len(candidate_ids) - 1
 
+            cand_random = np.random.randint(1, self.len_ent + 1, num_rand)
             candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random)).astype(np.int64)
 
         return candidate_ids
