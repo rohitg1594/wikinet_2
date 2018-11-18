@@ -292,9 +292,9 @@ class CombinedValidator:
                 for str_w in weights:
                     for prior_w in weights:
 
-                        model.context_w = context_w
-                        model.str_w = str_w
-                        model.prior_w = prior_w
+                        model.context_w = torch.nn.Parameter(torch.Tensor([context_w]))
+                        model.str_w = torch.nn.Parameter(torch.Tensor([str_w]))
+                        model.prior_w = torch.nn.Parameter(torch.Tensor([prior_w]))
 
                         print('----------------COMBINATION WEIGHTS------------------------------')
                         for k, v in model.state_dict().items():
