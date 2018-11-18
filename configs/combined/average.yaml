@@ -56,7 +56,6 @@ num_workers:8
 lr:1e-03
 wd:1e-06
 optim:adagrad
-sparse:False
 save_every:5
 
 # Loss

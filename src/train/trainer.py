@@ -8,7 +8,7 @@ import gc
 import torch
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from src.utils.utils import save_checkpoint
+from src.utils.utils import save_checkpoint, get_optim
 
 logger = logging.getLogger()
 
@@ -32,19 +32,13 @@ class Trainer(object):
         self.batch_size = args.batch_size
         self.validator = validator
 
-        if args.optim == 'adagrad':
-            optimizer_type = torch.optim.Adagrad
-        elif args.optim == 'adam':
-            optimizer_type = torch.optim.Adam
-        elif args.optim == 'rmsprop':
-            optimizer_type = torch.optim.RMSprop
+        optimizer_type = get_optim(optim=self.args.optim)
+        if self.args.optim == 'sparseadam':
+            self.optimizer = optimizer_type(filter(lambda p: p.requires_grad, self.model.parameters()), lr=args.lr)
         else:
-            logger.error("Optimizer {} not recognized, choose between adam, adagrad, rmsprop".format(args.optim))
-            sys.exit(1)
-
-        self.optimizer = optimizer_type(filter(lambda p: p.requires_grad, self.model.parameters()),
-                                        lr=args.lr,
-                                        weight_decay=args.wd)
+            self.optimizer = optimizer_type(filter(lambda p: p.requires_grad, self.model.parameters()),
+                                            lr=args.lr,
+                                            weight_decay=args.wd)
 
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', verbose=True, patience=5)
         self.loader_index = 0

@@ -545,3 +545,19 @@ def load_gensim(data_path=None, model_dir=None, yamada_model=None):
             word_embs[word_id] = vectors[word_index]
 
     return ent_embs, word_embs
+
+
+def get_optim(optim=None):
+    if optim == 'adagrad':
+        optimizer = torch.optim.Adagrad
+    elif optim == 'adam':
+        optimizer = torch.optim.Adam
+    elif optim == 'rmsprop':
+        optimizer = torch.optim.RMSprop
+    elif optim == 'sparseadam':
+        optimizer = torch.optim.SparseAdam
+    else:
+        logger.error("Optimizer {} not recognized, choose between adam, adagrad, rmsprop, sparseadam".format(optim))
+        sys.exit(1)
+
+    return optimizer
