@@ -341,8 +341,8 @@ def get_mention_embs( emb_option=None, num_word=None, num_ent=None, mention_word
     if emb_option.endswith('ckpt'):
         logger.info(f"Loading mention embs from {emb_option}.....")
         state_dict = torch.load(emb_option, map_location=torch.device('cpu'))['state_dict']
-        mention_word_embs = state_dict['state_dict']['mention_embs.weight']
-        mention_ent_embs = state_dict['state_dict']['ent_mention_embs.weight']
+        mention_word_embs = state_dict['mention_embs.weight']
+        mention_ent_embs = state_dict['ent_mention_embs.weight']
     elif emb_option == 'random':
         mention_word_embs = normal_initialize(num_word, mention_word_dim)
         mention_ent_embs = normal_initialize(num_ent, mention_ent_dim)
