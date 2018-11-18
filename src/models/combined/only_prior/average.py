@@ -26,7 +26,7 @@ class Average(CombinedBase, Loss):
         self.mention_ent_embs.weight.data.copy_(np_to_tensor(mention_ent_embs))
 
         # Dp
-        self.do = nn.Dropout(self.args.dp)
+        self.dp = nn.Dropout(self.args.dp)
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
