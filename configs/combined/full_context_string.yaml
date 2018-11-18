@@ -63,11 +63,11 @@ margin:0.5
 loss_func:cross_entropy
 
 # Things to train
-train_ent:True
-train_word:True
-train_mention:True
-train_linear:True
-train_gram:True
+train_ent:False
+train_word:False
+train_mention:False
+train_linear:False
+train_gram:False
 
 # Cuda
 use_cuda:True

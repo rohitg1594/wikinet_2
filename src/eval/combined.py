@@ -320,6 +320,7 @@ class CombinedValidator:
                 for k, v in model.state_dict().items():
                     if k.endswith('_w'):
                         print(k.upper(), v)
+                print('-----------------------------------------------------------------')
 
             # Error analysis
             if error:

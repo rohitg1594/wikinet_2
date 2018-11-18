@@ -27,10 +27,12 @@ class FullContextString(CombinedBase, Loss):
         # Mention embeddings
         self.mention_word_embs = nn.Embedding(*mention_word_embs.shape, padding_idx=0, sparse=self.args.sparse)
         self.mention_word_embs.weight.data.copy_(np_to_tensor(mention_word_embs))
+        self.mention_word_embs.requires_grad = self.args.train_mention
 
         # Entity mention embeddings
         self.mention_ent_embs = nn.Embedding(*mention_ent_embs.shape, padding_idx=0, sparse=self.args.sparse)
         self.mention_ent_embs.weight.data.copy_(np_to_tensor(mention_ent_embs))
+        self.mention_ent_embs.requires_grad = self.args.train_mention
 
         # Dropout
         self.dp = nn.Dropout(self.args.dp)
@@ -81,7 +83,10 @@ class FullContextString(CombinedBase, Loss):
         # TODO: PRINT EMB SHAPES FOR NORMALIZE
         print(f'mention embs : {mention_embs_agg.shape}, '
               f'candidate embs : {candidate_mention_embs},'
-              f'context')
+              f'context embs: {context_embs_agg.shape},'
+              f'candidate context: {candidate_context_embs.shape},'
+              f'mention str: {mention_str_rep.shape},'
+              f'candidate ste: {candidate_str_rep.shape}')
         mention_embs_agg = self.prior_w * F.normalize(mention_embs_agg)
         candidate_mention_embs = F.normalize(candidate_mention_embs)
         context_embs_agg = self.context_w * F.normalize(context_embs_agg)
