@@ -82,7 +82,7 @@ class FullContextString(CombinedBase, Loss):
         # Normalize
         # TODO: PRINT EMB SHAPES FOR NORMALIZE
         print(f'mention embs : {mention_embs_agg.shape}, '
-              f'candidate embs : {candidate_mention_embs},'
+              f'candidate embs : {candidate_mention_embs.shape},'
               f'context embs: {context_embs_agg.shape},'
               f'candidate context: {candidate_context_embs.shape},'
               f'mention str: {mention_str_rep.shape},'
