@@ -193,7 +193,7 @@ class CombinedValidator:
 
         return output
 
-    def _get_data(self, data_type='wiki', cuda=False):
+    def _get_data(self, data_type='wiki'):
 
         ent_gram = torch.from_numpy(self.ent_gram_indices).long()
         ent_word = torch.from_numpy(self.ent_word_indices).long()
@@ -286,7 +286,6 @@ class CombinedValidator:
         # Print combination weights
         if self.args.model_name == "full_context_string":
 
-
             weights = 0.1 * np.arange(11)
             for context_w in weights:
                 for str_w in weights:
@@ -304,7 +303,7 @@ class CombinedValidator:
                         error = False
 
                         for data_type in self.data_types:
-                            input = self._get_data(data_type=data_type, cuda=True)
+                            input = self._get_data(data_type=data_type)
                             scores, ent_combined_embs, mention_combined_embs = model(input)
 
                             mention_combined_embs = mention_combined_embs.data.numpy()
@@ -333,6 +332,10 @@ class CombinedValidator:
                                                   'top10': top10,
                                                   'top100': top100,
                                                   'mrr': mrr}
+                            res_str = ""
+                            for k, v in results[data_type].items():
+                                res_str += k.upper() + ': {:.3},'.format(v)
+                            logger.info(res_str)
 
                             # Error analysis
                             if error:
@@ -341,7 +344,7 @@ class CombinedValidator:
                                 mention_gram = mention_gram[self.wiki_mask, :] if data_type == 'wiki' else mention_gram
                                 check_errors(preds, gold, mention_gram, self.id2ent, self.id2gram, self.redirects, [1, 10, 100])
                                 print()
-                        if self.args.use_cuda:
-                            model = send_to_cuda(self.args.device, model)
+        if self.args.use_cuda:
+            model = send_to_cuda(self.args.device, model)
 
         return results
