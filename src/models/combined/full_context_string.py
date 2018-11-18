@@ -51,6 +51,7 @@ class FullContextString(CombinedBase, Loss):
         if self.args.combined_linear:
             self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
                                             self.args.mention_word_dim + self.args.context_word_dim + hidden_size)
+            nn.init.eye_(self.combine_linear.weight)
 
         # Combination weights
         i_w = 0.333
