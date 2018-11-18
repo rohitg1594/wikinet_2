@@ -245,7 +245,7 @@ if __name__ == '__main__':
                                     'optimizer': Optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
 
                             with open(join(Model_dir, 'grid_search_results.pickle'), 'wb') as f:
-                                pickle.dump(Grid_results)
+                                pickle.dump(Grid_results, f)
 
 
 
