@@ -25,13 +25,16 @@ class Average(CombinedBase, Loss):
         self.mention_ent_embs = nn.Embedding(*mention_ent_embs.shape, padding_idx=0, sparse=self.args.sparse)
         self.mention_ent_embs.weight.data.copy_(np_to_tensor(mention_ent_embs))
 
+        # Dp
+        self.do = nn.Dropout(self.args.dp)
+
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
         candidate_ids = inputs['candidate_ids']
 
         # Get the embeddings
-        mention_embs = self.mention_word_embs(mention_word_tokens)
-        candidate_embs = self.mention_ent_embs(candidate_ids)
+        mention_embs = self.dp(self.mention_word_embs(mention_word_tokens))
+        candidate_embs = self.dp(self.mention_ent_embs(candidate_ids))
 
         # Sum the embeddings over the small and large tokens dimension
         mention_repr = torch.mean(mention_embs, dim=1)
