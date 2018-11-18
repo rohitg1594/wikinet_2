@@ -320,9 +320,9 @@ class CombinedValidator:
                                 index.add(ent_combined_embs)
                                 first_data = False
 
-                            logger.info(f"Searching in index with query size : {mention_combined_embs.shape}.....")
+                            # logger.info(f"Searching in index with query size : {mention_combined_embs.shape}.....")
                             _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
-                            logger.info("Search complete.")
+                            # logger.info("Search complete.")
 
                             # Evaluate rankings
                             gold = self.numpy_data[data_type]['gold']
@@ -332,7 +332,7 @@ class CombinedValidator:
                                                   'top10': top10,
                                                   'top100': top100,
                                                   'mrr': mrr}
-                            res_str = ""
+                            res_str = data_type.upper() + ' : '
                             for k, v in results[data_type].items():
                                 res_str += k.upper() + ': {:.3},'.format(v)
                             logger.info(res_str)
