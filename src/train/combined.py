@@ -34,7 +34,6 @@ def parse_args():
     data.add_argument('--conll_split', type=str, choices=['train', 'dev', 'test'],
                       help='which split of connl data to evaluate on')
     data.add_argument('--yamada_model', type=str, help='name of yamada model')
-    data.add_argument('--autoencoder_ckpt', type=str, help='path of autoencoder checkpoint')
 
     # Gram
     gram = parser.add_argument_group('Gram (uni / bi / tri) Settings.')
