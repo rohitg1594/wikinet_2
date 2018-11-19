@@ -231,11 +231,11 @@ if __name__ == '__main__':
     #
     #                         logger.info(f"GRID SETTING - {settings} ")
 
-                            Results, Model, Optimizer = train(args=Args,
-                                                              validator=Validator,
-                                                              logger=Logger,
-                                                              char_dict=Char_dict,
-                                                              train_arr=Train_arr)
+    Results, Model, Optimizer = train(args=Args,
+                                      validator=Validator,
+                                      logger=Logger,
+                                      char_dict=Char_dict,
+                                      train_arr=Train_arr)
                             # Grid_results[settings] = Results
                             # Top10 = Results[1]
                             #
