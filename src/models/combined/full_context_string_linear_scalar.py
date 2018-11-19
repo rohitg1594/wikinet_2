@@ -97,9 +97,9 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         context_weights = self.context_linear(mention_repr)
         str_weights = self.prior_linear(mention_repr)
 
-        mention_repr[:, self.args.mention_word_dim] *= mention_weights
-        mention_repr[self.args.mention_word_dim: self.args.mention_word_dim + self.args.context_word_dim] *= context_weights
-        mention_repr[self.args.mention_word_dim + self.args.context_word_dim:] *= str_weights
+        mention_repr[:, :self.args.mention_word_dim] *= mention_weights
+        mention_repr[:, self.args.mention_word_dim: self.args.mention_word_dim + self.args.context_word_dim] *= context_weights
+        mention_repr[:, self.args.mention_word_dim + self.args.context_word_dim:] *= str_weights
 
         # Normalize
         if self.args.norm_final:
