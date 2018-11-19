@@ -12,7 +12,7 @@ import numpy as np
 np.set_printoptions(threshold=10**8)
 
 
-class FullContextStringScalar(CombinedBase, Loss):
+class FullContextStringCombined(CombinedBase, Loss):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

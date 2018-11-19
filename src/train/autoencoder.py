@@ -186,10 +186,6 @@ def train(args=None,
             logger.info('EPOCH - {}, TRAIN LOSS - {:.4f}, VALID LOSS - {:.5f}, Top1:{}, Top10:{}, Top100:{}'
                         .format(epoch, train_loss, valid_loss, results[0], results[1], results[2]))
 
-            # Early Stopping
-            if top10 < 0.1:
-                logger.info("Performance below 0.1, stopping training.")
-                return best_results, best_model, optimizer
 
         logger.info(f"Finished EPOCH - {epoch}")
         train_loss = train_epoch(model, optimizer, train_arr, args)

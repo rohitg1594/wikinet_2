@@ -13,6 +13,7 @@ from src.models.combined.small_context import SmallContext
 from src.models.combined.full_context import FullContext
 from src.models.combined.full_context_attention import FullContextAttn
 from src.models.combined.full_context_string_scalar import FullContextStringScalar
+from src.models.combined.full_context_string_combined import FullContextStringCombined
 from src.models.combined.full_context_string_linear_scalar import FullContextStringLinearScalar
 
 from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
