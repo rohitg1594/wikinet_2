@@ -36,9 +36,11 @@ class Models:
     mention_prior = MentionPrior
     pre_train_context = PreTrainContext
     small_context = SmallContext
+    
     full_context = FullContext
     full_context_attention = FullContextAttn
-    full_context_string = FullContextStringScalar
+    full_context_string_scalar = FullContextStringScalar
+    full_context_string_combined = FullContextStringCombined
     full_context_string_linear_scalar = FullContextStringLinearScalar
 
     # Yamada
