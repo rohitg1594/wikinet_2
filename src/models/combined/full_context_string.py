@@ -81,13 +81,6 @@ class FullContextString(CombinedBase, Loss):
         context_embs_agg = self.orig_linear(torch.mean(context_embs, dim=1))
 
         # Normalize
-        # TODO: PRINT EMB SHAPES FOR NORMALIZE
-        # print(f'mention embs : {mention_embs_agg.shape}, '
-        #       f'candidate embs : {candidate_mention_embs.shape},'
-        #       f'context embs: {context_embs_agg.shape},'
-        #       f'candidate context: {candidate_context_embs.shape},'
-        #       f'mention str: {mention_str_rep.shape},'
-        #       f'candidate ste: {candidate_str_rep.shape}')
         mention_embs_agg = self.prior_w * F.normalize(mention_embs_agg, dim=len(mention_embs_agg.shape) - 1)
         candidate_mention_embs = F.normalize(candidate_mention_embs, dim=len(candidate_mention_embs.shape) - 1)
         context_embs_agg = self.context_w * F.normalize(context_embs_agg, dim=len(context_embs_agg.shape) - 1)

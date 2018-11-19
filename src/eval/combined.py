@@ -283,67 +283,67 @@ class CombinedValidator:
         first_data = True
         results = {}
 
-        # Print combination weights
-        if self.args.model_name == "full_context_string":
+        # # Print combination weights
+        # if self.args.model_name == "full_context_string":
+        #
+        #     weights = 0.1 * np.arange(11)
+        #     for context_w in weights:
+        #         for str_w in weights:
+        #             for prior_w in weights:
+        #
+        #                 model.context_w = torch.nn.Parameter(torch.Tensor([context_w]))
+        #                 model.str_w = torch.nn.Parameter(torch.Tensor([str_w]))
+        #                 model.prior_w = torch.nn.Parameter(torch.Tensor([prior_w]))
+        #
+        #                 print('----------------COMBINATION WEIGHTS------------------------------')
+        #                 for k, v in model.state_dict().items():
+        #                     if k.endswith('_w'):
+        #                         print(k.upper(), v)
+        #                 print('-----------------------------------------------------------------')
+        #                 error = False
 
-            weights = 0.1 * np.arange(11)
-            for context_w in weights:
-                for str_w in weights:
-                    for prior_w in weights:
+        for data_type in self.data_types:
+            input = self._get_data(data_type=data_type)
+            scores, ent_combined_embs, mention_combined_embs = model(input)
 
-                        model.context_w = torch.nn.Parameter(torch.Tensor([context_w]))
-                        model.str_w = torch.nn.Parameter(torch.Tensor([str_w]))
-                        model.prior_w = torch.nn.Parameter(torch.Tensor([prior_w]))
+            mention_combined_embs = mention_combined_embs.data.numpy()
+            ent_combined_embs = ent_combined_embs.data.numpy()
 
-                        print('----------------COMBINATION WEIGHTS------------------------------')
-                        for k, v in model.state_dict().items():
-                            if k.endswith('_w'):
-                                print(k.upper(), v)
-                        print('-----------------------------------------------------------------')
-                        error = False
+            if first_data:
+                # Create / search in Faiss Index
+                if self.args.measure == 'ip':
+                    index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
+                    logger.info("Using IndexFlatIP")
+                else:
+                    index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
+                    logger.info("Using IndexFlatL2")
+                index.add(ent_combined_embs)
+                first_data = False
 
-                        for data_type in self.data_types:
-                            input = self._get_data(data_type=data_type)
-                            scores, ent_combined_embs, mention_combined_embs = model(input)
+            # logger.info(f"Searching in index with query size : {mention_combined_embs.shape}.....")
+            _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
+            # logger.info("Search complete.")
 
-                            mention_combined_embs = mention_combined_embs.data.numpy()
-                            ent_combined_embs = ent_combined_embs.data.numpy()
+            # Evaluate rankings
+            gold = self.numpy_data[data_type]['gold']
+            gold = gold[self.wiki_mask] if data_type == 'wiki' else gold
+            top1, top10, top100, mrr = eval_ranking(preds, gold, [1, 10, 100])
+            results[data_type] = {'top1': top1,
+                                  'top10': top10,
+                                  'top100': top100,
+                                  'mrr': mrr}
+            res_str = data_type.upper() + ' : '
+            for k, v in results[data_type].items():
+                res_str += k.upper() + ': {:.3},'.format(v)
+            logger.info(res_str)
 
-                            if first_data:
-                                # Create / search in Faiss Index
-                                if self.args.measure == 'ip':
-                                    index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
-                                    logger.info("Using IndexFlatIP")
-                                else:
-                                    index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
-                                    logger.info("Using IndexFlatL2")
-                                index.add(ent_combined_embs)
-                                first_data = False
-
-                            # logger.info(f"Searching in index with query size : {mention_combined_embs.shape}.....")
-                            _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
-                            # logger.info("Search complete.")
-
-                            # Evaluate rankings
-                            gold = self.numpy_data[data_type]['gold']
-                            gold = gold[self.wiki_mask] if data_type == 'wiki' else gold
-                            top1, top10, top100, mrr = eval_ranking(preds, gold, [1, 10, 100])
-                            results[data_type] = {'top1': top1,
-                                                  'top10': top10,
-                                                  'top100': top100,
-                                                  'mrr': mrr}
-                            res_str = data_type.upper() + ' : '
-                            for k, v in results[data_type].items():
-                                res_str += k.upper() + ': {:.3},'.format(v)
-                            logger.info(res_str)
-
-                            # Error analysis
-                            if error:
-                                print(f'{data_type.upper()}\n')
-                                mention_gram = self.numpy_data[data_type]['mention_gram']
-                                mention_gram = mention_gram[self.wiki_mask, :] if data_type == 'wiki' else mention_gram
-                                check_errors(preds, gold, mention_gram, self.id2ent, self.id2gram, self.redirects, [1, 10, 100])
-                                print()
+            # Error analysis
+            if error:
+                print(f'{data_type.upper()}\n')
+                mention_gram = self.numpy_data[data_type]['mention_gram']
+                mention_gram = mention_gram[self.wiki_mask, :] if data_type == 'wiki' else mention_gram
+                check_errors(preds, gold, mention_gram, self.id2ent, self.id2gram, self.redirects, [1, 10, 100])
+                print()
         if self.args.use_cuda:
             model = send_to_cuda(self.args.device, model)
 
