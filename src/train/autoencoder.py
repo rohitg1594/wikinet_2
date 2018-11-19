@@ -194,6 +194,9 @@ def train(args=None,
         logger.info(f"Finished EPOCH - {epoch}")
         train_loss = train_epoch(model, optimizer, train_arr, args)
 
+    save_checkpoint({'state_dict': best_model.state_dict(),
+                     'optimizer': Optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
+
     return best_results, best_model, optimizer
 
 
@@ -202,50 +205,50 @@ if __name__ == '__main__':
     Validator, Char_dict, Train_arr = setup(args=Args, logger=Logger, model_dir=Model_dir)
     Logger.info("Starting training.....")
 
-    Grid_results = {}
-    Best_top10 = 0
-
-    for lr in [10**-4, 10**-3]:
-        for wd in [10**-4, 10**-5, 10**-6]:
-            for dp in [0.2, 0.3]:
-                for norm in [True, False]:
-                    for activate in ['sigmoid', 'tanh', '']:
-                        for hidden_size in [64, 32]:
-
-                            Args.lr = lr
-                            Args.wd = wd
-                            Args.dp = dp
-                            Args.norm = norm
-                            Args.activate = activate
-                            Args.hidden_size = hidden_size
-
-                            settings = f'lr - {Args.lr},' \
-                                       f'wd - {Args.wd},' \
-                                       f'dp - {Args.dp},' \
-                                       f'norm - {Args.norm},' \
-                                       f'activate - {Args.activate},' \
-                                       f'hidden_size - {Args.hidden_size},' \
-
-                            logger.info(f"GRID SETTING - {settings} ")
+    # Grid_results = {}
+    # Best_top10 = 0
+    #
+    # for lr in [10**-4, 10**-3]:
+    #     for wd in [10**-4, 10**-5, 10**-6]:
+    #         for dp in [0.2, 0.3]:
+    #             for norm in [True, False]:
+    #                 for activate in ['sigmoid', 'tanh', '']:
+    #                     for hidden_size in [64, 32]:
+    #
+    #                         Args.lr = lr
+    #                         Args.wd = wd
+    #                         Args.dp = dp
+    #                         Args.norm = norm
+    #                         Args.activate = activate
+    #                         Args.hidden_size = hidden_size
+    #
+    #                         settings = f'lr - {Args.lr},' \
+    #                                    f'wd - {Args.wd},' \
+    #                                    f'dp - {Args.dp},' \
+    #                                    f'norm - {Args.norm},' \
+    #                                    f'activate - {Args.activate},' \
+    #                                    f'hidden_size - {Args.hidden_size},' \
+    #
+    #                         logger.info(f"GRID SETTING - {settings} ")
 
                             Results, Model, Optimizer = train(args=Args,
                                                               validator=Validator,
                                                               logger=Logger,
                                                               char_dict=Char_dict,
                                                               train_arr=Train_arr)
-                            Grid_results[settings] = Results
-                            Top10 = Results[1]
-
-                            if Top10 > Best_top10:
-                                Best_top10 = Top10
-                                Best_model = deepcopy(Model)
-
-                                save_checkpoint({
-                                    'state_dict': Best_model.state_dict(),
-                                    'optimizer': Optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
-
-                            with open(join(Model_dir, 'grid_search_results.pickle'), 'wb') as f:
-                                pickle.dump(Grid_results, f)
+                            # Grid_results[settings] = Results
+                            # Top10 = Results[1]
+                            #
+                            # if Top10 > Best_top10:
+                            #     Best_top10 = Top10
+                            #     Best_model = deepcopy(Model)
+                            #
+                            #     save_checkpoint({
+                            #         'state_dict': Best_model.state_dict(),
+                            #         'optimizer': Optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
+                            #
+                            # with open(join(Model_dir, 'grid_search_results.pickle'), 'wb') as f:
+                            #     pickle.dump(Grid_results, f)
 
 
 
