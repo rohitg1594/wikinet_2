@@ -12,7 +12,7 @@ from src.models.combined.pre_train_context import PreTrainContext
 from src.models.combined.small_context import SmallContext
 from src.models.combined.full_context import FullContext
 from src.models.combined.full_context_attention import FullContextAttn
-from src.models.combined.full_context_string_scalar import FullContextString
+from src.models.combined.full_context_string_scalar import FullContextStringScalar
 from src.models.combined.full_context_string_linear_scalar import FullContextStringLinearScalar
 
 from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
@@ -37,7 +37,7 @@ class Models:
     small_context = SmallContext
     full_context = FullContext
     full_context_attention = FullContextAttn
-    full_context_string = FullContextString
+    full_context_string = FullContextStringScalar
     full_context_string_linear_scalar = FullContextStringLinearScalar
 
     # Yamada
