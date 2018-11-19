@@ -5,6 +5,7 @@ import gc
 
 import numpy as np
 from sklearn.model_selection import ParameterSampler
+from sklearn.model_selection import GridSearchCV
 
 import pandas as pd
 

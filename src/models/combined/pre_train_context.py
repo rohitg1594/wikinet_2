@@ -11,7 +11,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-class PreTrain(CombinedBase, Loss):
+class PreTrainContext(CombinedBase, Loss):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -36,15 +36,15 @@ class PreTrain(CombinedBase, Loss):
         context_repr = self.word_embs(context_tokens)
         candidate_repr = self.ent_embs(candidate_ids)
 
-        # Sum the embeddings / pass through linear
-        context_repr = torch.mean(context_repr, dim=1)
-        if self.args.combined_linear:
-            context_repr = self.orig_linear(context_repr)
-
         # Normalize
         if self.args.norm_final:
             candidate_repr = F.normalize(candidate_repr, dim=1)
             context_repr = F.normalize(context_repr, dim=1)
+
+        # Sum the embeddings / pass through linear
+        context_repr = torch.mean(context_repr, dim=1)
+        if self.args.combined_linear:
+            context_repr = self.orig_linear(context_repr)
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
