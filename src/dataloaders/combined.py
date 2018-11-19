@@ -239,6 +239,7 @@ class CombinedDataSet(object):
         elif self.model_name == 'full_context':
             return self._getitem_full_context(context_id, example)
         elif self.model_name.startswith('full_context_string'):
+            print(f'-----------------USING GETITEM FOR FULL CONTEXT STRING----------------{self.model_name}')
             return self._getitem_full_context_string(context_id, example)
         elif self.model_name == 'full_context_attention':
             return self._getitem_full_context(context_id, example)
