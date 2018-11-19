@@ -80,7 +80,7 @@ class CombinedDataSet(object):
                                                               size=self.args.num_candidates - 1))).astype(np.int64)
         else:
             nfs = get_normalised_forms(mention)
-            candidate_ids = [c_id for nf in nfs for c_id in self.necounts[nf] if nf in self.necounts and c_id != ent_id]
+            candidate_ids = [c_id for nf in nfs for c_id in self.necounts.get(nf, []) if c_id != ent_id]
 
             if len(candidate_ids) > self.num_cand_gen:
                 cand_generation = np.random.choice(np.array(candidate_ids), replace=False, size=self.num_cand_gen)
