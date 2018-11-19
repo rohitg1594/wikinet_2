@@ -1,4 +1,4 @@
-# Full model, weights are learned by three separate linear layers
+# Mention words, full document context around mention with a combining linear layer and string info with autoencoder
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -12,7 +12,7 @@ import numpy as np
 np.set_printoptions(threshold=10**8)
 
 
-class FullContextStringLinearScalar(CombinedBase, Loss):
+class FullContextStringScalar(CombinedBase, Loss):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -47,16 +47,11 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         self.autoencoder.load_state_dict(autoencoder_state_dict)
         self.autoencoder.requires_grad = False
 
-        # Linear
-        self.context_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
-                                        1, bias=False)
-        # nn.init.eye_(self.context_linear.weight)
-        self.prior_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
-                                      1, bias=False)
-        # nn.init.eye_(self.prior_linear.weight)
-        self.str_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
-                                      1, bias=False)
-        # nn.init.eye_(self.str_linear.weight)
+        # Combination weights
+        i_w = 0.333
+        self.prior_w = nn.Parameter(torch.Tensor([i_w]))
+        self.context_w = nn.Parameter(torch.Tensor([i_w]))
+        self.str_w = nn.Parameter(torch.Tensor([i_w]))
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
@@ -80,11 +75,11 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         context_embs_agg = self.orig_linear(torch.mean(context_embs, dim=1))
 
         # Normalize
-        mention_embs_agg = F.normalize(mention_embs_agg, dim=len(mention_embs_agg.shape) - 1)
+        mention_embs_agg = self.prior_w * F.normalize(mention_embs_agg, dim=len(mention_embs_agg.shape) - 1)
         candidate_mention_embs = F.normalize(candidate_mention_embs, dim=len(candidate_mention_embs.shape) - 1)
-        context_embs_agg = F.normalize(context_embs_agg, dim=len(context_embs_agg.shape) - 1)
+        context_embs_agg = self.context_w * F.normalize(context_embs_agg, dim=len(context_embs_agg.shape) - 1)
         candidate_context_embs = F.normalize(candidate_context_embs, dim=len(candidate_context_embs.shape) - 1)
-        mention_str_rep = F.normalize(mention_str_rep, dim=len(mention_str_rep.shape) - 1)
+        mention_str_rep = self.str_w * F.normalize(mention_str_rep, dim=len(mention_str_rep.shape) - 1)
         candidate_str_rep = F.normalize(candidate_str_rep, dim=len(candidate_str_rep.shape) - 1)
 
         # Cat the embs
@@ -92,31 +87,22 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
         cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim)
 
-        # Get the weights
-        mention_weights = self.prior_linear(mention_repr)
-        context_weights = self.context_linear(mention_repr)
-        str_weights = self.prior_linear(mention_repr)
-
-        mention_repr_scaled = torch.cat((mention_repr[:, :self.args.mention_word_dim] * mention_weights,
-                                         mention_repr[:,
-                                         self.args.mention_word_dim: self.args.mention_word_dim + self.args.context_word_dim]
-                                         * context_weights,
-                                         mention_repr[:, self.args.mention_word_dim + self.args.context_word_dim:]
-                                         * str_weights), dim=1)
+        if self.args.combined_linear:
+            mention_repr = self.combine_linear(mention_repr)
 
         # Normalize
         if self.args.norm_final:
             cand_repr = F.normalize(cand_repr, dim=cat_dim)
-            mention_repr_scaled = F.normalize(mention_repr_scaled, dim=1)
+            mention_repr = F.normalize(mention_repr, dim=1)
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
             mention_repr.unsqueeze_(1)
-            scores = torch.matmul(mention_repr_scaled, cand_repr.transpose(1, 2)).squeeze(1)
+            scores = torch.matmul(mention_repr, cand_repr.transpose(1, 2)).squeeze(1)
         else:
             scores = torch.Tensor([0])
 
-        return scores, cand_repr, mention_repr_scaled
+        return scores, cand_repr, mention_repr
 
     def loss(self, scores, labels):
         return self.cross_entropy(scores, labels)

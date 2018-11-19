@@ -12,7 +12,7 @@ import numpy as np
 np.set_printoptions(threshold=10**8)
 
 
-class FullContextString(CombinedBase, Loss):
+class FullContextStringScalar(CombinedBase, Loss):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -47,17 +47,9 @@ class FullContextString(CombinedBase, Loss):
         self.autoencoder.load_state_dict(autoencoder_state_dict)
         self.autoencoder.requires_grad = False
 
-        # Linear
-        if self.args.combined_linear:
-            self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
-                                            self.args.mention_word_dim + self.args.context_word_dim + hidden_size, bias=False)
-            nn.init.eye_(self.combine_linear.weight)
-
-        # Combination weights
-        i_w = 0.333
-        self.prior_w = nn.Parameter(torch.Tensor([i_w]))
-        self.context_w = nn.Parameter(torch.Tensor([i_w]))
-        self.str_w = nn.Parameter(torch.Tensor([i_w]))
+        self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
+                                        self.args.mention_word_dim + self.args.context_word_dim + hidden_size, bias=False)
+        nn.init.eye_(self.combine_linear.weight)
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
@@ -81,11 +73,11 @@ class FullContextString(CombinedBase, Loss):
         context_embs_agg = self.orig_linear(torch.mean(context_embs, dim=1))
 
         # Normalize
-        mention_embs_agg = self.prior_w * F.normalize(mention_embs_agg, dim=len(mention_embs_agg.shape) - 1)
+        mention_embs_agg = F.normalize(mention_embs_agg, dim=len(mention_embs_agg.shape) - 1)
         candidate_mention_embs = F.normalize(candidate_mention_embs, dim=len(candidate_mention_embs.shape) - 1)
-        context_embs_agg = self.context_w * F.normalize(context_embs_agg, dim=len(context_embs_agg.shape) - 1)
+        context_embs_agg = F.normalize(context_embs_agg, dim=len(context_embs_agg.shape) - 1)
         candidate_context_embs = F.normalize(candidate_context_embs, dim=len(candidate_context_embs.shape) - 1)
-        mention_str_rep = self.str_w * F.normalize(mention_str_rep, dim=len(mention_str_rep.shape) - 1)
+        mention_str_rep = F.normalize(mention_str_rep, dim=len(mention_str_rep.shape) - 1)
         candidate_str_rep = F.normalize(candidate_str_rep, dim=len(candidate_str_rep.shape) - 1)
 
         # Cat the embs
