@@ -1,4 +1,4 @@
-# Mention words, full document context around mention with a combining linear layer and string info with autoencoder
+# Combination weights are simple parameters
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -86,9 +86,6 @@ class FullContextStringScalar(CombinedBase, Loss):
         cat_dim = 2 if len(candidate_ids.shape) == 2 else 1
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
         cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim)
-
-        if self.args.combined_linear:
-            mention_repr = self.combine_linear(mention_repr)
 
         # Normalize
         if self.args.norm_final:

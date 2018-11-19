@@ -1,4 +1,4 @@
-# Mention words, full document context around mention with a combining linear layer and string info with autoencoder
+# Linear Layer to combine the different representations
 import torch
 import torch.nn.functional as F
 import torch.nn as nn

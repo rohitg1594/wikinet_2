@@ -95,7 +95,7 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         # Get the weights
         mention_weights = self.prior_linear(mention_repr)
         context_weights = self.context_linear(mention_repr)
-        str_weights = self.prior_linear(mention_repr)
+        str_weights = self.str_linear(mention_repr)
 
         mention_repr_scaled = torch.cat((mention_repr[:, :self.args.mention_word_dim] * mention_weights,
                                          mention_repr[:,
