@@ -238,7 +238,7 @@ class CombinedValidator:
             keys = ['mention_word_tokens', 'small_context', 'candidate_ids']
         elif self.model_name in ['full_context', 'full_context']:
             keys = ['mention_word_tokens', 'context_tokens', 'candidate_ids']
-        elif self.model_name == 'full_context_string':
+        elif self.model_name.startswith('full_context_string'):
             keys = ['mention_word_tokens', 'mention_char_tokens', 'context_tokens', 'candidate_char_tokens',
                     'candidate_ids']
         elif self.model_name == 'pre_train':

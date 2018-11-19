@@ -7,7 +7,7 @@ debug:False
 data_path:/work/rogupta/wikinet_data
 data_type:proto
 num_shards:100
-train_size:10000000
+train_size:1000000
 query_size:5000
 conll_split:dev
 yamada_model:yamada_model.pickle
@@ -25,21 +25,21 @@ max_char_size:40
 max_ent_size:35
 
 # Model types
-model_name:average
+model_name:full_context_string_linear_scalar
 
 # Model Embs
-init_context_embs:yamada
-init_mention_embs:random
+init_context_embs:/work/rogupta/wikinet_data/models/2018_11_10/pre_train_dim_128_epoch_50/best_model.ckpt
+init_mention_embs:/work/rogupta/wikinet_data/models/2018_11_17/mention_prior_average_proto/best_model.ckpt
 init_char_embs:/work/rogupta/wikinet_data/autoencoder/max_char_40_hidden_32.ckpt
 mention_word_dim:128
 mention_ent_dim:128
 context_word_dim:128
 
 # Model hyperparams
-dp:0.2
+dp:0
 measure:ip
 combined_linear:True
-init_stdv:0.01
+init_stdv:0.001
 
 # Normalization
 norm_final:True
@@ -63,11 +63,11 @@ margin:0.5
 loss_func:cross_entropy
 
 # Things to train
-train_ent:True
-train_word:True
-train_mention:True
-train_linear:True
-train_gram:True
+train_ent:False
+train_word:False
+train_mention:False
+train_linear:False
+train_gram:False
 
 # Cuda
 use_cuda:True

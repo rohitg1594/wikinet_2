@@ -195,7 +195,7 @@ def train(args=None,
         train_loss = train_epoch(model, optimizer, train_arr, args)
 
     save_checkpoint({'state_dict': best_model.state_dict(),
-                     'optimizer': Optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
+                     'optimizer': optimizer.state_dict()}, filename=join(Model_dir, 'best_model.ckpt'))
 
     return best_results, best_model, optimizer
 
