@@ -18,11 +18,11 @@ dp:0.2
 char_dim:8
 hidden_size:64
 norm:True
-activate:tanh
+activate:n
 measure:ip
 
 # Training Settings
-num_epochs:50
+num_epochs:100
 batch_size:1000000
 lr:1e-03
 wd:1e-06

@@ -25,7 +25,7 @@ max_ent_size:35
 max_char_size:40
 
 # Model types
-model_name:pre_train
+model_name:pre_train_context
 
 # Model Embs
 init_context_embs:/work/rogupta/wikinet_data/models/2018_11_10/pre_train_dim_128_epoch_50/best_model.ckpt
