@@ -60,14 +60,28 @@ class CombinedDataSet(object):
             self.processed_id2context = {}
             for index in self.id2context.keys():
                 self.processed_id2context[index] = self._init_context(index)
-            with open(processed_f_name, 'wb') as f:
-                pickle.dump(self.processed_id2context, f)
+            pickle_dump(self.processed_id2context, processed_f_name)
 
         # Candidates
-        if not self.args.cand_gen_rand:
-            logger.info(f'Loading necounts candidate generation dict.....')
-            self.necounts = pickle_load(join(self.args.data_path, 'necounts', 'normal_necounts.pickle'))
-            logger.info('necounts loaded.')
+        cand_cache_f_name = join(self.args.data_path, 'cache',
+                                 f'cand_cache_{self.args.data_type}_{self.args.cand_gen_rand}')
+        if os.path.exists(cand_cache_f_name):
+            self.candidate_dict = pickle_load(cand_cache_f_name)
+        else:
+            if not self.args.cand_gen_rand:
+                logger.info(f'Loading necounts candidate generation dict.....')
+                self.necounts = pickle_load(join(self.args.data_path, 'necounts', 'normal_necounts.pickle'))
+                logger.info('necounts loaded.')
+
+            logger.info(f'Creating candidate dict.....')
+            self.candidate_dict = {}
+            for example in examples:
+                mention, ent_str, span, small_context = example
+                if (ent_str, mention) not in self.candidate_dict:
+                    cands = self._get_candidates(ent_str, mention)
+                    self.candidate_dict[(ent_str, mention)] = cands
+            pickle_dump(self.candidate_dict, cand_cache_f_name)
+            logger.info(f'Created candidate dict.')
 
     def _get_candidates(self, ent_str, mention):
         """Candidate generation step, can be random or based on necounts."""
@@ -160,7 +174,6 @@ class CombinedDataSet(object):
 
         return output
 
-
     def _getitem_small_context(self, example):
         """getitem for prior with small context window."""
 
@@ -194,7 +207,7 @@ class CombinedDataSet(object):
         mention, ent_str, span, small_context = example
         context_tokens = self.processed_id2context[context_id]
         mention_word_tokens = self._get_tokens(mention, flag='word')
-        candidate_ids = self._get_candidates(ent_str, mention)
+        candidate_ids = self.candidate_dict[(ent_str, mention)]
         mention_char_tokens = self._get_char_tokens(mention)
         cand_strs = [self.id2ent.get(cand_id, '') for cand_id in candidate_ids]
         candidate_char_tokens = np.vstack([self._get_char_tokens(cand_str) for cand_str in cand_strs])

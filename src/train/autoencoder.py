@@ -30,6 +30,7 @@ def parse_args():
     data.add_argument('--data_path', type=str, help='location of data dir')
     data.add_argument('--yamada_model', type=str, help='name of yamada model')
     data.add_argument('--data_type', type=str, help='dataset to train on.')
+    data.add_argument('--pre_train', type=str, help='if pre train, then the ckpt of model.')
     data.add_argument('--train_size', type=int, help='number of training abstracts')
     data.add_argument('--eval_sample', type=int, help='number of strs to evaluate')
 
@@ -148,22 +149,23 @@ def train(args=None,
           char_dict=None,
           train_arr=None):
 
-    logger.info("Inititalizing char embs.....")
-    char_embs = normal_initialize(len(char_dict), args.char_dim)
-    logger.info(f"char embs created of shape {char_embs.shape}")
+    if args.pre_train:
+        logger.info(f'Loading char embeddings from autoencoder state dict {args.pre_train}.....')
+        autoencoder_state_dict = torch.load(args.init_char_embs)['state_dict']
+        char_embs = autoencoder_state_dict['char_embs.weight']
+        args.hidden_size = autoencoder_state_dict['lin2.weight'].shape[0]
+        logger.info(f'Char embeddings loaded')
+    else:
+        logger.info("Inititalizing char embs.....")
+        char_embs = normal_initialize(len(char_dict), args.char_dim)
+        logger.info(f"char embs created of shape {char_embs.shape}")
+
     model = StringAutoEncoder(max_char_size=args.max_char_size,
                               hidden_size=args.hidden_size,
                               char_embs=char_embs,
                               dp=args.dp,
                               activate=args.activate,
                               norm=args.norm)
-
-    # Char Embeddings for autoencoder
-    logger.info(f'Loading char embeddings from autoencoder state dict {args.init_char_embs}.....')
-    autoencoder_state_dict = torch.load(args.init_char_embs)['state_dict']
-    char_embs = autoencoder_state_dict['char_embs.weight']
-    hidden_size = autoencoder_state_dict['lin2.weight'].shape[0]
-    logger.info(f'Char embeddings loaded')
 
     if args.use_cuda:
         model = send_to_cuda(args.device, model)
@@ -192,7 +194,6 @@ def train(args=None,
 
             logger.info('EPOCH - {}, TRAIN LOSS - {:.4f}, VALID LOSS - {:.5f}, Top1:{}, Top10:{}, Top100:{}'
                         .format(epoch, train_loss, valid_loss, results[0], results[1], results[2]))
-
 
         logger.info(f"Finished EPOCH - {epoch}")
         train_loss = train_epoch(model, optimizer, train_arr, args)

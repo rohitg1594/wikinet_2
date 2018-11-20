@@ -23,7 +23,7 @@ measure:ip
 
 # Training Settings
 num_epochs:100
-batch_size:1000000
+batch_size:200000
 lr:1e-03
 wd:1e-06
 

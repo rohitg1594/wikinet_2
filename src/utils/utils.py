@@ -379,6 +379,12 @@ def pickle_load(path):
     return data
 
 
+def pickle_dump(o, path):
+
+    with open(path, 'wb') as f:
+        pickle.dump(o, f)
+
+
 def save_checkpoint(state, filename='checkpoint.pth.tar'):
     torch.save(state, filename)
 
