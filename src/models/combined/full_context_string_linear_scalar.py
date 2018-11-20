@@ -99,7 +99,8 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
 
         print(f'MENTION WEIGHTS - {mention_weights.shape}, CONTEXT WEIGHTS - {context_weights.shape}, '
               f'STR WEIGHTS - {str_weights.shape}')
-
+        print(f'MENTION REPR - {mention_repr.shape}, CANDIDATE REPR - {cand_repr.shape}')
+        
         mention_repr_scaled = torch.cat((mention_repr[:, :self.args.mention_word_dim] * mention_weights,
                                          mention_repr[:,
                                          self.args.mention_word_dim: self.args.mention_word_dim + self.args.context_word_dim]
