@@ -83,6 +83,16 @@ class CombinedDataSet(object):
             pickle_dump(self.candidate_dict, cand_cache_f_name)
             logger.info(f'Created candidate dict.')
 
+        # Candidate Char Tokens
+        cand_char_cache_f_name = join(self.args.data_path, 'cache', f'cand_char_cache')
+        if os.path.exists(cand_char_cache_f_name):
+            self.cand_char_dict = pickle_load(cand_char_cache_f_name)
+        else:
+            logger.info(f'Creating candidate char tokens dict.....')
+            self.cand_char_dict = {ent_str: self._get_char_tokens(ent_str) for ent_str in self.ent2id.keys()}
+            pickle_dump(self.cand_char_dict, cand_char_cache_f_name)
+            logger.info(f'Created candidate char tokens dict.')
+
     def _get_candidates(self, ent_str, mention):
         """Candidate generation step, can be random or based on necounts."""
 
@@ -210,7 +220,7 @@ class CombinedDataSet(object):
         candidate_ids = self.candidate_dict[(ent_str, mention)]
         mention_char_tokens = self._get_char_tokens(mention)
         cand_strs = [self.id2ent.get(cand_id, '') for cand_id in candidate_ids]
-        candidate_char_tokens = np.vstack([self._get_char_tokens(cand_str) for cand_str in cand_strs])
+        candidate_char_tokens = np.vstack([self.cand_char_dict[cand_str] for cand_str in cand_strs])
 
         output = {'mention_word_tokens': mention_word_tokens,
                   'mention_char_tokens': mention_char_tokens,

@@ -111,7 +111,8 @@ class Trainer(object):
             pr = cProfile.Profile()
             pr.enable()
 
-            for _, _ in enumerate(self.loader, 0):
+            for batch_idx, _ in enumerate(self.loader, 0):
+                print(batch_idx)
                 pass
 
             pr.disable()
