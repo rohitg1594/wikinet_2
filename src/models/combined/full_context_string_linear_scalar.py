@@ -97,17 +97,12 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         context_weights = self.context_linear(mention_repr)
         str_weights = self.str_linear(mention_repr)
 
-        print(f'MENTION WEIGHTS - {mention_weights.shape}, CONTEXT WEIGHTS - {context_weights.shape}, '
-              f'STR WEIGHTS - {str_weights.shape}')
-        print(f'MENTION REPR - {mention_repr.shape}, CANDIDATE REPR - {cand_repr.shape}')
-
         mention_repr_scaled = torch.cat((mention_repr[:, :self.args.mention_word_dim] * mention_weights,
                                          mention_repr[:,
                                          self.args.mention_word_dim: self.args.mention_word_dim + self.args.context_word_dim]
                                          * context_weights,
                                          mention_repr[:, self.args.mention_word_dim + self.args.context_word_dim:]
                                          * str_weights), dim=1)
-        print(f'MENTION REPR SCALED - {mention_repr_scaled.shape}')
 
         # Normalize
         if self.args.norm_final:
@@ -120,8 +115,6 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
             scores = torch.matmul(mention_repr_scaled, cand_repr.transpose(1, 2)).squeeze(1)
         else:
             scores = torch.Tensor([0])
-
-        print(f'SCORES: {scores.shape}, CANDIDATE: {cand_repr.shape}, MENTION: {mention_repr_scaled.shape}')
 
         return scores, cand_repr, mention_repr_scaled
 
