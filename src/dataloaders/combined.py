@@ -75,7 +75,7 @@ class CombinedDataSet(object):
 
             logger.info(f'Creating candidate dict.....')
             self.candidate_dict = {}
-            for example in examples:
+            for _, example in examples:
                 mention, ent_str, span, small_context = example
                 if (ent_str, mention) not in self.candidate_dict:
                     cands = self._get_candidates(ent_str, mention)
