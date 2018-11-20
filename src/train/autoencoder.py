@@ -158,6 +158,13 @@ def train(args=None,
                               activate=args.activate,
                               norm=args.norm)
 
+    # Char Embeddings for autoencoder
+    logger.info(f'Loading char embeddings from autoencoder state dict {args.init_char_embs}.....')
+    autoencoder_state_dict = torch.load(args.init_char_embs)['state_dict']
+    char_embs = autoencoder_state_dict['char_embs.weight']
+    hidden_size = autoencoder_state_dict['lin2.weight'].shape[0]
+    logger.info(f'Char embeddings loaded')
+
     if args.use_cuda:
         model = send_to_cuda(args.device, model)
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=args.wd)

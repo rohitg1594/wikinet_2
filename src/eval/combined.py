@@ -302,6 +302,13 @@ class CombinedValidator:
         #                 print('-----------------------------------------------------------------')
         #                 error = False
 
+        if self.args.model_name == 'full_context_string_scalar':
+            print('----------------COMBINATION WEIGHTS------------------------------')
+            for k, v in model.state_dict().items():
+                if k.endswith('_w'):
+                    print(k.upper(), v)
+            print('-----------------------------------------------------------------')
+
         for data_type in self.data_types:
             input = self._get_data(data_type=data_type)
             scores, ent_combined_embs, mention_combined_embs = model(input)
