@@ -220,9 +220,14 @@ class CombinedDataSet(object):
         context_tokens = self.processed_id2context[context_id]
         mention_word_tokens = self._get_tokens(mention, flag='word')
         candidate_ids = self.candidate_dict[(ent_str, mention)]
+        print(f'CANDIDATE IDS - {candidate_ids[:10]}, TYPE - {type(candidate_ids)}')
         mention_char_tokens = self._get_char_tokens(mention)
+        print(f'MENTION CHAR TOKENS - {mention_char_tokens[:10]}, TYPE - {type(mention_char_tokens)}')
         cand_strs = [self.id2ent.get(cand_id, ent_str) for cand_id in candidate_ids]
-        candidate_char_tokens = np.vstack([self.cand_char_dict.get(cand_str, self._get_char_tokens(cand_str)) for cand_str in cand_strs])
+        print(f'CANDIDATE STRS - {cand_strs[:10]}, TYPE - {type(cand_strs[0])}')
+        candidate_char_tokens = np.vstack([self.cand_char_dict[cand_str]
+                                           if cand_str in self.cand_char_dict else self._get_char_tokens(cand_str)
+                                           for cand_str in cand_strs])
 
         output = {'mention_word_tokens': mention_word_tokens,
                   'mention_char_tokens': mention_char_tokens,
