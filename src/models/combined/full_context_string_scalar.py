@@ -51,7 +51,7 @@ class FullContextStringScalar(CombinedBase, Loss):
         i_w = 0.333
         self.prior_w = nn.Parameter(torch.Tensor([i_w]))
         self.context_w = nn.Parameter(torch.Tensor([i_w]))
-        self.str_w = nn.Parameter(torch.Tensor([0.165]))
+        self.str_w = nn.Parameter(torch.Tensor([i_w]))
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
