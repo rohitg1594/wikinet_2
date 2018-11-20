@@ -151,7 +151,7 @@ def train(args=None,
 
     if args.pre_train:
         logger.info(f'Loading char embeddings from autoencoder state dict {args.pre_train}.....')
-        autoencoder_state_dict = torch.load(args.init_char_embs)['state_dict']
+        autoencoder_state_dict = torch.load(args.pre_train)['state_dict']
         char_embs = autoencoder_state_dict['char_embs.weight']
         args.hidden_size = autoencoder_state_dict['lin2.weight'].shape[0]
         logger.info(f'Char embeddings loaded')
