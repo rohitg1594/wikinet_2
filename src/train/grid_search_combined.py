@@ -88,6 +88,6 @@ if __name__ == '__main__':
     setup_dict['args'] = Args
     setup_dict['model_dir'] = Model_dir
 
-    result_dict, pd_dict = grid_search()
+    result_dict, pd_dict = grid_search(**setup_dict)
     df = pd.DataFrame(pd_dict)
     df.to_csv(join(Model_dir, 'hyper_df.csv'))
