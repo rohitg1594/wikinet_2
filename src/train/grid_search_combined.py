@@ -5,7 +5,7 @@ import gc
 
 import numpy as np
 from sklearn.model_selection import ParameterSampler
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import ParameterGrid
 
 import pandas as pd
 
@@ -31,7 +31,7 @@ def grid_search(**kwargs):
     train_loader = kwargs['train_loader']
     validator = kwargs['validator']
 
-    for param_dict in list(ParameterSampler(param_grid, n_iter=20)):
+    for param_dict in list(ParameterGrid(param_grid)):
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
