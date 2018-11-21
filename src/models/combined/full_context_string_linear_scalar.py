@@ -58,6 +58,9 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
                                       1, bias=False)
         # nn.init.eye_(self.str_linear.weight)
 
+        # Sigmoid
+        self.sigmoid = nn.Sigmoid()
+
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
         mention_char_tokens = inputs['mention_char_tokens']
@@ -98,16 +101,13 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         str_weights = self.str_linear(mention_repr)
 
         if self.args.sigmoid:
-            mention_weights = nn.Sigmoid(mention_weights)
-            context_weights = nn.Sigmoid(context_weights)
-            str_weights = nn.Sigmoid(str_weights)
+            mention_weights = self.sigmoid(mention_weights)
+            context_weights = self.sigmoid(context_weights)
+            str_weights = self.sigmoid(str_weights)
 
         mention_repr_scaled = torch.cat((mention_repr[:, :self.args.mention_word_dim] * mention_weights,
-                                         mention_repr[:,
-                                         self.args.mention_word_dim: self.args.mention_word_dim + self.args.context_word_dim]
-                                         * context_weights,
-                                         mention_repr[:, self.args.mention_word_dim + self.args.context_word_dim:]
-                                         * str_weights), dim=1)
+                                         mention_repr[:, self.args.mention_word_dim: self.args.mention_word_dim + self.args.context_word_dim] * context_weights,
+                                         mention_repr[:, self.args.mention_word_dim + self.args.context_word_dim:] * str_weights), dim=1)
 
         # Normalize
         if self.args.norm_final:
