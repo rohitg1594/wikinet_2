@@ -97,6 +97,11 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         context_weights = self.context_linear(mention_repr)
         str_weights = self.str_linear(mention_repr)
 
+        if self.args.sigmoid:
+            mention_weights = nn.Sigmoid(mention_weights)
+            context_weights = nn.Sigmoid(context_weights)
+            str_weights = nn.Sigmoid(str_weights)
+
         mention_repr_scaled = torch.cat((mention_repr[:, :self.args.mention_word_dim] * mention_weights,
                                          mention_repr[:,
                                          self.args.mention_word_dim: self.args.mention_word_dim + self.args.context_word_dim]

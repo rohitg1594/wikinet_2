@@ -40,6 +40,7 @@ dp:0
 measure:ip
 combined_linear:True
 init_stdv:0.001
+sigmoid:False
 
 # Normalization
 norm_final:True
