@@ -224,17 +224,18 @@ class CombinedDataSet(object):
         mention_word_tokens = self._get_tokens(mention, flag='word')
         candidate_ids = self.candidate_dict[(ent_str, mention)]
         mention_char_tokens = self._get_char_tokens(mention)
+
+        output = {'mention_word_tokens': mention_word_tokens,
+                  'mention_char_tokens': mention_char_tokens,
+                  'context_tokens': context_tokens,
+                  'candidate_ids': candidate_ids}
+
         if include_cand_char:
             cand_strs = [self.id2ent.get(cand_id, ent_str) for cand_id in candidate_ids]
             candidate_char_tokens = np.vstack([self.cand_char_dict[cand_str]
                                                if cand_str in self.cand_char_dict else self._get_char_tokens(cand_str)
                                                for cand_str in cand_strs])
             output['candidate_char_tokens'] = candidate_char_tokens
-
-        output = {'mention_word_tokens': mention_word_tokens,
-                  'mention_char_tokens': mention_char_tokens,
-                  'context_tokens': context_tokens,
-                  'candidate_ids': candidate_ids}
 
         return output
 
