@@ -63,7 +63,7 @@ def normal_initialize(dim_0=1000, dim_1=16):
     """Initialize with normal distribution of std = 1 / sqrt(dim_1). Set O index to all zeros."""
     stdv = 1 / np.sqrt(dim_1)
     embs = np.random.normal(0, scale=stdv, size=(dim_0, dim_1))
-    embs[0] = np.zeros(dim_1)
+    embs[0] = 0
 
     return embs
 
@@ -297,7 +297,7 @@ def mse(input, target):
     return ((input - target) * (input - target)).sum() / b
 
 
-def get_context_embs(data_path=None, emb_option=None, yamada_model=None):
+def get_context_embs(data_path=None, emb_option=None, yamada_model=None, ent_emb_init=None):
 
     num_word, word_dim = yamada_model['word_emb'].shape
     num_ent, ent_dim = yamada_model['ent_emb'].shape

@@ -164,9 +164,18 @@ def setup(args=None, logger=None):
     gram_embs = normal_initialize(len(gram_dict) + 1, args.gram_dim)
     logger.info(f"Gram embeddings created of shape: {gram_embs.shape}")
 
+    # Char Embeddings for autoencoder
+    logger.info(f'Loading char embeddings from autoencoder state dict {args.init_char_embs}.....')
+    autoencoder_state_dict = torch.load(args.init_char_embs, map_location='cpu')['state_dict']
+    char_embs = autoencoder_state_dict['char_embs.weight']
+    hidden_size = autoencoder_state_dict['lin2.weight'].shape[0]
+    logger.info(f'Char embeddings loaded')
+
     # Context Embeddings
     word_embs, ent_embs, W, b = get_context_embs(args.data_path, args.init_context_embs, yamada_model)
     logger.info(f'Context embeddings loaded, word_embs : {word_embs.shape}, ent_embs : {ent_embs.shape}')
+    if args.model_name == 'scratch':
+        ent_embs = normal_initialize(ent_embs.shape[0], args.mention_word_dim + args.context_word_dim + hidden_size)
 
     # Mention Embeddings
     logger.info("Loading mention embeddings.....")
@@ -176,13 +185,6 @@ def setup(args=None, logger=None):
                                                            num_ent=ent_embs.shape[0],
                                                            mention_ent_dim=args.mention_ent_dim)
     logger.info(f'Mention embeddings loaded, mention_word_embs : {mention_word_embs.shape}, mention_ent_embs : {mention_ent_embs.shape}')
-
-    # Char Embeddings for autoencoder
-    logger.info(f'Loading char embeddings from autoencoder state dict {args.init_char_embs}.....')
-    autoencoder_state_dict = torch.load(args.init_char_embs, map_location='cpu')['state_dict']
-    char_embs = autoencoder_state_dict['char_embs.weight']
-    hidden_size = autoencoder_state_dict['lin2.weight'].shape[0]
-    logger.info(f'Char embeddings loaded')
 
     # Training Data
     logger.info("Loading training data.....")
