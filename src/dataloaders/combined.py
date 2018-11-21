@@ -84,16 +84,17 @@ class CombinedDataSet(object):
             logger.info(f'Created candidate dict.')
 
         # Candidate Char Tokens
-        cand_char_cache_f_name = join(self.args.data_path, 'cache', f'cand_char_cache')
-        if os.path.exists(cand_char_cache_f_name):
-            logger.info(f'Loading candidate char tokens dict.....')
-            self.cand_char_dict = pickle_load(cand_char_cache_f_name)
-            logger.info(f'Candidate char tokens dict loaded.')
-        else:
-            logger.info(f'Creating candidate char tokens dict.....')
-            self.cand_char_dict = {ent_str: self._get_char_tokens(ent_str) for ent_str in self.ent2id.keys()}
-            pickle_dump(self.cand_char_dict, cand_char_cache_f_name)
-            logger.info(f'Created candidate char tokens dict.')
+        if not self.args.model_name == 'full_context_string_from_scratch_ent':
+            cand_char_cache_f_name = join(self.args.data_path, 'cache', f'cand_char_cache')
+            if os.path.exists(cand_char_cache_f_name):
+                logger.info(f'Loading candidate char tokens dict.....')
+                self.cand_char_dict = pickle_load(cand_char_cache_f_name)
+                logger.info(f'Candidate char tokens dict loaded.')
+            else:
+                logger.info(f'Creating candidate char tokens dict.....')
+                self.cand_char_dict = {ent_str: self._get_char_tokens(ent_str) for ent_str in self.ent2id.keys()}
+                pickle_dump(self.cand_char_dict, cand_char_cache_f_name)
+                logger.info(f'Created candidate char tokens dict.')
 
     def _get_candidates(self, ent_str, mention):
         """Candidate generation step, can be random or based on necounts."""
@@ -213,27 +214,27 @@ class CombinedDataSet(object):
 
         return output
 
-    def _getitem_full_context_string(self, context_id, example):
+    def _getitem_full_context_string(self, context_id, example, include_cand_char=True):
         """getitem for full context string model"""
+
+        output = {}
 
         mention, ent_str, span, small_context = example
         context_tokens = self.processed_id2context[context_id]
         mention_word_tokens = self._get_tokens(mention, flag='word')
         candidate_ids = self.candidate_dict[(ent_str, mention)]
-        # print(f'CANDIDATE IDS - {candidate_ids[:10]}, TYPE - {type(candidate_ids)}')
         mention_char_tokens = self._get_char_tokens(mention)
-        # print(f'MENTION CHAR TOKENS - {mention_char_tokens[:10]}, TYPE - {type(mention_char_tokens)}')
-        cand_strs = [self.id2ent.get(cand_id, ent_str) for cand_id in candidate_ids]
-        # print(f'CANDIDATE STRS - {cand_strs[:10]}, TYPE - {type(cand_strs[0])}')
-        candidate_char_tokens = np.vstack([self.cand_char_dict[cand_str]
-                                           if cand_str in self.cand_char_dict else self._get_char_tokens(cand_str)
-                                           for cand_str in cand_strs])
+        if include_cand_char:
+            cand_strs = [self.id2ent.get(cand_id, ent_str) for cand_id in candidate_ids]
+            candidate_char_tokens = np.vstack([self.cand_char_dict[cand_str]
+                                               if cand_str in self.cand_char_dict else self._get_char_tokens(cand_str)
+                                               for cand_str in cand_strs])
+            output['candidate_char_tokens'] = candidate_char_tokens
 
         output = {'mention_word_tokens': mention_word_tokens,
                   'mention_char_tokens': mention_char_tokens,
                   'context_tokens': context_tokens,
-                  'candidate_ids': candidate_ids,
-                  'candidate_char_tokens': candidate_char_tokens}
+                  'candidate_ids': candidate_ids}
 
         return output
 
@@ -269,7 +270,11 @@ class CombinedDataSet(object):
         elif self.model_name == 'full_context':
             return self._getitem_full_context(context_id, example)
         elif self.model_name.startswith('full_context_string'):
-            return self._getitem_full_context_string(context_id, example)
+            if self.model_name == 'full_context_string_from_scratch_ent':
+                include_cand_char = False
+            else:
+                include_cand_char = True
+            return self._getitem_full_context_string(context_id, example, include_cand_char=include_cand_char)
         elif self.model_name == 'full_context_attention':
             return self._getitem_full_context(context_id, example)
         elif self.model_name == 'pre_train':
