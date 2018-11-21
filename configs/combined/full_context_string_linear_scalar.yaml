@@ -29,7 +29,7 @@ model_name:full_context_string_linear_scalar
 
 # Model Embs
 init_context_embs:/work/rogupta/wikinet_data/models/2018_11_10/pre_train_dim_128_epoch_50/best_model.ckpt
-init_mention_embs /work/rogupta/wikinet_data/models/2018_11_19/mention_prior_average_order_norm_changed/best_model.ckpt
+init_mention_embs:/work/rogupta/wikinet_data/models/2018_11_19/mention_prior_average_order_norm_changed/best_model.ckpt
 init_char_embs:/work/rogupta/wikinet_data/autoencoder/max_char_40_hidden_32.ckpt
 mention_word_dim:128
 mention_ent_dim:128

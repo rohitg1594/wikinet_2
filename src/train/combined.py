@@ -184,7 +184,8 @@ def setup(args=None, logger=None):
                                                            mention_word_dim=args.mention_word_dim,
                                                            num_ent=ent_embs.shape[0],
                                                            mention_ent_dim=args.mention_ent_dim)
-    logger.info(f'Mention embeddings loaded, mention_word_embs : {mention_word_embs.shape}, mention_ent_embs : {mention_ent_embs.shape}')
+    logger.info(f'Mention embeddings loaded, mention_word_embs : {mention_word_embs.shape},'
+                f' mention_ent_embs : {mention_ent_embs.shape}')
 
     # Training Data
     logger.info("Loading training data.....")
