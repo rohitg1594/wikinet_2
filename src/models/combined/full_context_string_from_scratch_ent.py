@@ -66,6 +66,8 @@ class FullContextStringFromScratchEnt(CombinedBase, Loss):
         context_embs = self.dp(self.word_embs(context_tokens))
         candidate_embs = self.dp(self.ent_embs(candidate_ids))
 
+        print(f'CANDIDATE EMBS - {candidate_embs.shape}')
+
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
         context_embs_agg = self.orig_linear(torch.mean(context_embs, dim=1))
@@ -78,7 +80,8 @@ class FullContextStringFromScratchEnt(CombinedBase, Loss):
 
         # Cat the embs
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
-
+        print(f'MENTION EMBS - {mention_repr.shape}')
+        
         # Get the weights
         mention_weights = self.prior_linear(mention_repr)
         context_weights = self.context_linear(mention_repr)
