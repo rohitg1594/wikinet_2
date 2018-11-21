@@ -174,7 +174,7 @@ def setup(args=None, logger=None):
     # Context Embeddings
     word_embs, ent_embs, W, b = get_context_embs(args.data_path, args.init_context_embs, yamada_model)
     logger.info(f'Context embeddings loaded, word_embs : {word_embs.shape}, ent_embs : {ent_embs.shape}')
-    if args.model_name == 'scratch':
+    if args.model_name == 'full_context_string_from_scratch_ent':
         ent_embs = normal_initialize(ent_embs.shape[0], args.mention_word_dim + args.context_word_dim + hidden_size)
 
     # Mention Embeddings

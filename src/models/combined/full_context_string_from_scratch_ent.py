@@ -81,7 +81,7 @@ class FullContextStringFromScratchEnt(CombinedBase, Loss):
         # Cat the embs
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
         print(f'MENTION EMBS - {mention_repr.shape}')
-        
+
         # Get the weights
         mention_weights = self.prior_linear(mention_repr)
         context_weights = self.context_linear(mention_repr)
