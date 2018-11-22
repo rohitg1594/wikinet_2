@@ -3,13 +3,15 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
+
 from src.models.combined.base import CombinedBase
 from src.models.combined.string_autoencoder import StringAutoEncoder
 from src.models.loss import Loss
 from src.utils.utils import np_to_tensor
 
-import numpy as np
-np.set_printoptions(threshold=10**8)
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class FullContextStringLinearScalar(CombinedBase, Loss):
@@ -48,15 +50,15 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         self.autoencoder.requires_grad = False
 
         # Linear
-        self.context_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
-                                        1, bias=False)
-        # nn.init.eye_(self.context_linear.weight)
-        self.prior_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
-                                      1, bias=False)
-        # nn.init.eye_(self.prior_linear.weight)
-        self.str_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
-                                      1, bias=False)
-        # nn.init.eye_(self.str_linear.weight)
+        self.context_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size, 1)
+        self.prior_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size, 1)
+        self.str_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size, 1)
+
+        init_func = getattr(nn.init, self.args.init_linear)
+        logger.info(f'Initializing Linear layers using {init_func.__name__}')
+        init_func(self.context_linear.weight)
+        init_func(self.prior_linear.weight)
+        init_func(self.str_linear.weight)
 
         # Sigmoid
         self.sigmoid = nn.Sigmoid()
@@ -69,14 +71,14 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         context_tokens = inputs['context_tokens']
 
         # Get string reps
-        _, mention_str_rep, _ = self.autoencoder(mention_char_tokens)
+        _, mention_str_rep, _ = self.dp(self.autoencoder(mention_char_tokens))
         _, candidate_str_rep, _ = self.autoencoder(candidate_char_tokens)
 
         # Get the embeddings
         mention_embs = self.dp(self.mention_word_embs(mention_word_tokens))
         context_embs = self.dp(self.word_embs(context_tokens))
-        candidate_mention_embs = self.dp(self.mention_ent_embs(candidate_ids))
-        candidate_context_embs = self.dp(self.ent_embs(candidate_ids))
+        candidate_mention_embs = self.mention_ent_embs(candidate_ids)
+        candidate_context_embs = self.ent_embs(candidate_ids)
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)

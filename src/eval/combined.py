@@ -339,10 +339,6 @@ class CombinedValidator:
                                   'top10': top10,
                                   'top100': top100,
                                   'mrr': mrr}
-            res_str = data_type.upper() + ' : '
-            for k, v in results[data_type].items():
-                res_str += k.upper() + ': {:.3},'.format(v)
-            logger.info(res_str)
 
             # Error analysis
             if error:

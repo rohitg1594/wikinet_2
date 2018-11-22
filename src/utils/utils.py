@@ -149,8 +149,7 @@ def equalize_len_w_eot(data, max_size, eot=None):
         arr[l] = eot
 
     return arr
-
-
+torch.nn.init
 def str2bool(v):
     """
     thanks : https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse

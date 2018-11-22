@@ -20,10 +20,12 @@ DATA_TYPES = ['wiki', 'conll', 'msnbc', 'ace2004']
 
 def grid_search(**kwargs):
     param_grid = {
-                  'lr': [1e-3, 5e-2, 5e-3],
-                  'wd': [1e-7, 1e-6, 1e-5],
-                  'dp': [1e-1, 2e-1],
+                  'lr': [1e-3, 5e-2, 0.1, 1e-2, 5e-3],
+                  'wd': [1e-7, 1e-6, 1e-5, 1e-4],
+                  'dp': [1e-1, 2e-1, 0],
+                  'init_linear': ['kaiming_uniform_', 'kaiming_normal_', 'xavier_uniform_', 'xavier_normal_']
                   }
+
     results = {}
     pd_results = list()
     args = kwargs['args']
@@ -31,7 +33,7 @@ def grid_search(**kwargs):
     train_loader = kwargs['train_loader']
     validator = kwargs['validator']
 
-    for param_dict in list(ParameterGrid(param_grid)):
+    for param_dict in list(ParameterSampler(param_grid)):
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
