@@ -33,7 +33,7 @@ def grid_search(**kwargs):
     train_loader = kwargs['train_loader']
     validator = kwargs['validator']
 
-    for param_dict in list(ParameterSampler(param_grid)):
+    for param_dict in list(ParameterSampler(param_grid, 20)):
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
