@@ -103,6 +103,11 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         context_weights = self.context_linear(mention_repr)
         str_weights = self.str_linear(mention_repr)
 
+        if len(candidate_ids.shape) == 1:
+            print(f'MENTION WEIGHT: {mention_weights[:10]}')
+            print(f'CONTEXT WEIGHT: {context_weights[:10]}')
+            print(f'STRING WEIGHT: {str_weights[:10]}')
+
         if self.args.sigmoid:
             mention_weights = self.sigmoid(mention_weights)
             context_weights = self.sigmoid(context_weights)
