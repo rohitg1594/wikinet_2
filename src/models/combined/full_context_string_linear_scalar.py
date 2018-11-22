@@ -71,7 +71,8 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
         context_tokens = inputs['context_tokens']
 
         # Get string reps
-        _, mention_str_rep, _ = self.dp(self.autoencoder(mention_char_tokens))
+        _, mention_str_rep, _ = self.autoencoder(mention_char_tokens)
+        mention_str_rep = self.dp(mention_str_rep)
         _, candidate_str_rep, _ = self.autoencoder(candidate_char_tokens)
 
         # Get the embeddings
