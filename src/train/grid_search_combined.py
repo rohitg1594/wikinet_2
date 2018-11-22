@@ -10,7 +10,7 @@ from sklearn.model_selection import ParameterGrid
 import pandas as pd
 
 from src.train.combined import parse_args, setup
-from src.utils.utils import get_model
+from src.utils.utils import get_model, pickle_dump
 from src.train.trainer import Trainer
 from src.utils.dictionary import Dictionary  # needed because of autoencoder
 
@@ -26,7 +26,7 @@ def grid_search(**kwargs):
                   'init_linear': ['kaiming_uniform_', 'kaiming_normal_', 'xavier_uniform_', 'xavier_normal_']
                   }
 
-    results = {}
+    grid_results_dict = {}
     pd_results = list()
     args = kwargs['args']
     logger = kwargs['logger']
@@ -40,22 +40,22 @@ def grid_search(**kwargs):
 
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())
-        results[result_key] = {data_type: [] for data_type in DATA_TYPES}
+        grid_results_dict[result_key] = {data_type: [] for data_type in DATA_TYPES}
 
         setup_dict['args'] = args
 
         # Model
         model = get_model(**setup_dict)
 
-        logger.info("Validating untrained model.....")
-        result = validator.validate(model=model, error=args.error)
-        for data_type in DATA_TYPES:
-            res_str = ""
-            for k, v in result[data_type].items():
-                res_str += k.upper() + ': {:.3},'.format(v)
-            logger.info(f"{data_type}: Untrained, {res_str[:-1]}")
-            results[result_key][data_type].append((tuple(result[data_type].values())))
-        logger.info("Done validating.")
+        # logger.info("Validating untrained model.....")
+        # result = validator.validate(model=model, error=args.error)
+        # for data_type in DATA_TYPES:
+        #     res_str = ""
+        #     for k, v in result[data_type].items():
+        #         res_str += k.upper() + ': {:.3},'.format(v)
+        #     logger.info(f"{data_type}: Untrained, {res_str[:-1]}")
+        #     grid_results_dict[result_key][data_type].append((tuple(result[data_type].values())))
+        # logger.info("Done validating.")
 
         trainer = Trainer(loader=train_loader,
                           args=args,
@@ -63,7 +63,7 @@ def grid_search(**kwargs):
                           model=model,
                           model_dir=Model_dir,
                           model_type='combined',
-                          result_dict=results,
+                          grid_results_dict=grid_results_dict,
                           result_key=result_key)
         logger.info("Starting Training")
         best_results = trainer.train()
@@ -73,13 +73,12 @@ def grid_search(**kwargs):
         df = pd.DataFrame(pd_results)
         df.to_csv(join(Model_dir, 'hyper_df.csv'))
 
-        with open(join(Model_dir, 'grid_search_results.pickle'), 'wb') as f:
-            pickle.dump(results, f)
+        pickle_dump(grid_results_dict, join(Model_dir, 'grid_search_results.pickle'))
 
         del model, trainer
         gc.collect()
 
-    return results, pd_results
+    return pd_results
 
 
 if __name__ == '__main__':
@@ -90,6 +89,6 @@ if __name__ == '__main__':
     setup_dict['args'] = Args
     setup_dict['model_dir'] = Model_dir
 
-    result_dict, pd_dict = grid_search(**setup_dict)
+    pd_dict = grid_search(**setup_dict)
     df = pd.DataFrame(pd_dict)
     df.to_csv(join(Model_dir, 'hyper_df.csv'))

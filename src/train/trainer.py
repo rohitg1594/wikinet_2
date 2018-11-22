@@ -16,7 +16,7 @@ logger = logging.getLogger()
 class Trainer(object):
 
     def __init__(self, loader=None, args=None, model=None, validator=None, model_dir=None, model_type=None,
-                 result_dict=None, result_key=None, profile=False):
+                 grid_results_dict=None, result_key=None, profile=False):
         self.loader = loader
         self.args = args
         self.model = model
@@ -25,7 +25,7 @@ class Trainer(object):
         self.model_dir = model_dir
         self.min_delta = 1e-03
         self.patience = self.args.patience
-        self.result_dict = result_dict
+        self.grid_results_dict = grid_results_dict
         self.result_key = result_key
         self.profile = profile
         self.data_types = ['wiki', 'conll', 'msnbc', 'ace2004']
@@ -76,8 +76,8 @@ class Trainer(object):
             for k, v in results[data_type].items():
                 res_str += k.upper() + ': {:.3},'.format(v)
             logger.info(f"{data_type}: Epoch {epoch}," + res_str[:-1])
-            if self.result_dict is not None:
-                self.result_dict[self.result_key][data_type].append((tuple(results[data_type].values())))
+            if self.grid_results_dict is not None:
+                self.grid_results_dict[self.result_key][data_type].append((tuple(results[data_type].values())))
 
         return results
 
@@ -93,18 +93,22 @@ class Trainer(object):
 
             results[data_type] = acc
             if self.result_key is not None:
-                self.result_dict[self.result_key][data_type].append(acc)
+                self.grid_results_dict[self.result_key][data_type].append(acc)
 
         return results['conll']
 
     def train(self):
         training_losses = []
-        best_model = self.model
+
         wait = 0
-        best_valid_metric = 0
-        best_results = {k: 0 for k in self.data_types}
         num_batches = len(self.loader)
         tenth_batch = num_batches // 10
+
+        logger.info("Validating untrained model.....")
+        best_model = self.model
+        best_results = self.combined_validate('Untrained')
+        best_valid_metric = best_results['conll']['top1']
+        logger.info("Done validating.")
 
         if self.profile:
             logger.info('Starting profiling of dataloader.....')
