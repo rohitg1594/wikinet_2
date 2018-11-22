@@ -108,7 +108,7 @@ class Trainer(object):
         best_model = self.model
         full_results = self.combined_validate('Untrained')
         best_results = {data_type: result['top1'] for data_type, result in full_results.items()}
-        best_valid_metric = best_results['conll']['top1']
+        best_valid_metric = best_results['conll']
         logger.info("Done validating.")
 
         if self.profile:
