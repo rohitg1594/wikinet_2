@@ -370,6 +370,8 @@ class CombinedValidator:
 
                     _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
 
+                    print(preds[:50, :20])
+                    
                     # Evaluate rankings
                     gold = self.numpy_data[data_type]['gold']
                     gold = gold[self.wiki_mask] if data_type == 'wiki' else gold
