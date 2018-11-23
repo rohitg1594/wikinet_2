@@ -1,4 +1,5 @@
 # Model that only tries to learn the prior probability through mention words
+# TODO : RUN THIS MODEL
 import torch
 import torch.nn.functional as F
 import torch.nn as nn

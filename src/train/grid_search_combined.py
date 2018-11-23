@@ -38,25 +38,16 @@ def grid_search(**kwargs):
             assert k in args.__dict__
             args.__dict__[k] = v
 
+        # Setup
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())
         grid_results_dict[result_key] = {data_type: [] for data_type in DATA_TYPES}
-
         setup_dict['args'] = args
 
         # Model
         model = get_model(**setup_dict)
 
-        # logger.info("Validating untrained model.....")
-        # result = validator.validate(model=model, error=args.error)
-        # for data_type in DATA_TYPES:
-        #     res_str = ""
-        #     for k, v in result[data_type].items():
-        #         res_str += k.upper() + ': {:.3},'.format(v)
-        #     logger.info(f"{data_type}: Untrained, {res_str[:-1]}")
-        #     grid_results_dict[result_key][data_type].append((tuple(result[data_type].values())))
-        # logger.info("Done validating.")
-
+        # Train
         trainer = Trainer(loader=train_loader,
                           args=args,
                           validator=validator,
@@ -68,6 +59,7 @@ def grid_search(**kwargs):
         best_results = trainer.train()
         logger.info("Finished Training")
 
+        # Results
         pd_results.append({**param_dict, **best_results})
         df = pd.DataFrame(pd_results)
         df.to_csv(join(args.model_dir, 'hyper_df.csv'))
