@@ -336,6 +336,8 @@ class CombinedValidator:
         for context_w in weights:
             for str_w in weights:
                 prior_w = 1 - context_w - str_w
+                if prior_w < 0:
+                    continue
                 model.context_w = torch.nn.Parameter(torch.Tensor([context_w]))
                 model.str_w = torch.nn.Parameter(torch.Tensor([str_w]))
                 model.prior_w = torch.nn.Parameter(torch.Tensor([prior_w]))
