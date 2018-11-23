@@ -365,6 +365,7 @@ class CombinedValidator:
                         else:
                             index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
                             logger.info("Using IndexFlatL2")
+                        ent_combined_embs[0] = 0
                         index.add(ent_combined_embs)
                         first_data = False
 
