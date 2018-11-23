@@ -2,7 +2,7 @@ import unicodedata
 
 
 class Dictionary(object):
-    NULL = '<NULL>'
+    NULL = ''
     UNK = 'UNK'
 
     @staticmethod
