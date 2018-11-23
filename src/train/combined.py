@@ -241,24 +241,11 @@ def train(**kwargs):
     # Unpack args
     logger = kwargs['logger']
     validator = kwargs['validator']
-    model_dir = kwargs['model_dir']
     train_loader = kwargs['train_loader']
     args = kwargs['args']
 
     # Model
     model = get_model(**kwargs)
-
-    if args.use_cuda:
-        model = send_to_cuda(args.device, model)
-
-    # logger.info("Validating untrained model.....")
-    # results = validator.validate(model=model, error=args.error)
-    # for data_type in ['wiki', 'conll', 'msnbc', 'ace2004']:
-    #     res_str = ""
-    #     for k, v in results[data_type].items():
-    #         res_str += k.upper() + ': {:.3},'.format(v)
-    #     logger.info(f"{data_type}: Untrained," + res_str[:-1])
-    # logger.info("Done validating.")
 
     # Train
     trainer = Trainer(loader=train_loader,
