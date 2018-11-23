@@ -371,7 +371,7 @@ class CombinedValidator:
 
                     _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
 
-                    print(ent_combined_embs[0])
+                    # print(ent_combined_embs[0])
 
                     # print(preds[:50, :20])
                     # print(ent_combined_embs[0])
