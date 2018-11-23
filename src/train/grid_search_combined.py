@@ -61,7 +61,6 @@ def grid_search(**kwargs):
                           args=args,
                           validator=validator,
                           model=model,
-                          model_dir=Model_dir,
                           model_type='combined',
                           grid_results_dict=grid_results_dict,
                           result_key=result_key)
@@ -71,9 +70,9 @@ def grid_search(**kwargs):
 
         pd_results.append({**param_dict, **best_results})
         df = pd.DataFrame(pd_results)
-        df.to_csv(join(Model_dir, 'hyper_df.csv'))
+        df.to_csv(join(args.model_dir, 'hyper_df.csv'))
 
-        pickle_dump(grid_results_dict, join(Model_dir, 'grid_search_results.pickle'))
+        pickle_dump(grid_results_dict, join(args.model_dir, 'grid_search_results.pickle'))
 
         del model, trainer
         gc.collect()
@@ -83,12 +82,11 @@ def grid_search(**kwargs):
 
 if __name__ == '__main__':
 
-    Args, Logger, Model_dir = parse_args()
+    Args, Logger= parse_args()
     setup_dict = setup(args=Args, logger=Logger)
     setup_dict['logger'] = Logger
     setup_dict['args'] = Args
-    setup_dict['model_dir'] = Model_dir
 
     pd_dict = grid_search(**setup_dict)
     df = pd.DataFrame(pd_dict)
-    df.to_csv(join(Model_dir, 'hyper_df.csv'))
+    df.to_csv(join(Args.model_dir, 'hyper_df.csv'))
