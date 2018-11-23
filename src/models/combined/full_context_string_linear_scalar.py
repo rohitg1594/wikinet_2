@@ -112,11 +112,11 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
             mask = torch.randint(0, mention_weights.shape[0], (20,)).long()
             print('##################LEARNED WEIGHTS#######################')
             print(
-                f'MENTION WEIGHT: MEAN - {torch.mean(mention_weights}}, STDV - {torch.std(mention_weights}}, SAMPLE - {mention_weights[mask]}')
+                f'MENTION WEIGHT: MEAN - {torch.mean(mention_weights)}, STDV - {torch.std(mention_weights)}, SAMPLE - {mention_weights[mask]}')
             print(
-                f'CONTEXT WEIGHT: MEAN - {torch.mean(context_weights}}, STDV - {torch.std(context_weights}}, SAMPLE - {context_weights[mask]}')
+                f'CONTEXT WEIGHT: MEAN - {torch.mean(context_weights)}, STDV - {torch.std(context_weights)}, SAMPLE - {context_weights[mask]}')
             print(
-                f'STR WEIGHT: MEAN - {torch.mean(str_weights}}, STDV - {torch.std(mention_weights}}, SAMPLE - {context_weights[mask]}')
+                f'STR WEIGHT: MEAN - {torch.mean(str_weights)}, STDV - {torch.std(mention_weights)}, SAMPLE - {context_weights[mask]}')
             print('########################################################')
 
         mention_repr_scaled = torch.cat((mention_repr[:, :self.args.mention_word_dim] * mention_weights,
