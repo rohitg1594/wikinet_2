@@ -246,7 +246,7 @@ def eval_ranking(I, gold, ks):
             if gold[i] in I[i, :k]:
                 out[k] += 1
 
-    out = {k: v / I.shape[0] for k, v in topks.items()}
+    out = {k: v / I.shape[0] for k, v in out.items()}
 
     # Mean Reciprocal Rank
     ranks = []
