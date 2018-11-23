@@ -239,14 +239,14 @@ def check_errors(I, gold, gram_indices, rev_ent_dict, rev_gram_dict, redirects, 
 
 
 def eval_ranking(I, gold, ks):
-    topks = np.zeros(len(ks))
+    out = {k: 0 for k in ks}
 
-    for j, k in enumerate(ks):
+    for k in ks:
         for i in range(I.shape[0]):
             if gold[i] in I[i, :k]:
-                topks[j] += 1
+                out[k] += 1
 
-    topks /= I.shape[0]
+    out = {k: v / I.shape[0] for k, v in topks.items()}
 
     # Mean Reciprocal Rank
     ranks = []
@@ -261,7 +261,9 @@ def eval_ranking(I, gold, ks):
     if not isinstance(mrr, float):
         mrr = mrr[0]
 
-    return topks[0], topks[1], topks[2], mrr
+    out['mrr'] = mrr
+
+    return out
 
 
 def chunks(l, n):
