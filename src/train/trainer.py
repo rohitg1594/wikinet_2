@@ -15,14 +15,14 @@ logger = logging.getLogger()
 
 class Trainer(object):
 
-    def __init__(self, loader=None, args=None, model=None, validator=None, model_dir=None, model_type=None,
+    def __init__(self, loader=None, args=None, model=None, validator=None, model_type=None,
                  grid_results_dict=None, result_key=None, profile=False):
         self.loader = loader
         self.args = args
         self.model = model
         self.model_type = model_type
         self.num_epochs = self.args.num_epochs
-        self.model_dir = model_dir
+        self.model_dir = self.args.model_dir
         self.min_delta = 1e-03
         self.patience = self.args.patience
         self.grid_results_dict = grid_results_dict

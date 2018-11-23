@@ -148,7 +148,9 @@ def parse_args():
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
-    return args, logger, model_dir
+    args.model_dir = model_dir
+
+    return args, logger
 
 
 def setup(args=None, logger=None):
@@ -263,7 +265,6 @@ def train(**kwargs):
                       args=args,
                       validator=validator,
                       model=model,
-                      model_dir=model_dir,
                       model_type='combined',
                       profile=args.profile)
     logger.info("Training.....")
@@ -272,10 +273,9 @@ def train(**kwargs):
 
 
 if __name__ == '__main__':
-    Args, Logger, Model_dir = parse_args()
+    Args, Logger = parse_args()
     setup_dict = setup(args=Args, logger=Logger)
     setup_dict['logger'] = Logger
     setup_dict['args'] = Args
-    setup_dict['model_dir'] = Model_dir
 
     train(**setup_dict)

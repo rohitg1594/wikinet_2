@@ -341,9 +341,10 @@ class CombinedValidator:
                         mention_gram = mention_gram[self.wiki_mask, :] if data_type == 'wiki' else mention_gram
                         check_errors(preds, gold, mention_gram, self.id2ent, self.id2gram, self.redirects, [1, 10, 100])
                         print()
+
+                pickle_dump(combination_grid_results, join(self.args.model_dir, 'combination_results.pickle'))
+
                 if self.args.use_cuda:
                     model = send_to_cuda(self.args.device, model)
-
-        pickle_dump(combination_grid_results, join(self.args.model_dir, 'combination_results.pickle'))
 
         return results
