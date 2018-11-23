@@ -369,11 +369,12 @@ class CombinedValidator:
                         first_data = False
 
                     _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
+                    print(preds[:, 0])
 
                     # print(preds[:50, :20])
                     # print(ent_combined_embs[0])
 
-                    if not np.any(preds[0]):
+                    if not np.any(preds[:, 0]):
                         logger.info("ALL PREDICTIONS ARE 0, IGNORING FIRST COLUMN")
                         preds = preds[:, 1:]
 
