@@ -298,8 +298,9 @@ class CombinedValidator:
                 for k, v in model.state_dict().items():
                     if k.endswith('_w'):
                         print(k.upper(), v)
-                print('-----------------------------------------------------------------')
+
                 error = False
+                print('-----------------------------------------------------------------')
 
                 for data_type in self.data_types:
                     input = self._get_data(data_type=data_type)
@@ -329,9 +330,9 @@ class CombinedValidator:
                                           'top10': top10,
                                           'top100': top100,
                                           'mrr': mrr}
-
+                    print(f'DATA TYPE : {data_type}, RESULTS : {results[data_type]}')
                     combination_grid_results[combination_key][data_type] = results[data_type]
-                    print(f'COMBINATION GRID RESULTS: {combination_grid_results}')
+                    # print(f'COMBINATION GRID RESULTS: {combination_grid_results}')
 
                     # Error analysis
                     if error:
@@ -342,5 +343,7 @@ class CombinedValidator:
                         print()
                 if self.args.use_cuda:
                     model = send_to_cuda(self.args.device, model)
+
+        pickle_dump(combination_grid_results, join(self.args.model_dir, 'combination_results.pickle'))
 
         return results
