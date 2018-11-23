@@ -375,12 +375,12 @@ class CombinedValidator:
 
                     if not np.any(preds[0]):
                         logger.info("ALL PREDICTIONS ARE 0, IGNORING FIRST COLUMN")
-                        preds = preds[1:, :]
+                        preds = preds[:, 1:]
 
                     # Evaluate rankings
                     gold = self.numpy_data[data_type]['gold']
                     gold = gold[self.wiki_mask] if data_type == 'wiki' else gold
-                    top1, top10, top100, mrr = eval_ranking(preds[1:, :], gold, [1, 10, 100])
+                    top1, top10, top100, mrr = eval_ranking(preds, gold, [1, 10, 100])
                     results[data_type] = {'top1': top1,
                                           'top10': top10,
                                           'top100': top100,
