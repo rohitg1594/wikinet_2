@@ -331,7 +331,7 @@ class CombinedValidator:
 
     def run_combination_weight_exp(self, model, results):
         combination_grid_results = {}
-        weights = 0.1 * np.arange(11)
+        weights = np.linspace(0, 1, 21)
         first_data = True
         for context_w in weights:
             for str_w in weights:

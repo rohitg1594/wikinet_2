@@ -169,7 +169,7 @@ def setup(args=None, logger=None):
 
     # Char Embeddings for autoencoder
     logger.info(f'Loading char embeddings from autoencoder state dict {args.init_char_embs}.....')
-    autoencoder_state_dict = torch.load(args.init_char_embs, map_location='cpu')['state_dict']
+    autoencoder_state_dict = torch.load(join(args.data_path, 'autoencoder', args.init_char_embs), map_location='cpu')['state_dict']
     char_embs = autoencoder_state_dict['char_embs.weight']
     hidden_size = autoencoder_state_dict['lin2.weight'].shape[0]
     logger.info(f'Char embeddings loaded')
