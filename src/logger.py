@@ -17,9 +17,8 @@ def get_logger(args):
         os.makedirs(log_dir)
 
     log_path = join(log_dir, args.exp_name)
-    if not os.path.exists(log_path):
-        with open(log_path, 'w') as f:
-            f.write('')
+    with open(log_path, 'w') as f:
+        f.write('')
 
     file_handler = logging.FileHandler(log_path)
     file_handler.setFormatter(log_formatter)
