@@ -331,7 +331,8 @@ class CombinedValidator:
 
     def run_combination_weight_exp(self, model, results):
         combination_grid_results = {}
-        weights = np.linspace(0, 1, 21)
+        # weights = np.linspace(0, 1, 21)
+        weights = [0.35]
         first_data = True
         for context_w in weights:
             for str_w in weights:
@@ -364,19 +365,19 @@ class CombinedValidator:
                         if self.args.measure == 'ip':
                             index = faiss.IndexFlatIP(ent_combined_embs.shape[1])
                             logger.info("Using IndexFlatIP")
-                        else:
+                        elif self.args.measure == 'l2':
                             index = faiss.IndexFlatL2(ent_combined_embs.shape[1])
                             logger.info("Using IndexFlatL2")
+                        else:
+                            logger.error(f"Measure {self.args.measure} not recognized, choose one of ip, l2. Exiting.")
                         ent_combined_embs[0] = 0
                         index.add(ent_combined_embs)
                         first_data = False
 
                     _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
 
-                    # print(ent_combined_embs[0])
-
-                    # print(preds[:50, :20])
-                    # print(ent_combined_embs[0])
+                    print(ent_combined_embs[0])
+                    print(preds[:50, :20])
 
                     if not np.any(preds[:, 0]):
                         logger.info("ALL PREDICTIONS ARE 0, IGNORING FIRST COLUMN")
