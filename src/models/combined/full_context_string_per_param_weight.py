@@ -47,7 +47,7 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
         self.autoencoder.load_state_dict(autoencoder_state_dict)
         self.autoencoder.requires_grad = False
 
-        total_dims = self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
+        total_dims = self.args.mention_word_dim + self.args.context_word_dim + hidden_size
         self.linear_1 = nn.Linear(total_dims, total_dims)
         self.linear_2 = nn.Linear(total_dims, total_dims)
         self.relu = nn.ReLU()
