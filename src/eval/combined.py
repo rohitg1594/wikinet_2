@@ -359,6 +359,7 @@ class CombinedValidator:
 
                     mention_combined_embs = mention_combined_embs.data.numpy()
                     ent_combined_embs = ent_combined_embs.data.numpy()
+                    ent_combined_embs[0] = 0
 
                     if first_data:
                         # Create / search in Faiss Index
@@ -370,13 +371,11 @@ class CombinedValidator:
                             logger.info("Using IndexFlatL2")
                         else:
                             logger.error(f"Measure {self.args.measure} not recognized, choose one of ip, l2. Exiting.")
-                        ent_combined_embs[0] = 0
                         index.add(ent_combined_embs)
                         first_data = False
 
                     _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
 
-                    print(ent_combined_embs[0])
                     print(preds[:50, :20])
 
                     if not np.any(preds[:, 0]):

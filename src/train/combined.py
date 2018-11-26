@@ -75,6 +75,7 @@ def parse_args():
     model_params.add_argument('--combined_linear', type=str2bool,
                               help='whether to have a combining linear layer in small context model')
     model_params.add_argument('--init_linear', type=float, help='initialize linear layers')
+    model_params.add_argument('--num_linear', type=float, help='how many linear layers to use')
 
     # Normalization
     normal = parser.add_argument_group('Which embeddings to normalize?')

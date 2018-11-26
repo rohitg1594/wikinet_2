@@ -1,4 +1,4 @@
-# Linear Layer to combine the different representations
+# Linear Layer to get weights for each component of mention representation
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -12,7 +12,7 @@ import numpy as np
 np.set_printoptions(threshold=10**8)
 
 
-class FullContextStringCombined(CombinedBase, Loss):
+class FullContextStringPerParamWeight(CombinedBase, Loss):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -47,9 +47,14 @@ class FullContextStringCombined(CombinedBase, Loss):
         self.autoencoder.load_state_dict(autoencoder_state_dict)
         self.autoencoder.requires_grad = False
 
-        self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
-                                        self.args.mention_word_dim + self.args.context_word_dim + hidden_size, bias=False)
-        nn.init.eye_(self.combine_linear.weight)
+        total_dims = self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
+        self.linear_1 = nn.Linear(total_dims, total_dims)
+        self.linear_2 = nn.Linear(total_dims, total_dims)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+
+        nn.init.eye_(self.linear_1.weight)
+        nn.init.eye_(self.linear_2.weight)
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
@@ -85,8 +90,11 @@ class FullContextStringCombined(CombinedBase, Loss):
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
         cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim)
 
-        if self.args.combined_linear:
-            mention_repr = self.combine_linear(mention_repr)
+        mention_weights = self.linear1(mention_repr)
+        if self.args.num_linear == 2:
+            mention_weights = self.linear2(nn.ReLU())
+
+        mention_repr *= self.sigmoid(mention_weights)
 
         # Normalize
         if self.args.norm_final:

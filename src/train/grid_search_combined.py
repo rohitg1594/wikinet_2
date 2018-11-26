@@ -23,7 +23,8 @@ def grid_search(**kwargs):
                   'lr': [1e-3, 5e-2, 0.1, 1e-2, 5e-3],
                   'wd': [1e-7, 1e-6, 1e-5, 1e-4],
                   'dp': [1e-1, 2e-1, 0],
-                  'init_linear': ['kaiming_uniform_', 'kaiming_normal_', 'xavier_uniform_', 'xavier_normal_']
+                  'init_linear': ['kaiming_uniform_', 'kaiming_normal_', 'xavier_uniform_', 'xavier_normal_'],
+                  'num_linear': [1, 2],
                   }
 
     grid_results_dict = {}
