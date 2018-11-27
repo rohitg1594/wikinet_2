@@ -53,8 +53,9 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
 
-        nn.init.eye_(self.linear_1.weight)
-        nn.init.eye_(self.linear_2.weight)
+        init_func = getattr(nn.init, self.args.init_linear)
+        init_func(self.linear1.weight)
+        init_func(self.linear2.weight)
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
