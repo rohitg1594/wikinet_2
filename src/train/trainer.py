@@ -74,7 +74,11 @@ class Trainer(object):
         for data_type in self.data_types:
             res_str = ""
             for k, v in results[data_type].items():
-                res_str += k.upper() + ': {:.3},'.format(v)
+                if isinstance(k, int):
+                    res_str += f'TOP{k}'
+                else:
+                    res_str += k.upper()
+                res_str += ': {:.3},'.format(v)
             logger.info(f"{data_type.upper()}: Epoch {epoch}," + res_str[:-1])
             if self.grid_results_dict is not None:
                 self.grid_results_dict[self.result_key][data_type].append((tuple(results[data_type].values())))
