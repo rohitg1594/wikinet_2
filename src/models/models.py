@@ -10,6 +10,7 @@ from src.models.combined.only_prior.with_string import WithString
 from src.models.combined.mention_prior import MentionPrior
 from src.models.combined.pre_train_context import PreTrainContext
 from src.models.combined.small_context import SmallContext
+
 from src.models.combined.full_context import FullContext
 from src.models.combined.full_context_attention import FullContextAttn
 from src.models.combined.full_context_string_scalar import FullContextStringScalar
@@ -17,6 +18,7 @@ from src.models.combined.full_context_string_combined import FullContextStringCo
 from src.models.combined.full_context_string_linear_scalar import FullContextStringLinearScalar
 from src.models.combined.full_context_string_from_scratch_ent import FullContextStringFromScratchEnt
 from src.models.combined.full_context_string_per_param_weight import FullContextStringPerParamWeight
+from src.models.combined.full_context_string_dan import FullContextStringDan
 
 from src.models.yamada.yamada_context_stats_string import YamadaContextStatsString
 from src.models.yamada.yamada_context_stats import YamadaContextStats
@@ -46,6 +48,7 @@ class Models:
     full_context_string_linear_scalar = FullContextStringLinearScalar
     full_context_string_from_scratch_ent = FullContextStringFromScratchEnt
     full_context_string_per_param_weight = FullContextStringPerParamWeight
+    full_context_string_dan = FullContextStringDan
 
     # Yamada
     yamada_full = YamadaContextStatsString
