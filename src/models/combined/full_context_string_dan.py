@@ -51,10 +51,9 @@ class FullContextStringDan(CombinedBase, Loss):
         self.autoencoder.load_state_dict(autoencoder_state_dict)
         self.autoencoder.requires_grad = False
 
+        ##### DAN #######
         total_dims = self.args.mention_word_dim + self.args.context_word_dim + hidden_size
         init_func = getattr(nn.init, self.args.init_linear)
-        init_func(self.linear1.weight)
-        init_func(self.linear2.weight)
 
         dan_layers = []
         for i in range(self.args.num_linear):
