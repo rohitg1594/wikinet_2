@@ -94,14 +94,16 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
 
         # Cat the embs
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
-
         mention_weights = self.gate_net(mention_repr)
-        mask = torch.randint(0, mention_weights.shape[0], (20,)).long()
+        print(f'MENTION REPR: {mention_repr.shape}, MENTION WEIGHT: {mention_weights.shape}')
+
         if len(candidate_ids.shape) == 1:
+            mask = torch.randint(0, mention_weights.shape[0], (20,)).long()
             logger.info('##################LEARNED WEIGHTS#######################')
             logger.info(
                 f'MENTION WEIGHT: MEAN - {torch.mean(mention_weights)}, STDV - {torch.std(mention_weights)}, SAMPLE - \n {mention_weights[mask][:10]}')
         mention_rescaled = mention_repr * mention_weights
+        print(f'MENTION RESCALED: {mention_rescaled.shape}')
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
