@@ -104,7 +104,7 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
         mask = torch.randint(0, mention_weights.shape[0], (20,)).long()
         logger.info('##################LEARNED WEIGHTS#######################')
         logger.info(
-            f'MENTION WEIGHT: MEAN - {torch.mean(mention_weights)}, STDV - {torch.std(mention_weights)}, SAMPLE - {mention_weights[mask]}')
+            f'MENTION WEIGHT: MEAN - {torch.mean(mention_weights)}, STDV - {torch.std(mention_weights)}, SAMPLE - \n {mention_weights[mask][:10]}')
         mention_rescaled = mention_repr * mention_weights
 
         # Normalize
