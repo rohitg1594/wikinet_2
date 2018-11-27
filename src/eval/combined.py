@@ -309,11 +309,9 @@ class CombinedValidator:
                 # Evaluate rankings
                 gold = self.numpy_data[data_type]['gold']
                 gold = gold[self.wiki_mask] if data_type == 'wiki' else gold
-                top1, top10, top100, mrr = eval_ranking(preds, gold, [1, 10, 100])
-                results[data_type] = {'top1': top1,
-                                      'top10': top10,
-                                      'top100': top100,
-                                      'mrr': mrr}
+                result = eval_ranking(preds, gold, [1, 2, 5, 10, 100])
+                results[data_type] = result
+                logger.info(f'DATA TYPE : {data_type}, RESULTS : {result}')
 
                 # Error analysis
                 if error:
