@@ -28,7 +28,7 @@ max_ent_size:35
 model_name:full_context_string_linear_scalar
 
 # Model Embs
-init_context_embs:/work/rogupta/wikinet_data/models/2018_11_10/pre_train_dim_128_epoch_50/best_model.ckpt
+init_context_embs:yamada
 init_mention_embs:/work/rogupta/wikinet_data/models/2018_11_19/mention_prior_average_order_norm_changed/best_model.ckpt
 init_char_embs:old_not_norm_32.ckpt
 mention_word_dim:128
