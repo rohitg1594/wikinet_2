@@ -3,6 +3,8 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
+from logging import getLogger
+
 from src.models.combined.base import CombinedBase
 from src.models.combined.string_autoencoder import StringAutoEncoder
 from src.models.loss import Loss
@@ -10,6 +12,8 @@ from src.utils.utils import np_to_tensor
 
 import numpy as np
 np.set_printoptions(threshold=10**8)
+
+logger = getLogger(__name__)
 
 
 class FullContextStringPerParamWeight(CombinedBase, Loss):
@@ -97,6 +101,10 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
         cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim)
 
         mention_weights = self.gate_net(mention_repr)
+        mask = torch.randint(0, mention_weights.shape[0], (20,)).long()
+        logger.info('##################LEARNED WEIGHTS#######################')
+        logger.info(
+            f'MENTION WEIGHT: MEAN - {torch.mean(mention_weights)}, STDV - {torch.std(mention_weights)}, SAMPLE - {mention_weights[mask]}')
         mention_rescaled = mention_repr * mention_weights
 
         # Normalize
