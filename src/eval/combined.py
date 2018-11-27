@@ -1,5 +1,6 @@
 # Validator class
 import faiss
+import torch
 from logging import getLogger
 
 from src.utils.utils import *
@@ -289,6 +290,9 @@ class CombinedValidator:
             for data_type in self.data_types:
                 input = self._get_data(data_type=data_type)
                 scores, ent_combined_embs, mention_combined_embs = model(input)
+
+                torch.save(ent_combined_embs, join(self.args.data_path, 'ent_combined_embs.pickle'))
+                sys.exit(0)
 
                 mention_combined_embs = mention_combined_embs.data.numpy()
                 ent_combined_embs = ent_combined_embs.data.numpy()

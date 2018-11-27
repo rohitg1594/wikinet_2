@@ -57,12 +57,14 @@ class FullContextStringDan(CombinedBase, Loss):
 
         dan_layers = []
         for i in range(self.args.num_linear):
-            linear = nn.Linear(total_dims, total_dims)
-            init_func(linear.weight)
-            dan_layers.append(linear)
+            dan_layers.append(nn.Linear(total_dims, total_dims))
             if i < self.args.num_linear - 1:
                 dan_layers.append(nn.ReLU())
         dan_layers.append(nn.Sigmoid())
+
+        for layer in dan_layers:
+            if isinstance(layer, nn.modules.linear.Linear):
+                init_func(layer.weight)
 
         self.dan = nn.Sequential(*dan_layers)
         print(self.dan)
@@ -74,7 +76,7 @@ class FullContextStringDan(CombinedBase, Loss):
         candidate_char_tokens = inputs['candidate_char_tokens']
         context_tokens = inputs['context_tokens']
 
-        # Get string reps through autoencoder
+        # Get string reps
         _, mention_str_rep, _ = self.autoencoder(mention_char_tokens)
         _, candidate_str_rep, _ = self.autoencoder(candidate_char_tokens)
 
@@ -96,14 +98,13 @@ class FullContextStringDan(CombinedBase, Loss):
         mention_str_rep = F.normalize(mention_str_rep, dim=len(mention_str_rep.shape) - 1)
         candidate_str_rep = F.normalize(candidate_str_rep, dim=len(candidate_str_rep.shape) - 1)
 
-        # Cat the embs / pass through DAN
+        # Cat the embs
         cat_dim = 2 if len(candidate_ids.shape) == 2 else 1
-        mention_repr = self.dan(torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1))
-        cand_repr = self.dan(torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim))
+        mention_cat = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
+        cand_cat = torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim)
+        mention_repr = self.dan(mention_cat)
+        cand_repr = self.dan(cand_cat)
 
-        print(f'MENTION: {mention_repr.shape}')
-        print(f'CANDIDATE: {cand_repr.shape}')
-        
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
             mention_repr.unsqueeze_(1)
