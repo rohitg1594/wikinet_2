@@ -89,6 +89,9 @@ class FullContextStringCombined(CombinedBase, Loss):
         if self.args.combined_linear:
             mention_repr = self.combine_linear(mention_repr)
 
+        if len(candidate_ids.shape) == 1:
+            print(f'COMBINED LINEAR : \n{self.combine_linear.weight[:10, :500]}')
+
         # Normalize
         if self.args.norm_final:
             cand_repr = F.normalize(cand_repr, dim=cat_dim)
