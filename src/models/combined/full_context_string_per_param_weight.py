@@ -95,21 +95,21 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
         if self.args.num_linear == 2:
             mention_weights = self.linear2(self.relu(mention_weights))
 
-        mention_repr *= self.sigmoid(mention_weights)
+        mention_rescaled = mention_repr * self.sigmoid(mention_weights)
 
         # Normalize
         if self.args.norm_final:
             cand_repr = F.normalize(cand_repr, dim=cat_dim)
-            mention_repr = F.normalize(mention_repr, dim=1)
+            mention_repr = F.normalize(mention_rescaled, dim=1)
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
             mention_repr.unsqueeze_(1)
-            scores = torch.matmul(mention_repr, cand_repr.transpose(1, 2)).squeeze(1)
+            scores = torch.matmul(mention_rescaled, cand_repr.transpose(1, 2)).squeeze(1)
         else:
             scores = torch.Tensor([0])
 
-        return scores, cand_repr, mention_repr
+        return scores, cand_repr, mention_rescaled
 
     def loss(self, scores, labels):
         return self.cross_entropy(scores, labels)

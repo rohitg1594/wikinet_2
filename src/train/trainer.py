@@ -70,7 +70,7 @@ class Trainer(object):
 
     def combined_validate(self, epoch):
         results = self.validator.validate(model=self.model, error=self.args.error)
-        print(f'RESULTS IN TRAINER : {results}')
+
         for data_type in self.data_types:
             res_str = ""
             for k, v in results[data_type].items():
