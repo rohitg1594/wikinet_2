@@ -54,15 +54,25 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
         self.autoencoder.load_state_dict(autoencoder_state_dict)
         self.autoencoder.requires_grad = False
 
-        ##### DAN #######
+        total_dims = self.args.mention_word_dim + self.args.context_word_dim + hidden_size
+        self.linear1 = nn.Linear(total_dims, total_dims)
+        self.linear2 = nn.Linear(total_dims, total_dims)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
 
+        init_func = getattr(nn.init, self.args.init_linear)
+        init_func(self.linear1.weight)
+        init_func(self.linear2.weight)
 
+        if self.args.num_linear == 2:
+            self.gate_net = nn.Sequential(self.linear1, self.relu, self.linear2, self.sigmoid)
+        else:
+            self.gate_net = nn.Sequential(self.linear1, self.sigmoid)
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
         mention_char_tokens = inputs['mention_char_tokens']
         candidate_ids = inputs['candidate_ids']
-        candidate_char_tokens = inputs['candidate_char_tokens']
         context_tokens = inputs['context_tokens']
 
         # Get string reps
@@ -72,7 +82,6 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
         mention_embs = self.dp(self.mention_word_embs(mention_word_tokens))
         context_embs = self.dp(self.word_embs(context_tokens))
         candidate_embs = self.dp(self.ent_embs(candidate_ids))
-
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
@@ -85,17 +94,24 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
 
         # Cat the embs
         cat_dim = 2 if len(candidate_ids.shape) == 2 else 1
-        mention_cat = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
+        mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
 
+        mention_weights = self.gate_net(mention_repr)
+        mask = torch.randint(0, mention_weights.shape[0], (20,)).long()
+        if len(candidate_ids.shape) == 1:
+            logger.info('##################LEARNED WEIGHTS#######################')
+            logger.info(
+                f'MENTION WEIGHT: MEAN - {torch.mean(mention_weights)}, STDV - {torch.std(mention_weights)}, SAMPLE - \n {mention_weights[mask][:10]}')
+        mention_rescaled = mention_repr * mention_weights
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
             mention_repr.unsqueeze_(1)
-            scores = torch.matmul(mention_repr, cand_repr.transpose(1, 2)).squeeze(1)
+            scores = torch.matmul(mention_rescaled, candidate_embs.transpose(1, 2)).squeeze(1)
         else:
             scores = torch.Tensor([0])
 
-        return scores, cand_repr, mention_repr
+        return scores, candidate_embs, mention_rescaled
 
     def loss(self, scores, labels):
         return self.cross_entropy(scores, labels)

@@ -55,7 +55,7 @@ class FullContextStringDan(CombinedBase, Loss):
         total_dims = self.args.mention_word_dim + self.args.context_word_dim + hidden_size
         init_func = getattr(nn.init, self.args.init_linear)
 
-        dan_layers = nn
+        dan_layers = []
         for i in range(self.args.num_linear):
             dan_layers.append(nn.Linear(total_dims, total_dims))
             if i < self.args.num_linear - 1:
