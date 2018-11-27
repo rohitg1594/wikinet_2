@@ -65,6 +65,7 @@ class FullContextStringDan(CombinedBase, Loss):
         dan_layers.append(nn.Sigmoid())
 
         self.dan = nn.Sequential(*dan_layers)
+        print(self.dan)
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
@@ -73,7 +74,7 @@ class FullContextStringDan(CombinedBase, Loss):
         candidate_char_tokens = inputs['candidate_char_tokens']
         context_tokens = inputs['context_tokens']
 
-        # Get string reps
+        # Get string reps through autoencoder
         _, mention_str_rep, _ = self.autoencoder(mention_char_tokens)
         _, candidate_str_rep, _ = self.autoencoder(candidate_char_tokens)
 
@@ -95,16 +96,14 @@ class FullContextStringDan(CombinedBase, Loss):
         mention_str_rep = F.normalize(mention_str_rep, dim=len(mention_str_rep.shape) - 1)
         candidate_str_rep = F.normalize(candidate_str_rep, dim=len(candidate_str_rep.shape) - 1)
 
-        # Cat the embs
+        # Cat the embs / pass through DAN
         cat_dim = 2 if len(candidate_ids.shape) == 2 else 1
         mention_repr = self.dan(torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1))
         cand_repr = self.dan(torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim))
 
-        # Normalize
-        if self.args.norm_final:
-            cand_repr = F.normalize(cand_repr, dim=cat_dim)
-            mention_repr = F.normalize(mention_repr, dim=1)
-
+        print(f'MENTION: {mention_repr.shape}')
+        print(f'CANDIDATE: {cand_repr.shape}')
+        
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
             mention_repr.unsqueeze_(1)
