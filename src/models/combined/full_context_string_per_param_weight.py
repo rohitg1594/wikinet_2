@@ -91,11 +91,14 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
         cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim)
 
+        print(f'MENTION REPR: {mention_repr.shape}')
         mention_weights = self.linear1(mention_repr)
         if self.args.num_linear == 2:
             mention_weights = self.linear2(self.relu(mention_weights))
+        print(f'MENTION WEIGHTS: {mention_weights.shape}')
 
         mention_rescaled = mention_repr * self.sigmoid(mention_weights)
+        print(f'MENTION RESCALED: {mention_rescaled.shape}')
 
         # Normalize
         if self.args.norm_final:
@@ -104,7 +107,7 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
-            mention_repr.unsqueeze_(1)
+            mention_rescaled.unsqueeze_(1)
             scores = torch.matmul(mention_rescaled, cand_repr.transpose(1, 2)).squeeze(1)
         else:
             scores = torch.Tensor([0])
