@@ -47,9 +47,10 @@ class FullContextStringCombined(CombinedBase, Loss):
         self.autoencoder.load_state_dict(autoencoder_state_dict)
         self.autoencoder.requires_grad = False
 
-        self.combine_linear = nn.Linear(self.args.mention_word_dim + self.args.context_word_dim + hidden_size,
-                                        self.args.mention_word_dim + self.args.context_word_dim + hidden_size, bias=False)
-        nn.init.eye_(self.combine_linear.weight)
+        total_dims = self.args.mention_word_dim + self.args.context_word_dim + hidden_size
+        self.combine_linear = nn.Linear(total_dims, total_dims, bias=False)
+        init_func = getattr(nn.init, self.args.init_linear)
+        init_func(self.combine_linear.weight)
 
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
