@@ -93,7 +93,7 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
 
         mention_weights = self.linear1(mention_repr)
         if self.args.num_linear == 2:
-            mention_weights = self.linear2(nn.ReLU())
+            mention_weights = self.linear2(self.relu(mention_weights))
 
         mention_repr *= self.sigmoid(mention_weights)
 
