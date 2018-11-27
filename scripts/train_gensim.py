@@ -1,9 +1,7 @@
 import gensim
 import sys
 import argparse
-sys.path.append('/home/rogupta/wikinet_2/')
 
-from src.utils.data import *
 from src.utils.utils import *
 
 parser = argparse.ArgumentParser(description='Training Gensim')
