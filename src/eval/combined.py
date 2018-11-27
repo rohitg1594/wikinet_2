@@ -306,6 +306,10 @@ class CombinedValidator:
 
                 _, preds = index.search(mention_combined_embs.astype(np.float32), 100)
 
+                if not np.any(preds[:, 0]):
+                    logger.info("ALL PREDICTIONS ARE 0, IGNORING FIRST COLUMN")
+                    preds = preds[:, 1:]
+
                 # Evaluate rankings
                 gold = self.numpy_data[data_type]['gold']
                 gold = gold[self.wiki_mask] if data_type == 'wiki' else gold
