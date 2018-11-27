@@ -108,7 +108,7 @@ class FullContextStringLinearScalar(CombinedBase, Loss):
             context_weights = self.sigmoid(context_weights)
             str_weights = self.sigmoid(str_weights)
 
-        if len(candidate_ids.shape) == 1:
+            if len(candidate_ids.shape) == 1:
             mask = torch.randint(0, mention_weights.shape[0], (20,)).long()
             print('##################LEARNED WEIGHTS#######################')
             print(
