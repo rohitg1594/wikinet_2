@@ -107,11 +107,12 @@ class Trainer(object):
         wait = 0
         num_batches = len(self.loader)
         tenth_batch = num_batches // 10
+        TOP_VALID = 1
 
         logger.info("Validating untrained model.....")
         best_model = self.model
         full_results = self.combined_validate('Untrained')
-        best_results = {data_type: result[1] for data_type, result in full_results.items()}
+        best_results = {data_type: result[TOP_VALID] for data_type, result in full_results.items()}
         best_valid_metric = best_results['conll']
         logger.info("Done validating.")
 
@@ -154,9 +155,9 @@ class Trainer(object):
 
             if self.model_type == 'combined':
                 results = self.combined_validate(epoch)
-                valid_metric = results['conll']['top1']
+                valid_metric = results['conll'][TOP_VALID]
                 for data_type, result in results.items():
-                    top1 = result['top1']
+                    top1 = result[1]
                     if top1 > best_results[data_type]:
                         best_results[data_type] = top1
             elif self.model_type == 'yamada':
