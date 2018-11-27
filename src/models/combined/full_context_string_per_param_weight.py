@@ -62,7 +62,7 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
         init_func(self.linear2.weight)
 
         if self.args.num_linear == 1:
-            self.gate_net = nn.Sequential(self.linear1, self.relu, self.self.linear2, self.sigmoid)
+            self.gate_net = nn.Sequential(self.linear1, self.relu, self.linear2, self.sigmoid)
         else:
             self.gate_net = nn.Sequential(self.linear1, self.sigmoid)
 
