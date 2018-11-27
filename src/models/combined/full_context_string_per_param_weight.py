@@ -57,6 +57,11 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
         init_func(self.linear1.weight)
         init_func(self.linear2.weight)
 
+        if self.args.num_linear == 1:
+            self.gate_net = nn.Sequential(self.linear1, self.relu, self.self.linear2, self.sigmoid)
+        else:
+            self.gate_net = nn.Sequential(self.linear1, self.sigmoid)
+
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
         mention_char_tokens = inputs['mention_char_tokens']
@@ -91,19 +96,13 @@ class FullContextStringPerParamWeight(CombinedBase, Loss):
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
         cand_repr = torch.cat((candidate_mention_embs, candidate_context_embs, candidate_str_rep), dim=cat_dim)
 
-        print(f'MENTION REPR: {mention_repr.shape}')
-        mention_weights = self.linear1(mention_repr)
-        if self.args.num_linear == 2:
-            mention_weights = self.linear2(self.relu(mention_weights))
-        print(f'MENTION WEIGHTS: {mention_weights.shape}')
-
-        mention_rescaled = mention_repr * self.sigmoid(mention_weights)
-        print(f'MENTION RESCALED: {mention_rescaled.shape}')
+        mention_weights = self.gate_net(mention_repr)
+        mention_rescaled = mention_repr * mention_weights
 
         # Normalize
         if self.args.norm_final:
             cand_repr = F.normalize(cand_repr, dim=cat_dim)
-            mention_repr = F.normalize(mention_rescaled, dim=1)
+            mention_rescaled = F.normalize(mention_rescaled, dim=1)
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
