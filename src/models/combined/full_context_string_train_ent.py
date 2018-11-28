@@ -68,8 +68,6 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
         else:
             self.gate_net = nn.Sequential(self.linear1, self.sigmoid)
 
-        print(f'ALL ATTRIBUTES : {self.__dict__.keys()}')
-
     def forward(self, inputs):
         mention_word_tokens = inputs['mention_word_tokens']
         mention_char_tokens = inputs['mention_char_tokens']
