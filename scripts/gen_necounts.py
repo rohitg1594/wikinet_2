@@ -93,7 +93,7 @@ def process_line(line):
         if 'Category:' in page_name or page_name not in ent_dict:
             continue
 
-        out.append((wiki_text[begin:end], ent_dict[page_name]))
+        out.append((wiki_text[begin:end], page_name))
     return out
 
 
