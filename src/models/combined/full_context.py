@@ -23,7 +23,7 @@ class FullContext(CombinedBase, Loss):
         self.mention_embs.weight.data[0] = 0
 
         # Entity mention embeddings
-        self.ent_mention_embs = nn.Embedding(self.ent_embs.weight.shape[0], self.args.ent_mention_dim,
+        self.ent_mention_embs = nn.Embedding(self.ent_combined_embs.weight.shape[0], self.args.ent_mention_dim,
                                              padding_idx=0, sparse=self.args.sparse)
         self.ent_mention_embs.weight.data.normal_(0, self.args.init_stdv)
         self.ent_mention_embs.weight.data[0] = 0
@@ -43,7 +43,7 @@ class FullContext(CombinedBase, Loss):
         mention_embs = self.mention_embs(mention_word_tokens)
         context_embs = self.word_embs(context_tokens)
         candidate_mention_embs = self.ent_mention_embs(candidate_ids)
-        candidate_context_embs = self.ent_embs(candidate_ids)
+        candidate_context_embs = self.ent_combined_embs(candidate_ids)
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)

@@ -37,7 +37,7 @@ class WeighConcat(CombinedBase):
             mention_gram_embs = self.gram_embs(mention_gram_tokens)
             candidate_gram_embs = self.gram_embs(candidate_gram_tokens)
             context_word_embs = self.word_embs(context_word_tokens)
-            candidate_ent_embs = self.ent_embs(candidate_ids)
+            candidate_ent_embs = self.ent_combined_embs(candidate_ids)
 
             # Apply Dropout
             mention_gram_embs = self.dp(mention_gram_embs)
@@ -83,7 +83,7 @@ class WeighConcat(CombinedBase):
             mention_gram_embs = self.gram_embs(mention_gram_tokens)
             candidate_gram_embs = self.gram_embs(candidate_gram_tokens)
             context_word_embs = self.word_embs(context_word_tokens)
-            candidate_ent_embs = self.ent_embs(candidate_ids)
+            candidate_ent_embs = self.ent_combined_embs(candidate_ids)
 
             # Sum the embeddings over the small and large tokens dimension
             mention_gram_embs = torch.mean(mention_gram_embs, dim=1)

@@ -38,8 +38,8 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
         self.mention_word_embs.requires_grad = self.args.train_mention
 
         # Entity mention embeddings
-        self.ent_embs = nn.Embedding(*ent_embs.shape, padding_idx=0, sparse=self.args.sparse)
-        self.ent_embs.weight.data.copy_(np_to_tensor(ent_embs))
+        self.ent_combined_embs = nn.Embedding(*ent_embs.shape, padding_idx=0, sparse=self.args.sparse)
+        self.ent_combined_embs.weight.data.copy_(np_to_tensor(ent_embs))
 
         # Dropout
         self.dp = nn.Dropout(self.args.dp)
@@ -54,7 +54,6 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
         self.autoencoder.load_state_dict(autoencoder_state_dict)
         self.autoencoder.requires_grad = False
 
-        total_dims = self.args.mention_word_dim + self.args.context_word_dim + hidden_size
         self.linear1 = nn.Linear(total_dims, total_dims)
         self.linear2 = nn.Linear(total_dims, total_dims)
         self.relu = nn.ReLU()
@@ -83,7 +82,7 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
         # Get the embeddings
         mention_embs = self.dp(self.mention_word_embs(mention_word_tokens))
         context_embs = self.dp(self.word_embs(context_tokens))
-        candidate_embs = self.dp(self.ent_embs(candidate_ids))
+        candidate_embs = self.dp(self.ent_combined_embs(candidate_ids))
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)

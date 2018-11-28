@@ -41,7 +41,7 @@ class MentionPrior(CombinedBase, Loss):
         mention_word_embs = self.mention_embs(mention_word_tokens)
         context_word_embs = self.word_embs(context_word_tokens)
 
-        candidate_ent_embs = self.ent_embs(candidate_ids)
+        candidate_ent_embs = self.ent_combined_embs(candidate_ids)
         candidate_ent_mention_embs = self.ent_mention_embs(candidate_ids)
 
         # Sum the embeddings over the small and large tokens dimension

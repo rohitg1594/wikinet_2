@@ -34,7 +34,7 @@ class PreTrainContext(CombinedBase, Loss):
 
         # Get the embeddings
         context_repr = self.word_embs(context_tokens)
-        candidate_repr = self.ent_embs(candidate_ids)
+        candidate_repr = self.ent_combined_embs(candidate_ids)
 
         # Normalize
         if self.args.norm_final:

@@ -67,7 +67,7 @@ class FullContextStringCombined(CombinedBase, Loss):
         mention_embs = self.dp(self.mention_word_embs(mention_word_tokens))
         context_embs = self.dp(self.word_embs(context_tokens))
         candidate_mention_embs = self.dp(self.mention_ent_embs(candidate_ids))
-        candidate_context_embs = self.dp(self.ent_embs(candidate_ids))
+        candidate_context_embs = self.dp(self.ent_combined_embs(candidate_ids))
 
         # Sum the embeddings over the small and large tokens dimension
         mention_embs_agg = torch.mean(mention_embs, dim=1)
