@@ -52,7 +52,8 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
                                              dp=self.args.dp,
                                              activate=self.args.activate)
         self.autoencoder.load_state_dict(autoencoder_state_dict)
-        self.autoencoder.requires_grad = False
+        for p in self.autoencoder.parameters():
+            p.requires_grad = False
 
         self.linear1 = nn.Linear(total_dims, total_dims)
         self.linear2 = nn.Linear(total_dims, total_dims)
