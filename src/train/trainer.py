@@ -156,7 +156,9 @@ class Trainer(object):
                 save_checkpoint({
                     'epoch': epoch + 1,
                     'state_dict': self.model.state_dict(),
-                    'optimizer': self.optimizer.state_dict()}, filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
+                    'emb_optimizer': self.emb_optimizer.state_dict(),
+                    'other_optimizer': self.other_optimizer.state_dict()},
+                    filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
 
             if self.model_type == 'combined':
                 results = self.combined_validate(epoch)

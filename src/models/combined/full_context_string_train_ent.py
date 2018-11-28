@@ -102,7 +102,6 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
             logger.info(
                 f'MENTION WEIGHT: MEAN - {torch.mean(mention_weights)}, STDV - {torch.std(mention_weights)}, SAMPLE - \n {mention_weights[mask][:10]}')
         mention_rescaled = mention_repr * mention_weights
-        print(f'MENTION RESCALED: {mention_rescaled.shape}')
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
