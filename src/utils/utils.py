@@ -578,3 +578,13 @@ def filter_embs_param(model):
                 out.append(p)
                 print(f'Adding {n} to embs optimizer')
     return out
+
+
+def filter_other_param(model):
+    out = []
+    for n, p in model.named_parameters():
+        if p.requires_grad:
+            if 'embs' not in n:
+                out.append(p)
+                print(f'Adding {n} to other optimizer')
+    return out

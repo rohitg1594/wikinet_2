@@ -8,7 +8,7 @@ import gc
 import torch
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from src.utils.utils import save_checkpoint, get_optim, filter_embs_param
+from src.utils.utils import save_checkpoint, get_optim, filter_embs_param, filter_other_param
 
 logger = logging.getLogger()
 
@@ -39,9 +39,7 @@ class Trainer(object):
             self.emb_optimizer = optimizer_type(filter_embs_param(model), lr=args.lr, weight_decay=args.wd)
 
         optimizer_type = get_optim(optim=self.args.other_optim)
-        self.other_optimizer = optimizer_type(filter(lambda p: p.requires_grad, self.model.parameters()),
-                                              lr=args.lr,
-                                              weight_decay=args.wd)
+        self.other_optimizer = optimizer_type(filter_other_param(model), lr=args.lr, weight_decay=args.wd)
 
         self.emb_scheduler = ReduceLROnPlateau(self.emb_optimizer, mode='max', verbose=True, patience=5)
         self.other_scheduler = ReduceLROnPlateau(self.other_optimizer, mode='max', verbose=True, patience=5)
