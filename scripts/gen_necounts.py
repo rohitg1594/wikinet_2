@@ -54,14 +54,14 @@ except IOError:
     logging.info('redirects not found at {}'.format(os.path.join(DATA_PATH, "redirects_en_2.pickle")))
     redirects = dict()
 
-try:
-    logging.info("Loading Yamada model.")
-    yamada_model = pickle_load(join(args.data_path, 'yamada', 'yamada_model.pickle'))
-    logging.info("Model loaded.")
-    ent_dict = yamada_model['ent_dict']
-except IOError:
-    logging.info('Error loading yamada model')
-    sys.exit(1)
+# try:
+#     logging.info("Loading Yamada model.")
+#     yamada_model = pickle_load(join(args.data_path, 'yamada', 'yamada_model.pickle'))
+#     logging.info("Model loaded.")
+#     ent_dict = yamada_model['ent_dict']
+# except IOError:
+#     logging.info('Error loading yamada model')
+#     sys.exit(1)
 
 
 def uppercase_first(s):
@@ -90,7 +90,7 @@ def process_line(line):
         if page_name in redirects:
             page_name = redirects[page_name]
 
-        if 'Category:' in page_name or page_name not in ent_dict:
+        if 'Category:' in page_name:
             continue
 
         out.append((wiki_text[begin:end], page_name))
