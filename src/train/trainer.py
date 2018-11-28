@@ -44,7 +44,8 @@ class Trainer(object):
                                               lr=args.lr,
                                               weight_decay=args.wd)
 
-        self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', verbose=True, patience=5)
+        self.emb_scheduler = ReduceLROnPlateau(self.emb_optimizer, mode='max', verbose=True, patience=5)
+        self.other_scheduler = ReduceLROnPlateau(self.other_optimizer, mode='max', verbose=True, patience=5)
         self.loader_index = 0
 
     def _get_next_batch(self, data_dict):
@@ -172,7 +173,8 @@ class Trainer(object):
                 logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model_type))
                 sys.exit(1)
 
-            self.scheduler.step(valid_metric)
+            self.emb_scheduler.step(valid_metric)
+            self.other_scheduler.step(valid_metric)
 
             if valid_metric > best_valid_metric:
                 best_model = self.model
@@ -186,6 +188,7 @@ class Trainer(object):
 
         save_checkpoint({
             'state_dict': best_model.state_dict(),
-            'optimizer': self.optimizer.state_dict()}, filename=join(self.model_dir, 'best_model.ckpt'))
+            'emb_optimizer': self.emb_optimizer.state_dict(),
+            'other_optimizer': self.other_optimizer.state_dict()}, filename=join(self.model_dir, 'best_model.ckpt'))
 
         return best_results
