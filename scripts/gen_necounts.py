@@ -51,7 +51,7 @@ try:
         redirects = pickle.load(f)
     logging.info('redirects dict loaded')
 except IOError:
-    logging.info('redirects not found at {}'.format(os.path.join(DATA_PATH, "redirects_en_2.pickle")))
+    logging.info('redirects not found at {}'.format(os.path.join(DATA_PATH, "redirects.pickle")))
     redirects = dict()
 
 # try:

@@ -56,7 +56,8 @@ batch_size:32
 num_workers:8
 lr:1e-03
 wd:1e-06
-optim:adagrad
+embs_optim:adagrad
+other_optim:adagrad
 save_every:5
 
 # Loss

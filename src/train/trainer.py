@@ -32,14 +32,13 @@ class Trainer(object):
         self.batch_size = args.batch_size
         self.validator = validator
 
-        optimizer_type = get_optim(optim=self.args.optim)
-
-        if self.args.optim == 'sparseadam':
+        optimizer_type = get_optim(optim=self.args.embs_optim)
+        if self.args.sparse:
             self.emb_optimizer = optimizer_type(filter_embs_param(model), lr=args.lr)
-            optimizer_type = get_optim(optim='adagrad')
         else:
             self.emb_optimizer = optimizer_type(filter_embs_param(model), lr=args.lr, weight_decay=args.wd)
 
+        optimizer_type = get_optim(optim=self.args.other_optim)
         self.other_optimizer = optimizer_type(filter(lambda p: p.requires_grad, self.model.parameters()),
                                               lr=args.lr,
                                               weight_decay=args.wd)

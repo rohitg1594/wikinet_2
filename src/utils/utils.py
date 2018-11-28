@@ -576,5 +576,5 @@ def filter_embs_param(model):
         if p.requires_grad:
             if 'embs' in n:
                 out.append(p)
-
+                print(f'Adding {n} to embs optimizer')
     return out

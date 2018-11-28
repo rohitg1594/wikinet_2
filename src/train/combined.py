@@ -101,7 +101,11 @@ def parse_args():
     train_params.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
     train_params.add_argument('--lr', type=float, help='learning rate')
     train_params.add_argument('--wd', type=float, help='weight decay')
-    train_params.add_argument('--optim', type=str, choices=['adagrad', 'adam', 'rmsprop', 'sparseadam'], help='optimizer')
+    train_params.add_argument('--sparse', type=str2bool, help='whether to use sparse gradients for embeddings')
+    train_params.add_argument('--embs_optim', type=str, choices=['adagrad', 'adam', 'rmsprop', 'sparseadam'],
+                              help='optimizer for embeddings')
+    train_params.add_argument('--other_optim', type=str, choices=['adagrad', 'adam', 'rmsprop'],
+                              help='optimizer for paramaters that are not embeddings')
 
     # Loss
     loss = parser.add_argument_group('Type of loss.')
@@ -126,10 +130,6 @@ def parse_args():
     logger = get_logger(args)
 
     # Setup
-    if args.optim == 'sparseadam':
-        args.sparse = True
-    else:
-        args.sparse = False
     if args.use_cuda:
         devices = args.device.split(",")
         if len(devices) > 1:
