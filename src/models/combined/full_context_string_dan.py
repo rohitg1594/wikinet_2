@@ -107,7 +107,7 @@ class FullContextStringDan(CombinedBase, Loss):
 
         # Dot product over last dimension only during training
         if len(candidate_ids.shape) == 2:
-            mention_repr.unsqueeze_(1)
+            mention_repr = mention_repr.unsqueeze(1)
             scores = torch.matmul(mention_repr, cand_repr.transpose(1, 2)).squeeze(1)
         else:
             scores = torch.Tensor([0])
