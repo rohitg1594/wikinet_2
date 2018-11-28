@@ -8,7 +8,7 @@ import gc
 import torch
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from src.utils.utils import save_checkpoint, get_optim
+from src.utils.utils import save_checkpoint, get_optim, filter_embs_param
 
 logger = logging.getLogger()
 
@@ -33,12 +33,16 @@ class Trainer(object):
         self.validator = validator
 
         optimizer_type = get_optim(optim=self.args.optim)
+
         if self.args.optim == 'sparseadam':
-            self.optimizer = optimizer_type(filter(lambda p: p.requires_grad, self.model.parameters()), lr=args.lr)
+            self.emb_optimizer = optimizer_type(filter_embs_param(model), lr=args.lr)
+            optimizer_type = get_optim(optim='adagrad')
         else:
-            self.optimizer = optimizer_type(filter(lambda p: p.requires_grad, self.model.parameters()),
-                                            lr=args.lr,
-                                            weight_decay=args.wd)
+            self.emb_optimizer = optimizer_type(filter_embs_param(model), lr=args.lr, weight_decay=args.wd)
+
+        self.other_optimizer = optimizer_type(filter(lambda p: p.requires_grad, self.model.parameters()),
+                                              lr=args.lr,
+                                              weight_decay=args.wd)
 
         self.scheduler = ReduceLROnPlateau(self.optimizer, mode='max', verbose=True, patience=5)
         self.loader_index = 0
@@ -62,9 +66,11 @@ class Trainer(object):
         scores, _, _ = self.model(data)
         loss = self.model.loss(scores, labels)
 
-        self.optimizer.zero_grad()
+        self.emb_optimizer.zero_grad()
+        self.other_optimizer.zero_grad()
         loss.backward()
-        self.optimizer.step()
+        self.emb_optimizer.step()
+        self.other_optimizer.step()
 
         return loss.item()
 

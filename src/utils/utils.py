@@ -568,3 +568,13 @@ def get_optim(optim=None):
         sys.exit(1)
 
     return optimizer
+
+
+def filter_embs_param(model):
+    out = []
+    for n, p in model.named_parameters():
+        if p.requires_grad:
+            if 'embs' in n:
+                out.append(p)
+
+    return out
