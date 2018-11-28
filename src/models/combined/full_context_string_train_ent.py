@@ -95,7 +95,6 @@ class FullContextStringTrainEnt(CombinedBase, Loss):
         # Cat the embs
         mention_repr = torch.cat((mention_embs_agg, context_embs_agg, mention_str_rep), dim=1)
         mention_weights = self.gate_net(mention_repr)
-        print(f'MENTION REPR: {mention_repr.shape}, MENTION WEIGHT: {mention_weights.shape}')
 
         if len(candidate_ids.shape) == 1:
             mask = torch.randint(0, mention_weights.shape[0], (20,)).long()

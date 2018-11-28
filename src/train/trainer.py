@@ -32,18 +32,16 @@ class Trainer(object):
         self.batch_size = args.batch_size
         self.validator = validator
 
+        # Optimizer and scheduler
         optimizer_type = get_optim(optim=self.args.embs_optim)
         if self.args.sparse:
             self.emb_optimizer = optimizer_type(filter_embs_param(model), lr=args.lr)
         else:
             self.emb_optimizer = optimizer_type(filter_embs_param(model), lr=args.lr, weight_decay=args.wd)
-
         optimizer_type = get_optim(optim=self.args.other_optim)
         self.other_optimizer = optimizer_type(filter_other_param(model), lr=args.lr, weight_decay=args.wd)
-
         self.emb_scheduler = ReduceLROnPlateau(self.emb_optimizer, mode='max', verbose=True, patience=5)
         self.other_scheduler = ReduceLROnPlateau(self.other_optimizer, mode='max', verbose=True, patience=5)
-        self.loader_index = 0
 
     def _get_next_batch(self, data_dict):
         for k, v in data_dict.items():
@@ -105,6 +103,21 @@ class Trainer(object):
 
         return results['conll']
 
+    def _profile(self):
+        logger.info('Starting profiling of dataloader.....')
+        pr = cProfile.Profile()
+        pr.enable()
+
+        for batch_idx, _ in enumerate(self.loader, 0):
+            print(batch_idx)
+            pass
+
+        pr.disable()
+        pr.dump_stats(join(self.args.data_path, 'stats.prof'))
+        pr.print_stats(sort='time')
+
+        sys.exit()
+
     def train(self):
         training_losses = []
 
@@ -121,19 +134,7 @@ class Trainer(object):
         logger.info("Done validating.")
 
         if self.profile:
-            logger.info('Starting profiling of dataloader.....')
-            pr = cProfile.Profile()
-            pr.enable()
-
-            for batch_idx, _ in enumerate(self.loader, 0):
-                print(batch_idx)
-                pass
-
-            pr.disable()
-            pr.dump_stats(join(self.args.data_path, 'stats.prof'))
-            pr.print_stats(sort='time')
-
-            sys.exit()
+            self._profile()
 
         for epoch in range(self.num_epochs):
             self.model.train()
