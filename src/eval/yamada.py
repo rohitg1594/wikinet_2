@@ -79,10 +79,12 @@ class YamadaValidator:
 
             preds_mask = np.argmax(scores, axis=1)
             preds = cand_strs[np.arange(len(preds_mask)), preds_mask]
-            num_cor = (np.equal(preds, ent_strs)).sum()
+            print(f'PREDS: {preds}, ENTS: {ent_strs}')
 
-            cor = np.equal(preds, ent_strs)
-            inc = np.not_equal(preds, ent_strs)
+            cor = preds == ent_strs
+            inc = preds != ent_strs
+            num_cor = cor.sum()
+            print(f'COR: {cor}, INC: {inc}, NUM COR: {num_cor}')
             inc_ids = np.where(inc)[0]
             cor_ids = np.where(cor)[0]
 
