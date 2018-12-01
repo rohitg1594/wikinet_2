@@ -73,7 +73,6 @@ class YamadaValidator:
 
             context = data_dict['context']
             cand_ids = data_dict['cand_ids']
-            not_in_cand = data_dict['not_in_cand']
             not_in_cand, context, candidates = not_in_cand.cpu().data.numpy(), \
                                                context.cpu().data.numpy(), \
                                                cand_ids.cpu().data.numpy()
