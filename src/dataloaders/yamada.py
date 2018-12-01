@@ -163,7 +163,7 @@ class YamadaDataset(object):
                   'not_in_cand': not_in_cand,
                   'context': context,
                   'cand_strs': cand_strs,
-                  'ent_str': ent_str,
+                  'ent_strs': ent_str,
                   **features_dict}
 
         if self.corpus_flag:
