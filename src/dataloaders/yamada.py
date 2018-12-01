@@ -43,7 +43,7 @@ class YamadaDataset(object):
             self.num_candidates = 10 ** 6
         if cand_type == 'necounts':
             # This is of the form: mention_str :  Counter(cand_id: counts)
-            self.necounts = pickle_load(join(self.args.data_path, "necounts", "str_necounts.pickle"))
+            self.necounts = pickle_load(join(self.args.data_path, "necounts", "str_normalize_necounts.pickle"))
 
         id2context, examples = data
         self.examples = examples
