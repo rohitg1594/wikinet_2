@@ -75,9 +75,7 @@ class YamadaValidator:
 
             context = data_dict['context']
             cand_ids = data_dict['cand_ids']
-            not_in_cand, context, candidates = not_in_cand.cpu().data.numpy(), \
-                                               context.cpu().data.numpy(), \
-                                               cand_ids.cpu().data.numpy()
+            context, candidates = context.cpu().data.numpy(), cand_ids.cpu().data.numpy()
 
             preds_mask = np.argmax(scores, axis=1)
             preds = cand_strs[np.arange(len(preds_mask)), preds_mask]
