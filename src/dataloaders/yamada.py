@@ -13,7 +13,9 @@ class YamadaDataset(object):
                  data=None,
                  args=None,
                  cand_rand=False,
-                 cand_type='necounts'):
+                 cand_type='necounts',
+                 necounts=None,
+                 redirects=None):
         super().__init__()
 
         self.args = args
@@ -28,15 +30,14 @@ class YamadaDataset(object):
         self.ent_conditional = ent_conditional
         self.ent_strs = list(self.ent_prior.keys())
 
-        self.redirects = pickle_load(join(self.args.data_path, 'redirects.pickle'))
+        self.redirects = redirects
 
         self.cand_rand = cand_rand
         self.cand_type = cand_type
         if self.cand_rand:
             self.num_candidates = 10 ** 6
-        if cand_type == 'necounts':
-            # This is of the form: mention_str :  Counter(cand_id: counts)
-            self.necounts = pickle_load(join(self.args.data_path, "necounts", "str_normalize_necounts.pickle"))
+
+        self.necounts = necounts
 
         id2context, examples = data
         self.examples = examples

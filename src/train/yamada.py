@@ -157,6 +157,8 @@ def setup(args, logger):
                                   cand_type=args.cand_type)
     logger.info("Training dataset created.")
 
+    necounts = pickle_load(join(args.data_path, "necounts", "str_normalize_necounts.pickle"))
+    redirects = pickle_load(join(args.data_path, 'redirects.pickle'))
     datasets = {}
     for data_type in DATA_TYPES:
         datasets[data_type] = YamadaDataset(ent_conditional=conditionals,
@@ -164,7 +166,9 @@ def setup(args, logger):
                                             yamada_model=yamada_model,
                                             data=data[data_type]['dev'],
                                             args=args,
-                                            cand_type='necounts')
+                                            cand_type='necounts',
+                                            necounts=necounts,
+                                            redirects=None)
         logger.info(f"{data_type} dev dataset created.")
 
     return train_dataset, datasets, yamada_model

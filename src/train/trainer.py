@@ -44,14 +44,17 @@ class Trainer(object):
         self.other_scheduler = ReduceLROnPlateau(self.other_optimizer, mode='max', verbose=True, patience=5)
 
     def _get_next_batch(self, data_dict):
+        skip_keys = ['ent_strs', 'cand_strs', 'not_in_cand']
         for k, v in data_dict.items():
             try:
-                if k == 'ent_strs' or 'cand_strs' or 'not_in_dict':
-                    data_dict.pop(k)
-                else:
+                if k not in skip_keys:
                     data_dict[k] = Variable(v)
             except:
                 print(f'key - {k}, Value - {v}')
+
+        for k in skip_keys:
+            if k in data_dict:
+                data_dict.pop(k)
 
         labels = Variable(torch.zeros(v.shape[0]).type(torch.LongTensor), requires_grad=False)
 
