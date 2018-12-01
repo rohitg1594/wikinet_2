@@ -1,14 +1,7 @@
 # This module implements dataloader for the yamada model
-import numpy as np
-import torch
+
 import torch.utils.data
-
-from os.path import join
-import random
-
-from src.utils.utils import reverse_dict, get_normalised_forms, equalize_len, normalise_form, pickle_load
-
-import difflib
+from src.utils.utils import *
 
 
 class YamadaDataset(object):
@@ -48,9 +41,15 @@ class YamadaDataset(object):
         id2context, examples = data
         self.examples = examples
         self.id2context = id2context
-        self.processed_id2context = {}
-        for index in self.id2context.keys():
-            self.processed_id2context[index] = self._init_context(index)
+
+        processed_f_name = join(self.args.data_path, 'cache', f'processed_id2context_{self.args.data_type}')
+        if os.path.exists(processed_f_name):
+            self.processed_id2context = pickle_load(processed_f_name)
+        else:
+            self.processed_id2context = {}
+            for index in self.id2context.keys():
+                self.processed_id2context[index] = self._init_context(index)
+            pickle_dump(self.processed_id2context, processed_f_name)
 
         if 'corpus_vec' in self.args.model_name:
             self.corpus_flag = True
