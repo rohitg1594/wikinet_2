@@ -129,14 +129,14 @@ def setup(args, logger):
 
     for data_type in DATA_TYPES:
         if data_type == 'wiki':
-            res = load_data(args.data_type, args.train_size, args.data_path)
+            res = load_data('wiki', args.train_size, args.data_path)
             id2context, examples = res['dev']
             new_examples = [examples[idx] for idx in np.random.randint(0, len(examples), 10000)]
             res['dev'] = id2context, new_examples
             for split, data_split in res.items():
                 data['wiki'][split] = data_split
         elif data_type == 'conll':
-            res = load_data('conll', args)
+            res = load_data('conll', args, args.data_path)
             for split, data_split in res.items():
                 data['conll'][split] = data_split
         else:
