@@ -87,7 +87,7 @@ class YamadaDataset(object):
         cand_gen_strs = cand_gen_strs[:self.num_cand_gen]
         cand_rand_strs = random.sample(self.ent_strs, num_rand)
         cand_strs = [ent_str] + cand_gen_strs + cand_rand_strs
-        cand_ids = [self.ent2id.get(cand_str, 0) for cand_str in cand_strs]
+        cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
 
         # print(f'CAND IDS- {cand_ids}, CAND STRS - {cand_strs}')
 
