@@ -4,9 +4,9 @@ import torch
 import torch.utils.data
 
 from os.path import join
+import random
 
-from src.utils.utils import reverse_dict, get_normalised_forms, equalize_len, normalise_form
-from src.utils.data import pickle_load
+from src.utils.utils import reverse_dict, get_normalised_forms, equalize_len, normalise_form, pickle_load
 
 import difflib
 
@@ -33,6 +33,7 @@ class YamadaDataset(object):
         self.max_ent = len(self.ent2id)
         self.ent_prior = ent_prior
         self.ent_conditional = ent_conditional
+        self.ent_strs = list(self.ent_prior.keys())
 
         self.redirects = pickle_load(join(self.args.data_path, 'redirects.pickle'))
 
@@ -63,33 +64,32 @@ class YamadaDataset(object):
 
     def _gen_cands(self, ent_str, mention):
 
-        ent_id = self.ent2id.get(ent_str, 0)
-
         nfs = get_normalised_forms(mention)
-        candidate_ids = []
+        cand_gen_strs = []
         for nf in nfs:
             if nf in self.necounts:
-                candidate_ids.extend(self.necounts[nf])
+                cand_gen_strs.extend(list(self.necounts[nf].keys()))
 
-        if ent_id == 0:
+        # if ent_id == 0:
+        #     not_in_cand = 0
+        # else:
+        if ent_str in cand_gen_strs:
+            cand_gen_strs.remove(ent_str)
             not_in_cand = 0
         else:
-            if ent_id in candidate_ids:
-                candidate_ids.remove(ent_id)
-                not_in_cand = 0
-            else:
-                not_in_cand = 1
+            not_in_cand = 1
 
-        if len(candidate_ids) > self.num_cand_gen:
-            cand_generation = np.random.choice(np.array(candidate_ids), replace=False, size=self.num_cand_gen)
-            cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - self.num_cand_gen - 1)
+        if len(cand_gen_strs) > self.num_cand_gen:
+            num_rand = self.args.num_candidates - self.num_cand_gen - 1
         else:
-            cand_generation = np.array(candidate_ids)
-            cand_random = np.random.randint(1, self.len_ent + 1, self.args.num_candidates - len(candidate_ids) - 1)
+            num_rand = self.args.num_candidates - len(cand_gen_strs) - 1
 
-        candidate_ids = np.concatenate((np.array(ent_id)[None], cand_generation, cand_random)).astype(np.int64)
+        cand_gen_strs = cand_gen_strs[:self.num_cand_gen]
+        cand_rand_strs = random.sample(self.ent_strs, num_rand)
+        cand_strs = [ent_str] + cand_gen_strs + cand_rand_strs
+        cand_ids = [self.ent2id.get(cand_str, 0) for cand_str in cand_strs]
 
-        return candidate_ids, not_in_cand
+        return cand_ids, cand_strs, not_in_cand
 
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
@@ -104,7 +104,7 @@ class YamadaDataset(object):
 
         return context
 
-    def _gen_features(self, mention_str, candidate_ids):
+    def _gen_features(self, mention_str, cand_strs):
 
         # Initialize
         exact = np.zeros(self.num_candidates).astype(np.float32)
@@ -113,17 +113,16 @@ class YamadaDataset(object):
         conditionals = np.zeros(self.num_candidates).astype(np.float32)
 
         # Populate
-        for cand_idx, cand_id in enumerate(candidate_ids):
-            ent_str = self.id2ent.get(cand_id, '')
-            if mention_str == ent_str or mention_str in ent_str:
+        for cand_idx, cand_str in enumerate(cand_strs):
+            if mention_str == cand_str or mention_str in cand_str:
                 exact[cand_idx] = 1
-            if ent_str.startswith(mention_str) or ent_str.endswith(mention_str):
+            if cand_str.startswith(mention_str) or cand_str.endswith(mention_str):
                 contains[cand_idx] = 1
 
-            priors[cand_idx] = self.ent_prior.get(cand_id, 0)
+            priors[cand_idx] = self.ent_prior.get(cand_str, 0)
             nf = normalise_form(mention_str)
             if nf in self.ent_conditional:
-                conditionals[cand_idx] = self.ent_conditional[nf].get(cand_id, 0)
+                conditionals[cand_idx] = self.ent_conditional[nf].get(cand_str, 0)
             else:
                 conditionals[cand_idx] = 0
 
@@ -152,12 +151,14 @@ class YamadaDataset(object):
         context = self.processed_id2context[context_id]
         mention_str, ent_str, _, _ = example
         ent_str = self.redirects.get(ent_str, ent_str)
-        candidate_ids, not_in_cand = self._gen_cands(ent_str, mention_str)
-        features_dict = self._gen_features(mention_str, candidate_ids)
+        cand_ids, cand_strs, not_in_cand = self._gen_cands(ent_str, mention_str)
+        features_dict = self._gen_features(mention_str, cand_strs)
 
-        output = {'candidate_ids': candidate_ids,
+        output = {'cand_ids': cand_strs,
                   'not_in_cand': not_in_cand,
                   'context': context,
+                  'cand_strs': cand_strs,
+                  'ent_str': ent_str,
                   **features_dict}
 
         if self.corpus_flag:

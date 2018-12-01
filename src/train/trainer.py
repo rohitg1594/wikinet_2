@@ -45,7 +45,11 @@ class Trainer(object):
 
     def _get_next_batch(self, data_dict):
         for k, v in data_dict.items():
-            data_dict[k] = Variable(v)
+            if k == 'ent_strs':
+                ent_strs = v
+                data_dict.pop(k)
+            else:
+                data_dict[k] = Variable(v)
 
         labels = Variable(torch.zeros(v.shape[0]).type(torch.LongTensor), requires_grad=False)
 

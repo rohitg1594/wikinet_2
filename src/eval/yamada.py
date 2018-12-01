@@ -25,16 +25,24 @@ class YamadaValidator:
 
     def _get_next_batch(self, data_dict):
         for k, v in data_dict.items():
-            data_dict[k] = Variable(v)
-
-        labels = np.zeros(v.shape[0])
+            if k == 'ent_strs':
+                ent_strs = v
+                data_dict.pop(k)
+            elif k == 'cand_strs':
+                cand_strs = v
+                data_dict.pop(k)
+            elif k == 'not_in_cand':
+                not_in_cand = v
+                data_dict.pop(k)
+            else:
+                data_dict[k] = Variable(v)
 
         if self.args.use_cuda:
             device = self.args.device if isinstance(self.args.device, int) else self.args.device[0]
             for k, v in data_dict.items():
                 data_dict[k] = v.cuda(device)
 
-        return data_dict, labels
+        return data_dict, ent_strs, cand_strs, not_in_cand
 
     def get_pred_str(self, batch_no, ids, context, scores, candidates):
 
@@ -60,22 +68,23 @@ class YamadaValidator:
         inc_pred_str = ''
 
         for batch_no, data in enumerate(self.loader, 0):
-            data_dict, labels = self._get_next_batch(data)
+            data_dict, ent_strs, cand_strs, not_in_cand = self._get_next_batch(data)
             scores, _, _ = model(data_dict)
             scores = scores.cpu().data.numpy()
 
             context = data_dict['context']
-            candidate_ids = data_dict['candidate_ids']
+            cand_ids = data_dict['cand_ids']
             not_in_cand = data_dict['not_in_cand']
             not_in_cand, context, candidates = not_in_cand.cpu().data.numpy(), \
                                                context.cpu().data.numpy(), \
-                                               candidate_ids.cpu().data.numpy()
+                                               cand_ids.cpu().data.numpy()
 
-            preds = np.argmax(scores, axis=1)
-            num_cor = (np.equal(preds, labels)).sum()
+            preds_mask = np.argmax(scores, axis=1)
+            preds = cand_strs[np.arange(len(preds_mask)), preds_mask]
+            num_cor = (np.equal(preds, ent_strs)).sum()
 
-            cor = np.equal(preds, labels)
-            inc = np.not_equal(preds, labels)
+            cor = np.equal(preds, ent_strs)
+            inc = np.not_equal(preds, ent_strs)
             inc_ids = np.where(inc)[0]
             cor_ids = np.where(cor)[0]
 

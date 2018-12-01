@@ -18,7 +18,7 @@ class YamadaContextStatsString(YamadaBase, Loss):
     def forward(self, input_dict):
 
         # Unpack
-        candidate_ids = input_dict['candidate_ids']
+        candidate_ids = input_dict['cand_ids']
         context = input_dict['context']
         priors = input_dict['priors']
         conditionals = input_dict['conditionals']

@@ -121,8 +121,8 @@ def setup(args, logger):
     logger.info("Model loaded.")
 
     logger.info("Loading Stat features.....")
-    priors, _ = pickle_load(join(args.data_path, 'yamada', 'stats.pickle'))
-    conditionals = pickle_load(join(args.data_path, 'necounts', 'prior_prob.pickle'))
+    priors = pickle_load(join(args.data_path, 'stats', 'str_prior.pickle'))
+    conditionals = pickle_load(join(args.data_path, 'stats', 'str_cond.pickle'))
     logger.info("Priors and conditionals loaded.")
 
     logger.info("Using {} for training.....".format(args.data_type))
