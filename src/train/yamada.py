@@ -7,8 +7,7 @@ import configargparse
 
 import numpy as np
 
-from src.utils.utils import str2bool, send_to_cuda
-from src.utils.data import pickle_load, load_data
+from src.utils.utils import str2bool, send_to_cuda, pickle_load, load_data
 from src.dataloaders.yamada import YamadaDataset
 from src.eval.yamada import YamadaValidator
 from src.models.models import Models
@@ -221,7 +220,6 @@ def train(model=None,
                       args=args,
                       validator=validators,
                       model=model,
-                      model_dir=model_dir,
                       model_type='yamada',
                       profile=args.profile)
     logger.info("Starting Training:")
