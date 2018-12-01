@@ -89,6 +89,8 @@ class YamadaDataset(object):
         cand_strs = [ent_str] + cand_gen_strs + cand_rand_strs
         cand_ids = [self.ent2id.get(cand_str, 0) for cand_str in cand_strs]
 
+        print(f'CAND IDS- {cand_ids}, CAND STRS - {cand_strs}')
+
         return cand_ids, cand_strs, not_in_cand
 
     def _init_context(self, index):
