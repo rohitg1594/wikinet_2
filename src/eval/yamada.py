@@ -25,17 +25,20 @@ class YamadaValidator:
 
     def _get_next_batch(self, data_dict):
         for k, v in data_dict.items():
-            if k == 'ent_strs':
-                ent_strs = v
-                data_dict.pop(k)
-            elif k == 'cand_strs':
-                cand_strs = v
-                data_dict.pop(k)
-            elif k == 'not_in_cand':
-                not_in_cand = v
-                data_dict.pop(k)
-            else:
-                data_dict[k] = Variable(v)
+            try:
+                if k == 'ent_strs':
+                    ent_strs = v
+                    data_dict.pop(k)
+                elif k == 'cand_strs':
+                    cand_strs = v
+                    data_dict.pop(k)
+                elif k == 'not_in_cand':
+                    not_in_cand = v
+                    data_dict.pop(k)
+                else:
+                    data_dict[k] = Variable(v)
+            except:
+                print(f'key - {k}, Value - {v}')
 
         if self.args.use_cuda:
             device = self.args.device if isinstance(self.args.device, int) else self.args.device[0]

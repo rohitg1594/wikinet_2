@@ -45,10 +45,13 @@ class Trainer(object):
 
     def _get_next_batch(self, data_dict):
         for k, v in data_dict.items():
-            if k == 'ent_strs' or 'cand_strs' or 'not_in_dict':
-                data_dict.pop(k)
-            else:
-                data_dict[k] = Variable(v)
+            try:
+                if k == 'ent_strs' or 'cand_strs' or 'not_in_dict':
+                    data_dict.pop(k)
+                else:
+                    data_dict[k] = Variable(v)
+            except:
+                print(f'key - {k}, Value - {v}')
 
         labels = Variable(torch.zeros(v.shape[0]).type(torch.LongTensor), requires_grad=False)
 
