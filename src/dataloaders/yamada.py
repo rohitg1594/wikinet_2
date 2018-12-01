@@ -158,7 +158,7 @@ class YamadaDataset(object):
         # print(f'CAND_IDS - {cand_ids[:10]}, CAND STRS - {cand_strs[:10]}, NOT IN CAND - {not_in_cand}')
         features_dict = self._gen_features(mention_str, cand_strs)
 
-        output = {'cand_ids': cand_strs,
+        output = {'cand_ids': cand_ids,
                   'not_in_cand': not_in_cand,
                   'context': context,
                   'cand_strs': cand_strs,
