@@ -89,7 +89,7 @@ class YamadaDataset(object):
         cand_strs = [ent_str] + cand_gen_strs + cand_rand_strs
         cand_ids = [self.ent2id.get(cand_str, 0) for cand_str in cand_strs]
 
-        print(f'CAND IDS- {cand_ids}, CAND STRS - {cand_strs}')
+        # print(f'CAND IDS- {cand_ids}, CAND STRS - {cand_strs}')
 
         return cand_ids, cand_strs, not_in_cand
 
@@ -113,7 +113,7 @@ class YamadaDataset(object):
         contains = np.zeros(self.num_candidates).astype(np.float32)
         priors = np.zeros(self.num_candidates).astype(np.float32)
         conditionals = np.zeros(self.num_candidates).astype(np.float32)
-        print(f'MENTION STR - {mention_str}, CAND STRS - {cand_strs}')
+        # print(f'MENTION STR - {mention_str}, CAND STRS - {cand_strs}')
 
         # Populate
         for cand_idx, cand_str in enumerate(cand_strs):
@@ -153,10 +153,10 @@ class YamadaDataset(object):
         context_id, example = self.examples[index]
         context = self.processed_id2context[context_id]
         mention_str, ent_str, _, _ = example
-        print(f'MENTION STR - {mention_str}, ENT STR - {ent_str}')
+        # print(f'MENTION STR - {mention_str}, ENT STR - {ent_str}')
         ent_str = self.redirects.get(ent_str, ent_str)
         cand_ids, cand_strs, not_in_cand = self._gen_cands(ent_str, mention_str)
-        print(f'CAND_IDS - {cand_ids[:10]}, CAND STRS - {cand_strs[:10]}, NOT IN CAND - {not_in_cand}')
+        # print(f'CAND_IDS - {cand_ids[:10]}, CAND STRS - {cand_strs[:10]}, NOT IN CAND - {not_in_cand}')
         features_dict = self._gen_features(mention_str, cand_strs)
 
         output = {'cand_ids': cand_strs,

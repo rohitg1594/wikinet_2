@@ -45,8 +45,7 @@ class Trainer(object):
 
     def _get_next_batch(self, data_dict):
         for k, v in data_dict.items():
-            if k == 'ent_strs':
-                ent_strs = v
+            if k == 'ent_strs' or 'cand_strs' or 'not_in_dict':
                 data_dict.pop(k)
             else:
                 data_dict[k] = Variable(v)
