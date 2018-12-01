@@ -475,7 +475,7 @@ def load_stats(args, yamada_model):
     return priors, conditionals
 
 
-def load_data(data_type, args):
+def load_data(data_type, train_size, data_path):
     """
        Load train data in format used by combined and yamada dataloader.
     """
@@ -484,22 +484,22 @@ def load_data(data_type, args):
     if data_type == 'proto':
         logger.info("Loading Wikipedia proto training data.....")
         for split in ['train', 'dev']:
-            id2context, examples = pickle_load(join(args.data_path, 'training_files', 'proto', f'{split}.pickle'))
+            id2context, examples = pickle_load(join(data_path, 'training_files', 'proto', f'{split}.pickle'))
             if split == 'train':
-                examples = examples[:args.train_size]
+                examples = examples[:train_size]
             res[split] = id2context, examples
 
         res['test'] = {}, []
 
     elif data_type == 'full':
         logger.info("Loading Wikipedia orig training data.....")
-        id2context, examples = pickle_load(join(args.data_path, 'training_files', 'full', 'full.pickle'))
+        id2context, examples = pickle_load(join(data_path, 'training_files', 'full', 'full.pickle'))
 
         train_data = []
         dev_data = []
         test_data = []
         for ex in examples:
-            if len(train_data) == args.train_size:
+            if len(train_data) == train_size:
                 break
             r = np.random.random()
             if r < 0.90:
@@ -516,9 +516,9 @@ def load_data(data_type, args):
                }
     elif data_type == 'conll':
         for split in splits:
-            res[split] = pickle_load(join(args.data_path, 'training_files', f'conll-{split}.pickle'))
+            res[split] = pickle_load(join(data_path, 'training_files', f'conll-{split}.pickle'))
     else:
-        logger.error("Data type {} not recognized".format(args.data_type))
+        logger.error("Data type {} not recognized".format(data_type))
         sys.exit(1)
 
     return res

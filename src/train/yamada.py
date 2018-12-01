@@ -129,7 +129,7 @@ def setup(args, logger):
 
     for data_type in DATA_TYPES:
         if data_type == 'wiki':
-            res = load_data('proto_370k', args)
+            res = load_data(args.data_type, args.train_size, args.data_path)
             id2context, examples = res['dev']
             new_examples = [examples[idx] for idx in np.random.randint(0, len(examples), 10000)]
             res['dev'] = id2context, new_examples
