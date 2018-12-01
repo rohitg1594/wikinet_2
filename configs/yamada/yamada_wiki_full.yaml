@@ -16,7 +16,7 @@ max_context_size:100
 num_docs:100
 
 # Model types
-model_name:corpus_vec
+model_name:yamada_full
 
 # Model Params
 hidden_size:2000
