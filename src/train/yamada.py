@@ -148,17 +148,20 @@ def setup(args, logger):
         train_data = data['wiki']['train']
     logger.info("Data loaded.")
 
+    necounts = pickle_load(join(args.data_path, "necounts", "str_normalize_necounts.pickle"))
+    redirects = pickle_load(join(args.data_path, 'redirects.pickle'))
+
     logger.info("Creating data loaders and validators.....")
     train_dataset = YamadaDataset(ent_conditional=conditionals,
                                   ent_prior=priors,
                                   yamada_model=yamada_model,
                                   data=train_data,
                                   args=args,
-                                  cand_type=args.cand_type)
+                                  cand_type=args.cand_type,
+                                  necounts=necounts,
+                                  redirects=redirects)
     logger.info("Training dataset created.")
 
-    necounts = pickle_load(join(args.data_path, "necounts", "str_normalize_necounts.pickle"))
-    redirects = pickle_load(join(args.data_path, 'redirects.pickle'))
     datasets = {}
     for data_type in DATA_TYPES:
         datasets[data_type] = YamadaDataset(ent_conditional=conditionals,
@@ -168,7 +171,7 @@ def setup(args, logger):
                                             args=args,
                                             cand_type='necounts',
                                             necounts=necounts,
-                                            redirects=None)
+                                            redirects=redirects)
         logger.info(f"{data_type} dev dataset created.")
 
     return train_dataset, datasets, yamada_model
