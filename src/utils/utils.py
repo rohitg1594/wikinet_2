@@ -1,6 +1,7 @@
 # Various Utility Functions to be used elsewhere
 import string
 import re
+import json
 import random
 from collections import defaultdict
 import os
@@ -14,6 +15,7 @@ import numpy as np
 import torch
 from torch.nn import DataParallel
 
+# Leave this here to prevent circular imports!
 def np_to_tensor(a):
     if isinstance(a, np.ndarray):
         return torch.from_numpy(a)
@@ -149,7 +151,7 @@ def equalize_len_w_eot(data, max_size, eot=None):
         arr[l] = eot
 
     return arr
-torch.nn.init
+
 def str2bool(v):
     """
     thanks : https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
@@ -376,6 +378,15 @@ def pickle_load(path):
 
     with open(path, 'rb') as f:
         data = pickle.load(f)
+
+    return data
+
+
+def json_load(path):
+    assert os.path.exists(path)
+
+    with open(path, 'r') as f:
+        data = json.load(f)
 
     return data
 

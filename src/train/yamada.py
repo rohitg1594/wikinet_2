@@ -1,13 +1,8 @@
 # Training file for original yamada model
-import os
-from os.path import join
 from datetime import datetime
-from collections import defaultdict
 import configargparse
 
-import numpy as np
-
-from src.utils.utils import str2bool, send_to_cuda, pickle_load, load_data
+from src.utils.utils import *
 from src.dataloaders.yamada import YamadaDataset
 from src.eval.yamada import YamadaValidator
 from src.models.models import Models
@@ -120,8 +115,8 @@ def setup(args, logger):
     logger.info("Model loaded.")
 
     logger.info("Loading Stat features.....")
-    priors = pickle_load(join(args.data_path, 'stats', 'str_prior.pickle'))
-    conditionals = pickle_load(join(args.data_path, 'stats', 'str_cond.pickle'))
+    priors = json_load(join(args.data_path, 'stats', 'str_prior.json'))
+    conditionals = json_load(join(args.data_path, 'stats', 'str_cond.json'))
     logger.info("Priors and conditionals loaded.")
 
     logger.info("Using {} for training.....".format(args.data_type))
@@ -148,8 +143,8 @@ def setup(args, logger):
         train_data = data['wiki']['train']
     logger.info("Data loaded.")
 
-    necounts = pickle_load(join(args.data_path, "necounts", "str_normalize_necounts.pickle"))
-    redirects = pickle_load(join(args.data_path, 'redirects.pickle'))
+    necounts = json_load(join(args.data_path, "necounts", "str_necounts.json"))
+    redirects = json_load(join(args.data_path, 'redirects.json'))
 
     logger.info("Creating data loaders and validators.....")
     train_dataset = YamadaDataset(ent_conditional=conditionals,

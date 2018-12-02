@@ -33,7 +33,7 @@ class YamadaValidator:
                 print(f'key - {k}, Value - {v}')
 
         ent_strs, cand_strs, not_in_cand = np.array(data_dict['ent_strs']),\
-                                           np.array(data_dict['cand_strs']),\
+                                           np.array(data_dict['cand_strs']).T,\
                                            np.array(data_dict['not_in_cand'])
         for k in skip_keys:
             data_dict.pop(k)
