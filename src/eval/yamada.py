@@ -96,10 +96,10 @@ class YamadaValidator:
             total_not_in_cand += not_in_cand.sum()
             cor_adjust += not_in_cand[cor_idxs].sum()
 
-        if self.data_type == 'conll':
-            print(f'INCORRECT PRED STR : \n {inc_pred_str[:2000]}')
-            print('\n\n\n\n#################################################\n\n\n')
-            print(f'CORRECT PRED STR : \n {cor_pred_str[:2000]}')
+        # if self.data_type == 'conll':
+        #     print(f'INCORRECT PRED STR : \n {inc_pred_str[:2000]}')
+        #     print('\n\n\n\n#################################################\n\n\n')
+        #     print(f'CORRECT PRED STR : \n {cor_pred_str[:2000]}')
 
         with open(join(self.args.model_dir, f'inc_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(inc_pred_str)
