@@ -1,4 +1,6 @@
 # Yamada model that uses context, stat and string features.
+import sys
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -15,6 +17,8 @@ class YamadaContextStatsString(YamadaBase, Loss):
         self.hidden = nn.Linear(5 + 2 * self.emb_dim, self.args.hidden_size)
         self.output = nn.Linear(self.args.hidden_size, 1)
 
+        self.dp = nn.Dropout(args.dp)
+
     def forward(self, input_dict):
 
         # Unpack
@@ -26,9 +30,17 @@ class YamadaContextStatsString(YamadaBase, Loss):
         contains = input_dict['contains']
         b, num_cand = candidate_ids.shape
 
+        print(f'CANDIDATE IDS SHAPE : {candidate_ids.shape}, SAMPLE \n: {candidate_ids[:5, :5]}')
+        print(f'CONTEXT SHAPE : {context.shape}, SAMPLE \n: {context[:5, :5]}')
+        print(f'PRIORS SHAPE : {priors.shape}, SAMPLE \n: {priors[:5, :5]}')
+        print(f'CONDITIONALS SHAPE : {conditionals.shape}, SAMPLE \n: {conditionals[:5, :5]}')
+        print(f'EXACT MATCH SHAPE : {exact_match.shape}, SAMPLE \n: {exact_match[:5, :5]}')
+        print(f'CONTAINS SHAPE : {contains.shape}, SAMPLE \n: {contains[:5, :5]}')
+        sys.exit(0)
+
         # Get the embeddings
-        candidate_embs = self.ent_embs(candidate_ids)
-        context_embs = self.word_embs(context)
+        candidate_embs = self.dp(self.ent_embs(candidate_ids))
+        context_embs = self.dp(self.word_embs(context))
 
         # Aggregate context
         context_embs = context_embs.mean(dim=1)
