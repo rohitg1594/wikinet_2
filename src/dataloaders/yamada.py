@@ -81,21 +81,18 @@ class YamadaDataset(object):
     def _gen_cands(self, ent_str, mention):
         cand_gen_strs = self.add_dismb_cands([], mention)
         nfs = get_normalised_forms(mention)
-        # cand_gen_strs = []
         for nf in nfs:
             if nf in self.necounts:
                 cand_gen_strs.extend(self.necounts[nf])
 
         cand_gen_strs = cand_gen_strs[:self.num_cand_gen]
-        cand_strs = cand_gen_strs + random.sample(self.ent_strs, self.args.num_candidates - len(cand_gen_strs))
-        if ent_str in cand_strs:
+        if ent_str in cand_gen_strs:
             not_in_cand = False
-            cand_strs.remove(ent_str)
+            cand_gen_strs = filter(lambda x: x != ent_str, cand_gen_strs)
         else:
             not_in_cand = True
-            cand_strs = cand_strs[:-1]
 
-        cand_strs = [ent_str] + cand_strs
+        cand_strs = [ent_str] + cand_gen_strs + random.sample(self.ent_strs, self.args.num_candidates - len(cand_gen_strs) + 1)
         cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
 
         # print(f'CAND IDS- {cand_ids}, CAND STRS - {cand_strs}')
