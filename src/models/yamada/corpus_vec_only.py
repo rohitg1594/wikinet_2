@@ -21,8 +21,8 @@ class YamadaCorpusVecOnly(YamadaBase, Loss):
         corpus_context, _, candidate_ids, _, _, _, _ = inputs
         b, num_doc, num_context = corpus_context.shape
 
-        candidate_embs = self.embeddings_ent(candidate_ids)
-        corpus_embs = self.embeddings_word(corpus_context)
+        candidate_embs = self.ent_embs(candidate_ids)
+        corpus_embs = self.word_embs(corpus_context)
 
         # Aggregate context
         corpus_embs = corpus_embs.mean(dim=2)

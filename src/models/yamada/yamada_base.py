@@ -17,14 +17,14 @@ class YamadaBase(nn.Module):
         self.args = args
 
         # Words
-        self.embeddings_word = nn.Embedding(*word_embs.shape, padding_idx=0, sparse=True)
-        self.embeddings_word.weight.data.copy_(torch.from_numpy(word_embs))
-        self.embeddings_word.weight.requires_grad = False
+        self.word_embs = nn.Embedding(*word_embs.shape, padding_idx=0, sparse=True)
+        self.word_embs.weight.data.copy_(torch.from_numpy(word_embs))
+        self.word_embs.weight.requires_grad = False
 
         # Entities
-        self.embeddings_ent = nn.Embedding(*ent_embs.shape, padding_idx=0, sparse=True)
-        self.embeddings_ent.weight.data.copy_(torch.from_numpy(ent_embs))
-        self.embeddings_ent.weight.requires_grad = False
+        self.ent_embs = nn.Embedding(*ent_embs.shape, padding_idx=0, sparse=True)
+        self.ent_embs.weight.data.copy_(torch.from_numpy(ent_embs))
+        self.ent_embs.weight.requires_grad = False
 
         # Pre trained linear layer
         self.orig_linear = nn.Linear(word_embs.shape[1], ent_embs.shape[1])

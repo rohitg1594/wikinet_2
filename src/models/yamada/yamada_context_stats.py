@@ -20,10 +20,10 @@ class YamadaContextStats(YamadaBase):
         candidate_ids = candidate_ids.view(-1, num_cand)
 
         # Get the embeddings
-        candidate_embs = self.embeddings_ent(candidate_ids)
+        candidate_embs = self.ent_embs(candidate_ids)
         candidate_embs = candidate_embs.view(be, max_ent, num_cand, -1)
 
-        token_embs = self.embeddings_word(tokens)
+        token_embs = self.word_embs(tokens)
         token_embs = token_embs.mean(dim=1)
 
         # Normalize / Pass through linear layer

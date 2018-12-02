@@ -27,8 +27,8 @@ class YamadaContextStatsString(YamadaBase, Loss):
         b, num_cand = candidate_ids.shape
 
         # Get the embeddings
-        candidate_embs = self.embeddings_ent(candidate_ids)
-        context_embs = self.embeddings_word(context)
+        candidate_embs = self.ent_embs(candidate_ids)
+        context_embs = self.word_embs(context)
 
         # Aggregate context
         context_embs = context_embs.mean(dim=1)

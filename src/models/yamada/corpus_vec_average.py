@@ -27,9 +27,9 @@ class YamadaCorpusVecAverage(YamadaBase, Loss):
         # print(f'RESHAPE CORPUS SHAPE: {corpus_context.shape}')
 
         # Get the embeddings
-        candidate_embs = self.embeddings_ent(candidate_ids)
-        context_embs = self.embeddings_word(context)
-        corpus_embs = self.embeddings_word(corpus_context)
+        candidate_embs = self.ent_embs(candidate_ids)
+        context_embs = self.word_embs(context)
+        corpus_embs = self.word_embs(corpus_context)
         # print(f'AFTER EMB CORPUS SHAPE: {corpus_embs.shape}')
 
         # Aggregate context

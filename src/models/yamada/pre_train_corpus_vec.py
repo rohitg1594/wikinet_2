@@ -21,9 +21,9 @@ class PreTrainCorpus(YamadaBase, Loss):
         # Unpack / Get embs
         context, candidate_ids, _, _, _, _, corpus_context = inputs
         b, _ = context.shape
-        candidate_embs = self.embeddings_ent(candidate_ids)
-        context_embs = self.embeddings_word(context)
-        corpus_embs = self.embeddings_word(corpus_context)
+        candidate_embs = self.ent_embs(candidate_ids)
+        context_embs = self.word_embs(context)
+        corpus_embs = self.word_embs(corpus_context)
 
         # Aggregate corpus context
         corpus_embs = corpus_embs.mean(dim=2)
