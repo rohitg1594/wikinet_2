@@ -45,17 +45,15 @@ class YamadaValidator:
 
         return data_dict, ent_strs, cand_strs, not_in_cand
 
-    def get_pred_str(self, batch_no, ids, context, scores, candidates):
+    def get_pred_str(self, batch_no, ids, context, scores, cand_strs, ent_strs):
 
         comp_str = ''
         for id in ids:
             word_tokens = context[id]
             mention_id = str(batch_no * self.args.batch_size + id)
             context_str = ' '.join([self.rev_word_dict.get(word_token, 'UNK_WORD') for word_token in word_tokens[:20]])
-            pred_ids = candidates[id][(-scores[id]).argsort()][:10]
-            pred_str = ','.join([self.rev_ent_dict.get(pred_id, 'UNK_ENT') for pred_id in pred_ids])
-            correct_ent = self.rev_ent_dict.get(candidates[id][0], 'UNK_ENT')
-            comp_str += '||'.join([mention_id, correct_ent, pred_str, context_str]) + '\n'
+            pred_str = ','.join(cand_strs[id][(-scores[id]).argsort()][:10])
+            comp_str += '||'.join([mention_id, ent_strs[id], pred_str, context_str]) + '\n'
 
         return comp_str
 
@@ -90,8 +88,8 @@ class YamadaValidator:
             inc_ids = np.where(inc)[0]
             cor_ids = np.where(cor)[0]
 
-            inc_pred_str += self.get_pred_str(batch_no, inc_ids, context, scores, candidates)
-            cor_pred_str += self.get_pred_str(batch_no, cor_ids, context, scores, candidates)
+            inc_pred_str += self.get_pred_str(batch_no, inc_ids, context, scores, candidates, ent_strs)
+            cor_pred_str += self.get_pred_str(batch_no, cor_ids, context, scores, candidates, ent_strs)
 
             total_correct += num_cor
             total_mentions += scores.shape[0]
@@ -99,9 +97,9 @@ class YamadaValidator:
             cor_adjust += not_in_cand[cor_ids].sum()
 
         if self.data_type == 'conll':
-            print(f'INCORRECT PRED STR : \n {inc_pred_str}')
+            print(f'INCORRECT PRED STR : \n {inc_pred_str[:500]}')
             print('\n\n\n\n#################################################\n\n\n')
-            print(f'CORRECT PRED STR : \n {cor_pred_str}')
+            print(f'CORRECT PRED STR : \n {cor_pred_str[:500]}')
 
         with open(join(self.args.model_dir, f'inc_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(inc_pred_str)

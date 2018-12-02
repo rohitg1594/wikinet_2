@@ -17,8 +17,6 @@ class YamadaContextStatsString(YamadaBase, Loss):
         self.hidden = nn.Linear(5 + 2 * self.emb_dim, self.args.hidden_size)
         self.output = nn.Linear(self.args.hidden_size, 1)
 
-        self.dp = nn.Dropout(args.dp)
-
     def forward(self, input_dict):
 
         # Unpack
@@ -39,20 +37,20 @@ class YamadaContextStatsString(YamadaBase, Loss):
         # sys.exit(0)
 
         # Get the embeddings
-        candidate_embs = self.dp(self.ent_embs(candidate_ids))
-        context_embs = self.dp(self.word_embs(context))
+        candidate_embs = self.ent_embs(candidate_ids)
+        context_embs = self.word_embs(context)
 
         # Aggregate context
         context_embs = context_embs.mean(dim=1)
 
         # Normalize / Pass through linear layer / Unsqueeze
-        context_embs = F.normalize(self.orig_linear(context_embs), dim=1)
+        context_embs = self.orig_linear(F.normalize(context_embs, dim=1))
         context_embs.unsqueeze_(1)
 
         # Dot product over last dimension
         dot_product = (context_embs * candidate_embs).sum(dim=2)
 
-        # Unsqueeze in second dimension
+        # Unsqueeze in second dimensionx
         dot_product = dot_product.unsqueeze(dim=2)
         priors = priors.unsqueeze(dim=2)
         conditionals = conditionals.unsqueeze(dim=2)
@@ -64,7 +62,7 @@ class YamadaContextStatsString(YamadaBase, Loss):
         input = torch.cat((context_embs, dot_product, candidate_embs, priors, conditionals, exact_match, contains), dim=2)
 
         # Scores
-        scores = self.output(F.relu(self.dropout(self.hidden(input))))
+        scores = self.output(F.relu(self.dp(self.hidden(input))))
         scores = scores.view(b, -1)
 
         return scores, context_embs, input

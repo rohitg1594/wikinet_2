@@ -32,7 +32,7 @@ class YamadaBase(nn.Module):
         self.orig_linear.bias.data.copy_(torch.from_numpy(b))
         self.orig_linear.weight.requires_grad = True
 
-        self.dropout = nn.Dropout(self.args.dp)
+        self.dp = nn.Dropout(self.args.dp)
 
     def forward(self, inputs):
 
