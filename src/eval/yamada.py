@@ -93,13 +93,14 @@ class YamadaValidator:
             inc_pred_str += self.get_pred_str(batch_no, inc_ids, context, scores, candidates)
             cor_pred_str += self.get_pred_str(batch_no, cor_ids, context, scores, candidates)
 
-            print(f'INCORRECT PRED STR : \n {inc_pred_str}')
-            print(f'CORRECT PRED STR : \n {cor_pred_str}')
-
             total_correct += num_cor
             total_mentions += scores.shape[0]
             total_not_in_cand += not_in_cand.sum()
             cor_adjust += not_in_cand[cor_ids].sum()
+
+        print(f'INCORRECT PRED STR : \n {inc_pred_str}')
+        print('\n\n\n\n#################################################\n\n\n')
+        print(f'CORRECT PRED STR : \n {cor_pred_str}')
 
         with open(join(self.args.model_dir, f'inc_preds_{self.data_type}_{self.run}.txt'), 'w') as f:
             f.write(inc_pred_str)

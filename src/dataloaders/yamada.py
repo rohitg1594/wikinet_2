@@ -2,6 +2,7 @@
 
 import torch.utils.data
 from src.utils.utils import *
+from more_itertools import unique_everseen
 
 
 class YamadaDataset(object):
@@ -85,17 +86,15 @@ class YamadaDataset(object):
             if nf in self.necounts:
                 cand_gen_strs.extend(self.necounts[nf])
 
-        cand_gen_strs = cand_gen_strs[:self.num_cand_gen]
+        cand_gen_strs = list(unique_everseen(cand_gen_strs[:self.num_cand_gen]))
         if ent_str in cand_gen_strs:
             not_in_cand = False
-            cand_gen_strs = list(filter(lambda x: x != ent_str, cand_gen_strs))
+            cand_gen_strs.remove(ent_str)
         else:
             not_in_cand = True
 
         cand_strs = [ent_str] + cand_gen_strs + random.sample(self.ent_strs, self.args.num_candidates - len(cand_gen_strs) - 1)
         cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
-
-        # print(f'CAND IDS- {cand_ids}, CAND STRS - {cand_strs}')
 
         return cand_ids, cand_strs, not_in_cand
 
