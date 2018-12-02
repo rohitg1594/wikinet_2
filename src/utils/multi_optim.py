@@ -1,5 +1,10 @@
-from src.utils.utils import *
+import sys
+from logging import getLogger
+
+import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+
+logger = getLogger(__name__)
 
 
 class MuliOptim(object):
@@ -9,21 +14,21 @@ class MuliOptim(object):
         self.emb_flag = False
         self.other_flag = False
 
-        optimizer_type = get_optim(optim=args.embs_optim)
-        embs_param = filter_embs_param(model)
+        optimizer_type = self.get_optim(optim=args.embs_optim)
+        embs_param = self.get_embs_param(model)
         if embs_param:
             self.emb_flag = True
             if args.sparse:
                 self.emb_optimizer = optimizer_type(embs_param, lr=args.lr)
             else:
-                self.emb_optimizer = optimizer_type(filter_embs_param(model), lr=args.lr, weight_decay=args.wd)
+                self.emb_optimizer = optimizer_type(embs_param, lr=args.lr, weight_decay=args.wd)
             self.emb_scheduler = ReduceLROnPlateau(self.emb_optimizer, mode='max', verbose=True, patience=5)
 
-        optimizer_type = get_optim(optim=args.other_optim)
-        other_param = filter_embs_param(model)
+        optimizer_type = self.get_optim(optim=args.other_optim)
+        other_param = self.get_other_param(model)
         if other_param:
             self.other_flag = True
-            self.other_optimizer = optimizer_type(filter_other_param(model), lr=args.lr, weight_decay=args.wd)
+            self.other_optimizer = optimizer_type(other_param, lr=args.lr, weight_decay=args.wd)
             self.other_scheduler = ReduceLROnPlateau(self.other_optimizer, mode='max', verbose=True, patience=5)
 
     def zero_grad(self):
@@ -52,3 +57,39 @@ class MuliOptim(object):
             state_dict['other_optimizer'] = self.other_optimizer.state_dict()
 
         return state_dict
+
+    @staticmethod
+    def get_embs_param(model):
+        out = []
+        for n, p in model.named_parameters():
+            if p.requires_grad:
+                if 'embs' in n:
+                    out.append(p)
+                    print(f'Adding {n} to embs optimizer')
+        return out
+
+    @staticmethod
+    def get_other_param(model):
+        out = []
+        for n, p in model.named_parameters():
+            if p.requires_grad:
+                if 'embs' not in n:
+                    out.append(p)
+                    print(f'Adding {n} to other optimizer')
+        return out
+
+    @staticmethod
+    def get_optim(optim=None):
+        if optim == 'adagrad':
+            optimizer = torch.optim.Adagrad
+        elif optim == 'adam':
+            optimizer = torch.optim.Adam
+        elif optim == 'rmsprop':
+            optimizer = torch.optim.RMSprop
+        elif optim == 'sparseadam':
+            optimizer = torch.optim.SparseAdam
+        else:
+            logger.error("Optimizer {} not recognized, choose between adam, adagrad, rmsprop, sparseadam".format(optim))
+            sys.exit(1)
+
+        return optimizer
