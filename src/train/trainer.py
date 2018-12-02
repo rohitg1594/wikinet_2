@@ -7,8 +7,7 @@ import gc
 
 import torch
 from torch.autograd import Variable
-from torch.optim.lr_scheduler import ReduceLROnPlateau
-from src.utils.utils import save_checkpoint, get_optim, filter_embs_param, filter_other_param
+from src.utils.utils import save_checkpoint
 from src.utils.multi_optim import MuliOptim
 
 logger = logging.getLogger()
