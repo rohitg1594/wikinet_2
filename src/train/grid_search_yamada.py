@@ -55,7 +55,7 @@ def grid_search(yamada_model=None,
                                                     drop_last=False)
             logger.info(f'Len loader {data_type} : {len(loader)}')
             validators[data_type] = YamadaValidator(loader=loader, args=args,
-                                                    word_dict=yamada_model['word_dict'],f
+                                                    word_dict=yamada_model['word_dict'],
                                                     ent_dict=yamada_model['ent_dict'])
 
         trainer = Trainer(loader=train_loader,
