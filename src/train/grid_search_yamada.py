@@ -77,18 +77,18 @@ def grid_search(yamada_model=None,
         df = pd.DataFrame(pd_results)
         df.to_csv(join(model_dir, 'hyper_df.csv'))
 
-        for k, v in results.items():
+        for k, v in grid_results_dict.items():
             print(k)
             print(v)
 
         with open(join(model_dir, 'grid_search_results.pickle'), 'wb') as f:
-            pickle.dump(results, f)
+            pickle.dump(grid_results_dict, f)
 
         del model, trainer, train_loader, loader, validators
         torch.cuda.empty_cache()
         gc.collect()
 
-    return results, pd_results
+    return grid_results_dict, pd_results
 
 
 if __name__ == '__main__':
