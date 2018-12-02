@@ -9,6 +9,7 @@ import torch
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from src.utils.utils import save_checkpoint, get_optim, filter_embs_param, filter_other_param
+from src.utils.multi_optim import MuliOptim
 
 logger = logging.getLogger()
 
@@ -33,15 +34,7 @@ class Trainer(object):
         self.validator = validator
 
         # Optimizer and scheduler
-        optimizer_type = get_optim(optim=self.args.embs_optim)
-        if self.args.sparse:
-            self.emb_optimizer = optimizer_type(filter_embs_param(model), lr=args.lr)
-        else:
-            self.emb_optimizer = optimizer_type(filter_embs_param(model), lr=args.lr, weight_decay=args.wd)
-        optimizer_type = get_optim(optim=self.args.other_optim)
-        self.other_optimizer = optimizer_type(filter_other_param(model), lr=args.lr, weight_decay=args.wd)
-        self.emb_scheduler = ReduceLROnPlateau(self.emb_optimizer, mode='max', verbose=True, patience=5)
-        self.other_scheduler = ReduceLROnPlateau(self.other_optimizer, mode='max', verbose=True, patience=5)
+        self.optimizer = MuliOptim(args=self.args, model=self.model)
 
     def _get_next_batch(self, data_dict):
         skip_keys = ['ent_strs', 'cand_strs', 'not_in_cand']
@@ -71,11 +64,9 @@ class Trainer(object):
         scores, _, _ = self.model(data)
         loss = self.model.loss(scores, labels)
 
-        self.emb_optimizer.zero_grad()
-        self.other_optimizer.zero_grad()
+        self.optimizer.zero_grad()
         loss.backward()
-        self.emb_optimizer.step()
-        self.other_optimizer.step()
+        self.optimizer.optim_step()
 
         return loss.item()
 
@@ -165,8 +156,7 @@ class Trainer(object):
                 save_checkpoint({
                     'epoch': epoch + 1,
                     'state_dict': self.model.state_dict(),
-                    'emb_optimizer': self.emb_optimizer.state_dict(),
-                    'other_optimizer': self.other_optimizer.state_dict()},
+                    **self.optimizer.get_state_dict()},
                     filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
 
             if self.model_type == 'combined':
@@ -182,8 +172,7 @@ class Trainer(object):
                 logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model_type))
                 sys.exit(1)
 
-            self.emb_scheduler.step(valid_metric)
-            self.other_scheduler.step(valid_metric)
+            self.optimizer.scheduler_step(valid_metric)
 
             if valid_metric > best_valid_metric:
                 best_model = self.model
@@ -197,7 +186,6 @@ class Trainer(object):
 
         save_checkpoint({
             'state_dict': best_model.state_dict(),
-            'emb_optimizer': self.emb_optimizer.state_dict(),
-            'other_optimizer': self.other_optimizer.state_dict()}, filename=join(self.model_dir, 'best_model.ckpt'))
+            **self.optimizer.get_state_dict()}, filename=join(self.model_dir, 'best_model.ckpt'))
 
         return best_results
