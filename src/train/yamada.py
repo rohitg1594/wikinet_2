@@ -191,7 +191,6 @@ def get_model(args, yamada_model, logger):
 def train(model=None,
           logger=None,
           datasets=None,
-          model_dir=None,
           train_dataset=None,
           args=None,
           yamada_model=None,
@@ -216,12 +215,6 @@ def train(model=None,
                                                 ent_dict=yamada_model['ent_dict'],
                                                 data_type=data_type,
                                                 run=run)
-        # total_mentions, not_in_cand, correct = validators[data_type].validate(model)
-        # print(
-        #     f'Total Examples : {total_mentions}, Not in Cand: {not_in_cand}, Correct : {correct}')
-        # cand_coverage = (1 - not_in_cand / total_mentions) * 100
-        # acc = (correct - not_in_cand) / total_mentions * 100
-        # logger.info(f'Untrained, {data_type}, Cand Coverage - {cand_coverage}, Acc- {acc}')
 
     trainer = Trainer(loader=train_loader,
                       args=args,
@@ -242,7 +235,6 @@ if __name__ == '__main__':
     for i in range(1, 11):
         Model = get_model(Args, Yamada_model, Logger)
         train(model=Model,
-              model_dir=Model_dir,
               train_dataset=Train_dataset,
               datasets=Datasets,
               logger=Logger,

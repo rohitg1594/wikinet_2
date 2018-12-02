@@ -63,7 +63,6 @@ class YamadaDataset(object):
             self.corpus_flag = False
 
     def _gen_cands(self, ent_str, mention):
-
         nfs = get_normalised_forms(mention)
         cand_gen_strs = []
         for nf in nfs:
@@ -73,11 +72,11 @@ class YamadaDataset(object):
         cand_gen_strs = cand_gen_strs[:self.num_cand_gen]
         cand_strs = cand_gen_strs + random.sample(self.ent_strs, self.args.num_candidates - len(cand_gen_strs))
         if ent_str in cand_strs:
-            cand_strs.remove(ent_str)
             not_in_cand = False
+            cand_strs.remove(ent_str)
         else:
-            cand_strs = cand_strs[:-1]
             not_in_cand = True
+            cand_strs = cand_strs[:-1]
 
         cand_strs = [ent_str] + cand_strs
         cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
@@ -146,10 +145,8 @@ class YamadaDataset(object):
         context_id, example = self.examples[index]
         context = self.processed_id2context[context_id]
         mention_str, ent_str, _, _ = example
-        # print(f'MENTION STR - {mention_str}, ENT STR - {ent_str}')
         ent_str = self.redirects.get(ent_str, ent_str)
         cand_ids, cand_strs, not_in_cand = self._gen_cands(ent_str, mention_str)
-        # print(f'CAND_IDS - {cand_ids[:10]}, CAND STRS - {cand_strs[:10]}, NOT IN CAND - {not_in_cand}')
         features_dict = self._gen_features(mention_str, cand_strs)
 
         output = {'cand_ids': cand_ids,
