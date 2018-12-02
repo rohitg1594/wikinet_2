@@ -92,7 +92,7 @@ class YamadaDataset(object):
         else:
             not_in_cand = True
 
-        cand_strs = [ent_str] + cand_gen_strs + random.sample(self.ent_strs, self.args.num_candidates - len(cand_gen_strs) + 1)
+        cand_strs = [ent_str] + cand_gen_strs + random.sample(self.ent_strs, self.args.num_candidates - len(cand_gen_strs) - 1)
         cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
 
         # print(f'CAND IDS- {cand_ids}, CAND STRS - {cand_strs}')
