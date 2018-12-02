@@ -161,7 +161,7 @@ class Trainer(object):
                     filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
 
             results = valid_func(epoch)
-            valid_metric = results['conll'][TOP_VALID] if isinstance(result['conll'], dict) else result['conll']
+            valid_metric = results['conll'][TOP_VALID] if isinstance(results['conll'], dict) else results['conll']
             for data_type, result in results.items():
                 top1 = result[1] if isinstance(result, dict) else result
                 if top1 > best_results[data_type]:

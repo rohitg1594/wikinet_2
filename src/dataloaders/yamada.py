@@ -70,23 +70,16 @@ class YamadaDataset(object):
             if nf in self.necounts:
                 cand_gen_strs.extend(self.necounts[nf])
 
-        # if ent_id == 0:
-        #     not_in_cand = 0
-        # else:
-        if ent_str in cand_gen_strs:
-            cand_gen_strs.remove(ent_str)
-            not_in_cand = 0
-        else:
-            not_in_cand = 1
-
-        if len(cand_gen_strs) > self.num_cand_gen:
-            num_rand = self.args.num_candidates - self.num_cand_gen - 1
-        else:
-            num_rand = self.args.num_candidates - len(cand_gen_strs) - 1
-
         cand_gen_strs = cand_gen_strs[:self.num_cand_gen]
-        cand_rand_strs = random.sample(self.ent_strs, num_rand)
-        cand_strs = [ent_str] + cand_gen_strs + cand_rand_strs
+        cand_strs = cand_gen_strs + random.sample(self.ent_strs, self.args.num_candidates - len(cand_gen_strs))
+        if ent_str in cand_strs:
+            cand_strs.remove(ent_str)
+            not_in_cand = False
+        else:
+            cand_strs = cand_strs[:-1]
+            not_in_cand = True
+
+        cand_strs = [ent_str] + cand_strs
         cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
 
         # print(f'CAND IDS- {cand_ids}, CAND STRS - {cand_strs}')
