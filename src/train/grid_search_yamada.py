@@ -6,6 +6,7 @@ from collections import defaultdict
 
 import numpy as np
 from sklearn.model_selection import ParameterGrid
+from sklearn.model_selection import ParameterSampler
 import pandas as pd
 
 import torch
@@ -24,15 +25,15 @@ def grid_search(yamada_model=None,
                 model_dir=None,
                 train_dataset=None,
                 args=None):
-    param_grid = {'dp': [0.1, 0.2, 0.3],
-                  'hidden_size': [1000, 2000],
-                  'lr': [1e-2, 5e-2, 1e-3],
+    param_grid = {'dp': [0.1, 0.2, 0.3, 0],
+                  'hidden_size': [1000, 2000, 3000],
+                  'lr': [1e-2, 5e-2, 1e-3, 5e-2, 1e-1],
                   'wd': [1e-3, 1e-4, 1e-5, 1e-6],
                   }
     grid_results_dict = {}
     pd_results = list()
 
-    for param_dict in list(ParameterGrid(param_grid)):
+    for param_dict in list(ParameterSampler(param_grid, 30)):
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v

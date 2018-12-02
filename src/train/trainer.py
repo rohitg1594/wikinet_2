@@ -91,7 +91,7 @@ class Trainer(object):
         for data_type in self.data_types:
             total_mentions, not_in_cand, correct, cor_adjust = self.validator[data_type].validate(self.model)
             logger.info(
-                f'Total mentions : {total_mentions}, Not in Cand: {not_in_cand}, Correct : {correct}, Correct Asjust: {cor_adjust}')
+                f'Total mentions : {total_mentions}, Not in Cand: {not_in_cand}, Correct : {correct}, Correct Adjust: {cor_adjust}')
             cand_coverage = (1 - not_in_cand / total_mentions) * 100
             acc = (correct - cor_adjust) / total_mentions * 100
             logger.info(f'Epoch : {epoch}, {data_type}, Cand Coverage - {cand_coverage}, Acc- {acc}')
