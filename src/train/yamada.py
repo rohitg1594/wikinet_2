@@ -119,6 +119,11 @@ def setup(args, logger):
     conditionals = json_load(join(args.data_path, 'stats', 'str_cond.json'))
     logger.info("Priors and conditionals loaded.")
 
+    logger.info("Loading necounts and redirects.....")
+    necounts = json_load(join(args.data_path, "necounts", "str_necounts.json"))
+    redirects = json_load(join(args.data_path, 'redirects.json'))
+    logger.info("Necounts and redirects loaded.")
+
     logger.info("Using {} for training.....".format(args.data_type))
     data = defaultdict(dict)
 
@@ -143,8 +148,7 @@ def setup(args, logger):
         train_data = data['wiki']['train']
     logger.info("Data loaded.")
 
-    necounts = json_load(join(args.data_path, "necounts", "str_necounts.json"))
-    redirects = json_load(join(args.data_path, 'redirects.json'))
+
 
     logger.info("Creating data loaders and validators.....")
     train_dataset = YamadaDataset(ent_conditional=conditionals,

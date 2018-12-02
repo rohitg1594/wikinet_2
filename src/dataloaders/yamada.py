@@ -68,7 +68,7 @@ class YamadaDataset(object):
         cand_gen_strs = []
         for nf in nfs:
             if nf in self.necounts:
-                cand_gen_strs.extend(list(self.necounts[nf].keys()))
+                cand_gen_strs.extend(self.necounts[nf])
 
         # if ent_id == 0:
         #     not_in_cand = 0
