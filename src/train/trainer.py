@@ -125,12 +125,13 @@ class Trainer(object):
         tenth_batch = num_batches // 10
         TOP_VALID = 1
 
-        logger.info("Validating untrained model.....")
-        best_model = self.model
-        full_results = self.combined_validate('Untrained')
-        best_results = {data_type: result[TOP_VALID] for data_type, result in full_results.items()}
-        best_valid_metric = best_results['conll']
-        logger.info("Done validating.")
+        if self.model_type == 'combined':
+            logger.info("Validating untrained model.....")
+            best_model = self.model
+            full_results = self.combined_validate('Untrained')
+            best_results = {data_type: result[TOP_VALID] for data_type, result in full_results.items()}
+            best_valid_metric = best_results['conll']
+            logger.info("Done validating.")
 
         if self.profile:
             self._profile()

@@ -11,7 +11,7 @@ from src.train.trainer import Trainer
 
 np.warnings.filterwarnings('ignore')
 
-DATA_TYPES = ['wiki']#, 'conll'] # 'ace2004', 'msnbc']
+DATA_TYPES = ['wiki', 'conll', 'ace2004', 'msnbc']
 
 
 def parse_args():
