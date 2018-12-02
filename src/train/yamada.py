@@ -157,7 +157,7 @@ def setup(args, logger):
                                   ent_prior=priors,
                                   yamada_model=yamada_model,
                                   data=train_data,
-                                  split='dev',
+                                  split='train',
                                   data_type=args.data_type,
                                   args=args,
                                   cand_type=args.cand_type,
