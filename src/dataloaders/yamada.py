@@ -88,7 +88,7 @@ class YamadaDataset(object):
         cand_gen_strs = cand_gen_strs[:self.num_cand_gen]
         if ent_str in cand_gen_strs:
             not_in_cand = False
-            cand_gen_strs = filter(lambda x: x != ent_str, cand_gen_strs)
+            cand_gen_strs = list(filter(lambda x: x != ent_str, cand_gen_strs))
         else:
             not_in_cand = True
 
