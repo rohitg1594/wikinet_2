@@ -70,6 +70,7 @@ class YamadaValidator:
 
         for batch_no, data in enumerate(self.loader, 0):
             data_dict, ent_strs, cand_strs, not_in_cand = self._get_next_batch(data)
+            print(f'ENT STRS: {ent_strs.shape}, {ent_strs[:5]}, CAND STRS: {cand_strs.shape}, {cand_strs[:5]}')
             scores, _, _ = model(data_dict)
             scores = scores.cpu().data.numpy()
 
