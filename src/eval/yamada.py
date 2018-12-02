@@ -70,7 +70,7 @@ class YamadaValidator:
 
         for batch_no, data in enumerate(self.loader, 0):
             data_dict, ent_strs, cand_strs, not_in_cand = self._get_next_batch(data)
-            print(f'ENT STRS: {ent_strs.shape}, {ent_strs[:5]}, CAND STRS: {cand_strs.shape}, {cand_strs[:5]}')
+            # print(f'ENT STRS: {ent_strs.shape}, {ent_strs[:5]}, CAND STRS: {cand_strs.shape}, {cand_strs[:5]}')
             scores, _, _ = model(data_dict)
             scores = scores.cpu().data.numpy()
 
@@ -80,12 +80,12 @@ class YamadaValidator:
 
             preds_mask = np.argmax(scores, axis=1)
             preds = cand_strs[np.arange(len(preds_mask)), preds_mask]
-            print(f'PREDS: {preds}, ENTS: {ent_strs}')
+            # print(f'PREDS: {preds}, ENTS: {ent_strs}')
 
             cor = preds == ent_strs
             inc = preds != ent_strs
             num_cor = cor.sum()
-            print(f'COR: {cor}, INC: {inc}, NUM COR: {num_cor}')
+            # print(f'COR: {cor}, INC: {inc}, NUM COR: {num_cor}')
             inc_ids = np.where(inc)[0]
             cor_ids = np.where(cor)[0]
 

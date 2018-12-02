@@ -63,7 +63,10 @@ def parse_args():
     training.add_argument("--num_workers", type=int, default=4, help="number of workers for data loader")
     training.add_argument('--lr', type=float, help='learning rate')
     training.add_argument('--wd', type=float, help='weight decay')
-    training.add_argument('--optim', type=str, choices=['adagrad', 'adam', 'rmsprop'], help='optimizer')
+    training.add_argument('--embs_optim', type=str, choices=['adagrad', 'adam', 'rmsprop', 'sparseadam'],
+                              help='optimizer for embeddings')
+    training.add_argument('--other_optim', type=str, choices=['adagrad', 'adam', 'rmsprop'],
+                              help='optimizer for paramaters that are not embeddings')
     training.add_argument('--sparse', type=str2bool, help='sparse gradients')
 
     # Loss
