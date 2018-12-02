@@ -88,8 +88,8 @@ class YamadaValidator:
             inc_ids = np.where(inc)[0]
             cor_ids = np.where(cor)[0]
 
-            inc_pred_str += self.get_pred_str(batch_no, inc_ids, context, scores, candidates, ent_strs)
-            cor_pred_str += self.get_pred_str(batch_no, cor_ids, context, scores, candidates, ent_strs)
+            inc_pred_str += self.get_pred_str(batch_no, inc_ids, context, scores, cand_strs, ent_strs)
+            cor_pred_str += self.get_pred_str(batch_no, cor_ids, context, scores, cand_strs, ent_strs)
 
             total_correct += num_cor
             total_mentions += scores.shape[0]
