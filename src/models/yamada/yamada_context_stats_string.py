@@ -30,13 +30,13 @@ class YamadaContextStatsString(YamadaBase, Loss):
         contains = input_dict['contains']
         b, num_cand = candidate_ids.shape
 
-        print(f'CANDIDATE IDS SHAPE : {candidate_ids.shape}, SAMPLE \n: {candidate_ids[:5, :5]}')
-        print(f'CONTEXT SHAPE : {context.shape}, SAMPLE \n: {context[:5, :5]}')
-        print(f'PRIORS SHAPE : {priors.shape}, SAMPLE \n: {priors[:5, :5]}')
-        print(f'CONDITIONALS SHAPE : {conditionals.shape}, SAMPLE \n: {conditionals[:5, :5]}')
-        print(f'EXACT MATCH SHAPE : {exact_match.shape}, SAMPLE \n: {exact_match[:5, :5]}')
-        print(f'CONTAINS SHAPE : {contains.shape}, SAMPLE \n: {contains[:5, :5]}')
-        sys.exit(0)
+        # print(f'CANDIDATE IDS SHAPE : {candidate_ids.shape}, SAMPLE \n: {candidate_ids[:5, :5]}')
+        # print(f'CONTEXT SHAPE : {context.shape}, SAMPLE \n: {context[:5, :5]}')
+        # print(f'PRIORS SHAPE : {priors.shape}, SAMPLE \n: {priors[:5, :5]}')
+        # print(f'CONDITIONALS SHAPE : {conditionals.shape}, SAMPLE \n: {conditionals[:5, :5]}')
+        # print(f'EXACT MATCH SHAPE : {exact_match.shape}, SAMPLE \n: {exact_match[:5, :5]}')
+        # print(f'CONTAINS SHAPE : {contains.shape}, SAMPLE \n: {contains[:5, :5]}')
+        # sys.exit(0)
 
         # Get the embeddings
         candidate_embs = self.dp(self.ent_embs(candidate_ids))
