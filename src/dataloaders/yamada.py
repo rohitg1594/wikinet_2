@@ -15,7 +15,8 @@ class YamadaDataset(object):
                  cand_rand=False,
                  cand_type='necounts',
                  necounts=None,
-                 redirects=None):
+                 redirects=None,
+                 dis_dict=None):
         super().__init__()
 
         self.args = args
@@ -31,6 +32,7 @@ class YamadaDataset(object):
         self.ent_strs = list(self.ent_prior.keys())
 
         self.redirects = redirects
+        self.dis_dict = dis_dict
 
         self.cand_rand = cand_rand
         self.cand_type = cand_type
@@ -62,9 +64,24 @@ class YamadaDataset(object):
         else:
             self.corpus_flag = False
 
+    def add_dismb_cands(self, cands, mention):
+        mention_title = mention.title().replace(' ', '_')
+        cands.append(mention_title)
+        if mention_title != self.redirects.get(mention_title, mention_title):
+            cands.append(self.redirects[mention_title])
+        mention_disamb = mention_title + '_(disambiguation)'
+
+        if mention_title in self.dis_dict:
+            cands.extend(self.dis_dict[mention_title])
+        if mention_disamb in self.dis_dict:
+            cands.extend(self.dis_dict[mention_disamb])
+
+        return cands
+
     def _gen_cands(self, ent_str, mention):
+        cand_gen_strs = self.add_dismb_cands([], mention)
         nfs = get_normalised_forms(mention)
-        cand_gen_strs = []
+        # cand_gen_strs = []
         for nf in nfs:
             if nf in self.necounts:
                 cand_gen_strs.extend(self.necounts[nf])

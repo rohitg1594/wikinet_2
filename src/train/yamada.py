@@ -122,9 +122,10 @@ def setup(args, logger):
     conditionals = json_load(join(args.data_path, 'stats', 'str_cond.json'))
     logger.info("Priors and conditionals loaded.")
 
-    logger.info("Loading necounts and redirects.....")
+    logger.info("Loading necounts, redirects and disambiguations.....")
     necounts = json_load(join(args.data_path, "necounts", "str_necounts.json"))
     redirects = json_load(join(args.data_path, 'redirects.json'))
+    dis_dict = json_load(join(args.data_path, 'disambiguation_dict.json'))
     logger.info("Necounts and redirects loaded.")
 
     logger.info("Using {} for training.....".format(args.data_type))
@@ -159,7 +160,8 @@ def setup(args, logger):
                                   args=args,
                                   cand_type=args.cand_type,
                                   necounts=necounts,
-                                  redirects=redirects)
+                                  redirects=redirects,
+                                  dis_dict=dis_dict)
     logger.info("Training dataset created.")
 
     datasets = {}
@@ -171,7 +173,8 @@ def setup(args, logger):
                                             args=args,
                                             cand_type='necounts',
                                             necounts=necounts,
-                                            redirects=redirects)
+                                            redirects=redirects,
+                                            dis_dict=dis_dict)
         logger.info(f"{data_type} dev dataset created.")
 
     return train_dataset, datasets, yamada_model
