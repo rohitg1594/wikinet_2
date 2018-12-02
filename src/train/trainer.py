@@ -100,7 +100,7 @@ class Trainer(object):
             if self.result_key is not None:
                 self.grid_results_dict[self.result_key][data_type].append(acc)
 
-        return results['conll']
+        return results
 
     def _profile(self):
         logger.info('Starting profiling of dataloader.....')
@@ -125,13 +125,14 @@ class Trainer(object):
         tenth_batch = num_batches // 10
         TOP_VALID = 1
 
-        if self.model_type == 'combined':
-            logger.info("Validating untrained model.....")
-            best_model = self.model
-            full_results = self.combined_validate('Untrained')
-            best_results = {data_type: result[TOP_VALID] for data_type, result in full_results.items()}
-            best_valid_metric = best_results['conll']
-            logger.info("Done validating.")
+        valid_func = self.combined_validate if self.model_type == 'combined' else self.yamada_validate
+
+        logger.info("Validating untrained model.....")
+        best_model = self.model
+        full_results = valid_func('Untrained')
+        best_results = {data_type: result[TOP_VALID] if isinstance(result, dict) else result for data_type, result in full_results.items()}
+        best_valid_metric = best_results['conll']
+        logger.info("Done validating.")
 
         if self.profile:
             self._profile()
@@ -159,18 +160,12 @@ class Trainer(object):
                     **self.optimizer.get_state_dict()},
                     filename=join(self.model_dir, '{}.ckpt'.format(epoch)))
 
-            if self.model_type == 'combined':
-                results = self.combined_validate(epoch)
-                valid_metric = results['conll'][TOP_VALID]
-                for data_type, result in results.items():
-                    top1 = result[1]
-                    if top1 > best_results[data_type]:
-                        best_results[data_type] = top1
-            elif self.model_type == 'yamada':
-                valid_metric = self.yamada_validate(epoch)
-            else:
-                logger.error("Model {} not recognized, choose between combined, yamada".format(self.args.model_type))
-                sys.exit(1)
+            results = valid_func(epoch)
+            valid_metric = results['conll'][TOP_VALID] if isinstance(result['conll'], dict) else result['conll']
+            for data_type, result in results.items():
+                top1 = result[1] if isinstance(result, dict) else result
+                if top1 > best_results[data_type]:
+                    best_results[data_type] = top1
 
             self.optimizer.scheduler_step(valid_metric)
 

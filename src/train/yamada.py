@@ -151,8 +151,6 @@ def setup(args, logger):
         train_data = data['wiki']['train']
     logger.info("Data loaded.")
 
-
-
     logger.info("Creating data loaders and validators.....")
     train_dataset = YamadaDataset(ent_conditional=conditionals,
                                   ent_prior=priors,
@@ -218,12 +216,12 @@ def train(model=None,
                                                 ent_dict=yamada_model['ent_dict'],
                                                 data_type=data_type,
                                                 run=run)
-        total_mentions, not_in_cand, correct = validators[data_type].validate(model)
-        print(
-            f'Total Examples : {total_mentions}, Not in Cand: {not_in_cand}, Correct : {correct}')
-        cand_coverage = (1 - not_in_cand / total_mentions) * 100
-        acc = (correct - not_in_cand) / total_mentions * 100
-        logger.info(f'Untrained, {data_type}, Cand Coverage - {cand_coverage}, Acc- {acc}')
+        # total_mentions, not_in_cand, correct = validators[data_type].validate(model)
+        # print(
+        #     f'Total Examples : {total_mentions}, Not in Cand: {not_in_cand}, Correct : {correct}')
+        # cand_coverage = (1 - not_in_cand / total_mentions) * 100
+        # acc = (correct - not_in_cand) / total_mentions * 100
+        # logger.info(f'Untrained, {data_type}, Cand Coverage - {cand_coverage}, Acc- {acc}')
 
     trainer = Trainer(loader=train_loader,
                       args=args,
