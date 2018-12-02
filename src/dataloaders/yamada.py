@@ -52,12 +52,16 @@ class YamadaDataset(object):
 
         processed_f_name = join(self.args.data_path, 'cache', f'processed_id2context_{self.data_type}_{self.split}')
         if os.path.exists(processed_f_name):
+            logger.info(f'Loading processed id2context from {processed_f_name}....')
             self.processed_id2context = pickle_load(processed_f_name)
+            logger.info("Loaded.")
         else:
+            logger.info(f'Generating processed id2context for {processed_f_name}....')
             self.processed_id2context = {}
             for index in self.id2context.keys():
                 self.processed_id2context[index] = self._init_context(index)
             pickle_dump(self.processed_id2context, processed_f_name)
+            logger.info("Generatedx.")
 
         if 'corpus_vec' in self.args.model_name:
             self.corpus_flag = True
