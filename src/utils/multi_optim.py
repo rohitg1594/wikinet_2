@@ -11,7 +11,7 @@ class MuliOptim(object):
 
         optimizer_type = get_optim(optim=args.embs_optim)
         embs_param = filter_embs_param(model)
-        if not embs_param:
+        if embs_param:
             self.emb_flag = True
             if args.sparse:
                 self.emb_optimizer = optimizer_type(embs_param, lr=args.lr)
@@ -21,7 +21,7 @@ class MuliOptim(object):
 
         optimizer_type = get_optim(optim=args.other_optim)
         other_param = filter_embs_param(model)
-        if not other_param:
+        if other_param:
             self.other_flag = True
             self.other_optimizer = optimizer_type(filter_other_param(model), lr=args.lr, weight_decay=args.wd)
             self.other_scheduler = ReduceLROnPlateau(self.other_optimizer, mode='max', verbose=True, patience=5)
