@@ -29,7 +29,7 @@ def grid_search(yamada_model=None,
                   'lr': [1e-2, 5e-2, 1e-3],
                   'wd': [1e-3, 1e-4, 1e-5, 1e-6],
                   }
-    results = defaultdict(dict)
+    grid_results_dict = {}
     pd_results = list()
 
     for param_dict in list(ParameterGrid(param_grid)):
@@ -45,6 +45,7 @@ def grid_search(yamada_model=None,
 
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())
+        grid_results_dict[result_key] = {data_type: [] for data_type in DATA_TYPES}
 
         logger.info("Starting validation for untrained model.....")
         validators = {}
@@ -63,7 +64,7 @@ def grid_search(yamada_model=None,
                           validator=validators,
                           model=model,
                           model_type='yamada',
-                          grid_results_dict=results,
+                          grid_results_dict=grid_results_dict,
                           result_key=result_key)
 
         logger.info("Starting Training.....")
