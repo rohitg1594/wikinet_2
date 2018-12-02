@@ -27,8 +27,7 @@ def grid_search(yamada_model=None,
     param_grid = {'dp': [0.1, 0.2, 0.3],
                   'hidden_size': [1000, 2000],
                   'lr': [1e-2, 5e-2, 1e-3],
-                  'wd': [1e-3, 1e-4, 1e-5],
-                  'num_docs': [100, 50, 10]
+                  'wd': [1e-3, 1e-4, 1e-5, 1e-6],
                   }
     results = defaultdict(dict)
     pd_results = list()
@@ -37,7 +36,6 @@ def grid_search(yamada_model=None,
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
-        args.__dict__['batch_size'] = 2 * 10000 // param_dict['num_docs']
 
         model = get_model(args, yamada_model, logger)
         train_loader = train_dataset.get_loader(batch_size=args.batch_size,
@@ -46,7 +44,6 @@ def grid_search(yamada_model=None,
                                                 drop_last=False)
 
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
-        print(f'Batch Size : {args.batch_size}')
         result_key = tuple(param_dict.items())
 
         logger.info("Starting validation for untrained model.....")

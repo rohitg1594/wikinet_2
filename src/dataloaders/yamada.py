@@ -131,7 +131,7 @@ class YamadaDataset(object):
             if cand_str.startswith(mention_str) or cand_str.endswith(mention_str):
                 contains[cand_idx] = 1
 
-            priors[cand_idx] = self.ent_prior.get(cand_str, 0)
+            priors[cand_idx] = self.ent_prior.get(cand_str, 0) * 10**3  # priors are really small, rescale
             nf = normalise_form(mention_str)
             if nf in self.ent_conditional:
                 conditionals[cand_idx] = self.ent_conditional[nf].get(cand_str, 0)
