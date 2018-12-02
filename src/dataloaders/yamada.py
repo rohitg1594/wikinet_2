@@ -15,6 +15,7 @@ class YamadaDataset(object):
                  args=None,
                  cand_rand=False,
                  cand_type='necounts',
+                 data_type=None,
                  split=None,
                  necounts=None,
                  redirects=None,
@@ -32,6 +33,7 @@ class YamadaDataset(object):
         self.ent_prior = ent_prior
         self.ent_conditional = ent_conditional
         self.ent_strs = list(self.ent_prior.keys())
+        self.data_type = data_type
         self.split = split
 
         self.redirects = redirects
@@ -48,7 +50,7 @@ class YamadaDataset(object):
         self.examples = examples
         self.id2context = id2context
 
-        processed_f_name = join(self.args.data_path, 'cache', f'processed_id2context_{self.args.data_type}_{self.split}')
+        processed_f_name = join(self.args.data_path, 'cache', f'processed_id2context_{self.data_type}_{self.split}')
         if os.path.exists(processed_f_name):
             self.processed_id2context = pickle_load(processed_f_name)
         else:
