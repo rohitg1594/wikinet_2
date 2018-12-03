@@ -42,6 +42,7 @@ def parse_args():
     # Model Type
     model_selection = parser.add_argument_group('Type of model to train.')
     model_selection.add_argument('--model_name', type=str, help='name of model to train')
+    model_selection.add_argument('--pre_train', type=str, help='if specified, model will load state dict, must be ckpt')
 
     # Model params
     model_params = parser.add_argument_group("Parameters for chosen model.")
@@ -240,6 +241,9 @@ if __name__ == '__main__':
     Train_dataset, Datasets, Yamada_model = setup(Args, Logger)
 
     Model = get_model(Args, Yamada_model, Logger)
+    if Args.pre_train:
+        state_dict = torch.load(Args.pre_train).state_dict()
+        Model.load_state_dict(state_dict)
     train(model=Model,
           train_dataset=Train_dataset,
           datasets=Datasets,
