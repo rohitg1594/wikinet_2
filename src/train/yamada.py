@@ -239,12 +239,10 @@ if __name__ == '__main__':
     Args, Logger, Model_dir = parse_args()
     Train_dataset, Datasets, Yamada_model = setup(Args, Logger)
 
-    for i in range(1, 11):
-        Model = get_model(Args, Yamada_model, Logger)
-        train(model=Model,
-              train_dataset=Train_dataset,
-              datasets=Datasets,
-              logger=Logger,
-              args=Args,
-              yamada_model=Yamada_model,
-              run=i)
+    Model = get_model(Args, Yamada_model, Logger)
+    train(model=Model,
+          train_dataset=Train_dataset,
+          datasets=Datasets,
+          logger=Logger,
+          args=Args,
+          yamada_model=Yamada_model)
