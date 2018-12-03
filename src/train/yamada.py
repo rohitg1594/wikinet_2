@@ -242,7 +242,7 @@ if __name__ == '__main__':
 
     Model = get_model(Args, Yamada_model, Logger)
     if Args.pre_train:
-        state_dict = torch.load(Args.pre_train).state_dict()
+        state_dict = torch.load(Args.pre_train)['state_dict']
         Model.load_state_dict(state_dict)
     train(model=Model,
           train_dataset=Train_dataset,
