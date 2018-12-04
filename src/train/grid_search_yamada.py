@@ -40,7 +40,7 @@ def grid_search(yamada_model=None,
             assert k in args.__dict__
             args.__dict__[k] = v
 
-        for dataset in list(datasets.values()) + train_dataset:
+        for dataset in list(datasets.values()) + [train_dataset]:
             dataset.prop_gen_candidates = param_dict['prop_gen_candidates']
             dataset.num_candidates = param_dict['num_candidates']
 
