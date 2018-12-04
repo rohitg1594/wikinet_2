@@ -24,7 +24,7 @@ class YamadaDataset(object):
 
         self.args = args
         self.num_candidates = self.args.num_candidates
-        self.num_cand_gen = self.num_candidates // 2
+        self.num_cand_gen = int(self.num_candidates * self.args.prop_gen_candidates)
         self.ent2id = yamada_model['ent_dict']
         self.len_ent = len(self.ent2id)
         self.id2ent = reverse_dict(self.ent2id)
