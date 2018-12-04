@@ -40,6 +40,10 @@ def grid_search(yamada_model=None,
             assert k in args.__dict__
             args.__dict__[k] = v
 
+        for dataset in list(datasets.values()) + train_dataset:
+            dataset.prop_gen_candidates = param_dict['prop_gen_candidates']
+            dataset.num_candidates = param_dict['num_candidates']
+
         model = get_model(args, yamada_model, logger)
         train_loader = train_dataset.get_loader(batch_size=args.batch_size,
                                                 shuffle=False,
