@@ -44,7 +44,7 @@ class CombinedValidator:
 
         # Get wiki, msnbc, ace2004 and conll mention tokens
         self.numpy_data = {}
-        self.data_types = ['wiki', 'msnbc', 'conll', 'ace2004']
+        self.data_types = ['conll', 'wiki', 'msnbc', 'ace2004']
         for data_type in self.data_types:
             logger.info(f'Numpifying {data_type} dataset.....')
             self.numpy_data[data_type] = self._numpify_data(data_type=data_type)
