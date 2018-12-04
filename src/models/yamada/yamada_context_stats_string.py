@@ -59,7 +59,7 @@ class YamadaContextStatsString(YamadaBase, Loss):
         # print(f'DOT PRODUCT SHAPE: {dot_product.shape}')
         # print(f'DOT PRODUCT: {dot_product[:5, 50:60]}')
 
-        # Unsqueeze in second dimensionx
+        # Unsqueeze in second dimension
         dot_product = dot_product.unsqueeze(dim=2)
         priors = priors.unsqueeze(dim=2)
         conditionals = conditionals.unsqueeze(dim=2)
