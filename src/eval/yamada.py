@@ -7,6 +7,7 @@ from logging import getLogger
 
 from src.utils.utils import reverse_dict
 
+np.set_printoptions(threshold=10**6)
 
 logger = getLogger()
 
@@ -77,6 +78,7 @@ class YamadaValidator:
             cand_ids = data_dict['cand_ids']
             context, candidates = context.cpu().data.numpy(), cand_ids.cpu().data.numpy()
 
+            print(f'SCORES : \n {scores}')
             preds_mask = np.argmax(scores, axis=1)
             preds = cand_strs[np.arange(len(preds_mask)), preds_mask]
             # print(f'PREDS: {preds}, ENTS: {ent_strs}')
