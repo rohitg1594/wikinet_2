@@ -38,7 +38,7 @@ class Trainer(object):
     def _get_next_batch(self, data_dict):
         skip_keys = ['ent_strs', 'cand_strs', 'not_in_cand', 'label']
         for k, v in data_dict.items():
-            print(f'key: {k}, value type : {type(v)}')
+            # print(f'key: {k}, value type : {type(v)}')
             try:
                 if k not in skip_keys:
                     data_dict[k] = Variable(v)
