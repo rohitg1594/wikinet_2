@@ -54,7 +54,7 @@ def parse_args():
     candidate.add_argument('--cand_type', choices=['necounts', 'pershina'], help='whether to use pershina candidates')
     candidate.add_argument('--cand_gen_rand', type=str2bool, help='whether to generate random candidates')
     candidate.add_argument("--num_candidates", type=int, default=32, help="Total number of candidates")
-    candidate.add_argument("--num_gen_candidates", type=float, default=0.5, help="Proportion of candidates generated")
+    candidate.add_argument("--prop_gen_candidates", type=float, default=0.5, help="Proportion of candidates generated")
 
     # Training
     training = parser.add_argument_group("Training parameters.")
