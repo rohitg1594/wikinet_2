@@ -101,10 +101,12 @@ class YamadaDataset(object):
         else:
             not_in_cand = True
 
-        cand_strs = [ent_str] + cand_gen_strs + random.sample(self.ent_strs, self.args.num_candidates - len(cand_gen_strs) - 1)
+        cand_strs = cand_gen_strs + random.sample(self.ent_strs, self.args.num_candidates - len(cand_gen_strs) - 1)
+        label = random.randint(0, self.args.num_candidates)
+        cand_strs.insert(label, ent_str)
         cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
 
-        return cand_ids, cand_strs, not_in_cand
+        return cand_ids, cand_strs, not_in_cand, label
 
     def _init_context(self, index):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
@@ -167,7 +169,7 @@ class YamadaDataset(object):
         context = self.processed_id2context[context_id]
         mention_str, ent_str, _, _ = example
         ent_str = self.redirects.get(ent_str, ent_str)
-        cand_ids, cand_strs, not_in_cand = self._gen_cands(ent_str, mention_str)
+        cand_ids, cand_strs, not_in_cand, label = self._gen_cands(ent_str, mention_str)
         features_dict = self._gen_features(mention_str, cand_strs)
 
         output = {'cand_ids': cand_ids,
@@ -175,6 +177,7 @@ class YamadaDataset(object):
                   'context': context,
                   'cand_strs': cand_strs,
                   'ent_strs': ent_str,
+                  'label': label,
                   **features_dict}
 
         if self.corpus_flag:

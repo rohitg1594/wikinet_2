@@ -36,19 +36,21 @@ class Trainer(object):
         self.optimizer = MuliOptim(args=self.args, model=self.model)
 
     def _get_next_batch(self, data_dict):
-        skip_keys = ['ent_strs', 'cand_strs', 'not_in_cand']
+        skip_keys = ['ent_strs', 'cand_strs', 'not_in_cand', 'label']
         for k, v in data_dict.items():
             try:
                 if k not in skip_keys:
                     data_dict[k] = Variable(v)
-            except:
-                print(f'key - {k}, Value - {v}')
+            except Exception as e:
+                print(f'Exception : {e}, key - {k}, Value - {v}')
+        if 'label' in data_dict:
+            labels = Variable(data_dict['label'].type(torch.LongTensor), requires_grad=False)
+        else:
+            labels = Variable(torch.zeros(v.shape[0]).type(torch.LongTensor), requires_grad=False)
 
         for k in skip_keys:
             if k in data_dict:
                 data_dict.pop(k)
-
-        labels = Variable(torch.zeros(v.shape[0]).type(torch.LongTensor), requires_grad=False)
 
         if self.args.use_cuda:
             device = self.args.device if isinstance(self.args.device, int) else self.args.device[0]
