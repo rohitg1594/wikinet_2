@@ -102,7 +102,7 @@ class YamadaDataset(object):
             not_in_cand = True
 
         cand_strs = cand_gen_strs + random.sample(self.ent_strs, self.args.num_candidates - len(cand_gen_strs) - 1)
-        label = random.randint(0, self.args.num_candidates)
+        label = random.randint(0, self.args.num_candidates - 1)
         cand_strs.insert(label, ent_str)
         cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
 
