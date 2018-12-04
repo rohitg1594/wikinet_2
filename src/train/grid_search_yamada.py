@@ -41,7 +41,7 @@ def grid_search(yamada_model=None,
             args.__dict__[k] = v
 
         for dataset in list(datasets.values()) + [train_dataset]:
-            dataset.prop_gen_candidates = param_dict['prop_gen_candidates']
+            dataset.num_cand_gen = int(param_dict['num_candidates'] * param_dict['prop_gen_candidates'])
             dataset.num_candidates = param_dict['num_candidates']
 
         model = get_model(args, yamada_model, logger)
