@@ -36,7 +36,7 @@ def grid_search(yamada_model=None,
     grid_results_dict = {}
     pd_results = list()
 
-    for param_dict in list(ParameterSampler(param_grid, 30)):
+    for param_dict in list(ParameterSampler(param_grid, 50)):
         for k, v in param_dict.items():
             assert k in args.__dict__
             args.__dict__[k] = v
