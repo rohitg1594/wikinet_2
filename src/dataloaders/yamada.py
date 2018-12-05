@@ -102,7 +102,7 @@ class YamadaDataset(object):
             not_in_cand = True
 
         len_rand = self.num_candidates - len(cand_gen_strs) - 1
-        if len_rand > 0:
+        if len_rand >= 0:
             cand_strs = cand_gen_strs + random.sample(self.ent_strs, len_rand)
         else:
             cand_strs = cand_gen_strs[:-1]
