@@ -31,7 +31,7 @@ def grid_search(yamada_model=None,
                   'wd': [1e-3, 1e-4, 1e-5, 1e-6],
                   'num_candidates': [32, 64, 128, 256],
                   'prop_gen_candidates': [0.25, 0.5, 0.75, 1],
-                  'optim': ['adagrad', 'rmsprop', 'adam']
+                  'other_optim': ['adagrad', 'rmsprop', 'adam']
                   }
     grid_results_dict = {}
     pd_results = list()
