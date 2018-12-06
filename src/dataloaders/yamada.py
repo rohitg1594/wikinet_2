@@ -170,6 +170,23 @@ class YamadaDataset(object):
 
         return corpus_context
 
+    def _gen_pershina_cands(self, doc_id, mention_str, ent_str):
+        try:
+            cand_strs = self.docid2candidates[doc_id][mention_str]['cands']
+        except KeyError:
+            cand_strs = []
+        cand_strs = equalize_len(cand_strs, self.args.num_candidates, pad='')
+        if ent_str == cand_strs[0]:
+            not_in_cand = 0
+        else:
+            not_in_cand = 1
+
+        label = random.randint(0, self.args.num_candidates - 1)
+        cand_strs[1:].insert(label, ent_str)
+        cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
+
+        return cand_ids, cand_strs, not_in_cand, label
+
     def __getitem__(self, index):
         if isinstance(index, slice):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
@@ -181,7 +198,7 @@ class YamadaDataset(object):
         if self.cand_type == 'necounts':
             cand_ids, cand_strs, not_in_cand, label = self._gen_cands(ent_str, mention_str)
         else:
-            cand_strs = self.docid2candidates[doc_id][mention_str]
+            cand_ids, cand_strs, not_in_cand, label = self._gen_pershina_cands(doc_id, ent_str, mention_str)
             print(f'MENTION: {mention_str}, PERSHINA CANDIDATES: {cand_strs}')
 
         features_dict = self._gen_features(mention_str, cand_strs)

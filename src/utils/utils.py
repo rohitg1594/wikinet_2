@@ -126,7 +126,7 @@ def get_normalised_forms(sf):
     return set(normalise_form(f) for f in iter_derived_forms(sf))
 
 
-def equalize_len(data, max_size):
+def equalize_len(data, max_size, pad=0):
     d = data.copy()
     l = len(d)
 
@@ -134,7 +134,7 @@ def equalize_len(data, max_size):
         return d[:max_size]
     else:
         for _ in range(max_size - l):
-            d.append(0)
+            d.append(pad)
 
         return d
 

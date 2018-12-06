@@ -162,7 +162,7 @@ def setup(args, logger):
                                   split='train',
                                   data_type=args.data_type,
                                   args=args,
-                                  cand_type=args.cand_type,
+                                  cand_type=(args.cand_type if args.data_type == 'conll' else 'necounts'),
                                   necounts=necounts,
                                   redirects=redirects,
                                   dis_dict=dis_dict)
