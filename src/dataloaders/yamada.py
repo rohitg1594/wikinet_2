@@ -172,7 +172,7 @@ class YamadaDataset(object):
 
     def _gen_pershina_cands(self, doc_id, mention_str, ent_str):
         try:
-            cand_strs = self.docid2candidates[doc_id][mention_str]['cands']
+            cand_strs = self.docid2candidates[self.split][doc_id][mention_str]['cands']
         except KeyError:
             cand_strs = []
         cand_strs = equalize_len(cand_strs, self.args.num_candidates, pad='')

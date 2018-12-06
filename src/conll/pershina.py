@@ -47,7 +47,16 @@ class PershinaExamples(object):
 
     def get_doc_candidates(self):
 
-        docid2candidates = defaultdict(dict)
+        docid2candidates = {split:defaultdict(dict) for split in ['train', 'dev', 'test']}
+        docid2split = {}
+        for i in range(1394):
+            if i < 946:
+                split = 'train'
+            elif i < 1163:
+                split = 'dev'
+            else:
+                split = 'test'
+        docid2split[i] = split
 
         for i in range(1, 1394):
             with open(join(self.data_path, 'Conll', 'PPRforNED', 'AIDA_candidates', 'combined', str(i)), 'r') as f:
@@ -72,7 +81,8 @@ class PershinaExamples(object):
                         ent_str = RE_WIKI_ENT.match(wiki_url).group(1)
                         if ent_str not in self.ent_dict:
                             continue
-                        docid2candidates[doc_id][mention]['cands'].append(ent_str)
+
+                        docid2candidates[docid2split[split]][doc_id - 1][mention]['cands'].append(ent_str)
 
         return docid2candidates
 
