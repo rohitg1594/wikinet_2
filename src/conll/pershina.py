@@ -68,9 +68,7 @@ class PershinaExamples(object):
                     if 'ENTITY' in line:
                         mention = parts[1][5:]
                         doc_id = int(parts[6][6:])
-                        docid2candidates[doc_id][mention] = {}
-                        docid2candidates[doc_id][mention]['ignore'] = 0
-                        docid2candidates[doc_id][mention]['cands'] = []
+                        docid2candidates[docid2split[i]][doc_id][mention] = {'ignore': 0, 'cands': []}
 
                         correct_url = parts[-1][4:]
                         if correct_url == 'NIL':
