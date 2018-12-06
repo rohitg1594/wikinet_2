@@ -3,6 +3,7 @@
 import torch.utils.data
 from src.utils.utils import *
 from more_itertools import unique_everseen
+from src.conll.pershina import PershinaExamples
 
 
 class YamadaDataset(object):
@@ -43,6 +44,10 @@ class YamadaDataset(object):
         self.cand_type = cand_type
         if self.cand_rand:
             self.num_candidates = 10 ** 6
+
+        if self.cand_type != 'necounts':
+            pershina = PershinaExamples(data_path=self.args.data_path, yamada_model=yamada_model)
+            self.docid2candidates = pershina.get_doc_candidates()
 
         self.necounts = necounts
 
@@ -169,11 +174,16 @@ class YamadaDataset(object):
         if isinstance(index, slice):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
 
-        context_id, example = self.examples[index]
-        context = self.processed_id2context[context_id]
+        doc_id, example = self.examples[index]
+        context = self.processed_id2context[doc_id]
         mention_str, ent_str, _, _ = example
         ent_str = self.redirects.get(ent_str, ent_str)
-        cand_ids, cand_strs, not_in_cand, label = self._gen_cands(ent_str, mention_str)
+        if self.cand_type == 'necounts':
+            cand_ids, cand_strs, not_in_cand, label = self._gen_cands(ent_str, mention_str)
+        else:
+            cand_strs = self.docid2candidates[doc_id][mention_str]
+            print(f'MENTION: {mention_str}, PERSHINA CANDIDATES: {cand_strs}')
+
         features_dict = self._gen_features(mention_str, cand_strs)
 
         output = {'cand_ids': cand_ids,
@@ -185,7 +195,7 @@ class YamadaDataset(object):
                   **features_dict}
 
         if self.corpus_flag:
-            corpus_context = self._get_corpus_context(context_id)
+            corpus_context = self._get_corpus_context(doc_id)
             output['corpus_context'] = corpus_context
 
         return output

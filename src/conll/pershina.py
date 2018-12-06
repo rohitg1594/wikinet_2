@@ -45,7 +45,7 @@ class PershinaExamples(object):
 
         return docid2context
 
-    def _get_doc_candidates(self):
+    def get_doc_candidates(self):
 
         docid2candidates = defaultdict(dict)
 
