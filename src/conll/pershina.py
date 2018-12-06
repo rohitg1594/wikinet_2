@@ -56,7 +56,7 @@ class PershinaExamples(object):
                 split = 'dev'
             else:
                 split = 'test'
-        docid2split[i] = split
+            docid2split[i] = split
 
         for i in range(1, 1394):
             with open(join(self.data_path, 'Conll', 'PPRforNED', 'AIDA_candidates', 'combined', str(i)), 'r') as f:
@@ -72,7 +72,7 @@ class PershinaExamples(object):
 
                         correct_url = parts[-1][4:]
                         if correct_url == 'NIL':
-                            docid2candidates[doc_id][mention]['ignore'] = 1
+                            docid2candidates[docid2split[i]][doc_id][mention]['ignore'] = 1
 
                     else:
                         wiki_url = parts[5]
