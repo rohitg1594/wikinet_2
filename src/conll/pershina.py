@@ -82,7 +82,7 @@ class PershinaExamples(object):
                         if ent_str not in self.ent_dict:
                             continue
 
-                        docid2candidates[docid2split[split]][doc_id - 1][mention]['cands'].append(ent_str)
+                        docid2candidates[docid2split[i]][doc_id - 1][mention]['cands'].append(ent_str)
 
         return docid2candidates
 
