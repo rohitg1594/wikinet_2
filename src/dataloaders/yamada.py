@@ -170,7 +170,7 @@ class YamadaDataset(object):
 
         return corpus_context
 
-    def _gen_pershina_cands(self, doc_id, mention_str, ent_str):
+    def _gen_pershina_cands(self, doc_id, ent_str, mention_str):
         try:
             cand_strs = self.docid2candidates[doc_id][mention_str]
         except KeyError as K:
@@ -197,7 +197,7 @@ class YamadaDataset(object):
         mention_str, ent_str, _, _ = example
         ent_str = self.redirects.get(ent_str, ent_str)
         if self.cand_type == 'necounts':
-            cand_ids, cand_strs, not_in_cand, label = self._gen_cands(mention_str, ent_str)
+            cand_ids, cand_strs, not_in_cand, label = self._gen_cands(ent_str, mention_str)
         else:
             cand_ids, cand_strs, not_in_cand, label = self._gen_pershina_cands(doc_id, ent_str, mention_str)
             print(f'MENTION: {mention_str}, PERSHINA CANDIDATES: {cand_strs[:5]}')
