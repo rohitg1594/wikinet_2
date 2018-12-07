@@ -47,7 +47,7 @@ class PershinaExamples(object):
 
     def get_doc_candidates(self):
 
-        docid2candidates = {split:defaultdict(dict) for split in ['train', 'dev', 'test']}
+        docid2candidates = defaultdict(dict)
         # docid2split = {}
         # for i in range(1394):
         #     if i < 946:
