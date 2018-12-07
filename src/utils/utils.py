@@ -526,8 +526,9 @@ def load_data(data_type, train_size, data_path):
                'test': (id2context, test_data)
                }
     elif data_type == 'conll':
+        data_dict = pickle_load(join(data_path, 'training_files', f'all_conll.pickle'))
         for split in splits:
-            res[split] = pickle_load(join(data_path, 'training_files', f'conll-{split}.pickle'))
+            res[split] = data_dict['id2c'], data_dict['data'][split]
     else:
         logger.error("Data type {} not recognized".format(data_type))
         sys.exit(1)

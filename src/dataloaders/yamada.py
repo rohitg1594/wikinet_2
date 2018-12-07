@@ -4,6 +4,7 @@ import torch.utils.data
 from src.utils.utils import *
 from more_itertools import unique_everseen
 from src.conll.pershina import PershinaExamples
+from src.tokenizer.regexp_tokenizer import RegexpTokenizer
 
 
 class YamadaDataset(object):
@@ -36,6 +37,7 @@ class YamadaDataset(object):
         self.ent_strs = list(self.ent_prior.keys())
         self.data_type = data_type
         self.split = split
+        self.word_tokenizer = RegexpTokenizer()
 
         self.redirects = redirects
         self.dis_dict = dis_dict
@@ -121,11 +123,9 @@ class YamadaDataset(object):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
 
         context = self.id2context[index]
-        if self.args.ignore_init:
-            context = context[5:]
-        if len(context) > 0:
-            if isinstance(context[0], str):
-                context = [self.word_dict.get(token, 0) for token in context]
+        context = context[5:] if self.args.ignore_init else context
+        if len(context) > 0 and isinstance(context[0], str):
+            context = [self.word_dict.get(token, 0) for token in self.word_tokenizer.tokenize(context)]
         context = np.array(equalize_len(context, self.args.max_context_size))
 
         return context
