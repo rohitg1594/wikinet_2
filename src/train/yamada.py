@@ -8,6 +8,7 @@ from src.eval.yamada import YamadaValidator
 from src.models.models import Models
 from src.logger import get_logger
 from src.train.trainer import Trainer
+from src.file import FileObjectStore
 
 np.warnings.filterwarnings('ignore')
 
@@ -120,14 +121,14 @@ def setup(args, logger):
     logger.info("Model loaded.")
 
     logger.info("Loading Stat features.....")
-    priors = json_load(join(args.data_path, 'stats', 'str_prior.json'))
-    conditionals = json_load(join(args.data_path, 'stats', 'str_cond.json'))
+    priors = FileObjectStore(join(args.data_path, "mmaps", 'str_prior'))
+    conditionals = FileObjectStore(join(args.data_path, "mmaps", 'str_cond'))
     logger.info("Priors and conditionals loaded.")
 
     logger.info("Loading necounts, redirects and disambiguations.....")
-    necounts = json_load(join(args.data_path, "necounts", "str_necounts.json"))
-    redirects = json_load(join(args.data_path, 'redirects.json'))
-    dis_dict = json_load(join(args.data_path, 'disambiguation_dict.json'))
+    necounts = FileObjectStore(join(args.data_path, "mmaps", "str_necounts"))
+    redirects = FileObjectStore(join(args.data_path, "mmaps", 'redirects'))
+    dis_dict = FileObjectStore(join(args.data_path, "mmaps", 'disamb'))
     logger.info("Necounts and redirects loaded.")
 
     logger.info("Using {} for training.....".format(args.data_type))
