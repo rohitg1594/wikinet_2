@@ -187,7 +187,6 @@ class YamadaDataset(object):
         cand_strs.insert(label, ent_str)
         cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
 
-        print(mention_str, ent_str, label, cand_strs)
         return cand_ids, cand_strs, not_in_cand, label
 
     def __getitem__(self, index):
