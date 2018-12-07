@@ -75,7 +75,7 @@ class PershinaExamples(object):
                         ent_str = RE_WIKI_ENT.match(wiki_url).group(1)
                         docid2candidates[doc_id][mention].append(ent_str)
 
-                return docid2candidates
+        return docid2candidates
 
     def get_training_examples(self):
 
