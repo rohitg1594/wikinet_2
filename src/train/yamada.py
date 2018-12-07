@@ -173,7 +173,7 @@ def setup(args, logger):
                                             split='dev',
                                             data_type=data_type,
                                             args=args,
-                                            cand_type='necounts',
+                                            cand_type=(args.cand_type if data_type == 'conll' else 'necounts'),
                                             necounts=necounts,
                                             redirects=redirects,
                                             dis_dict=dis_dict)
