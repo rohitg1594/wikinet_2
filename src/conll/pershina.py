@@ -64,15 +64,13 @@ class PershinaExamples(object):
 
                     line = line.strip()
                     parts = line.split('\t')
+                    print(line)
 
                     if 'ENTITY' in line:
                         mention = parts[1][5:]
                         doc_id = int(parts[6][6:])
-                        docid2candidates[doc_id][mention] = {'ignore': 0, 'cands': []}
-
-                        correct_url = parts[-1][4:]
-                        if correct_url == 'NIL':
-                            docid2candidates[doc_id][mention]['ignore'] = 1
+                        print(doc_id)
+                        docid2candidates[doc_id][mention] = []
 
                     else:
                         wiki_url = parts[5]
@@ -80,7 +78,7 @@ class PershinaExamples(object):
                         if ent_str not in self.ent_dict:
                             continue
 
-                        docid2candidates[doc_id][mention]['cands'].append(ent_str)
+                        docid2candidates[doc_id][mention].append(ent_str)
 
         return docid2candidates
 
