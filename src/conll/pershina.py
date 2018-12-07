@@ -48,15 +48,15 @@ class PershinaExamples(object):
     def get_doc_candidates(self):
 
         docid2candidates = {split:defaultdict(dict) for split in ['train', 'dev', 'test']}
-        docid2split = {}
-        for i in range(1394):
-            if i < 946:
-                split = 'train'
-            elif i < 1163:
-                split = 'dev'
-            else:
-                split = 'test'
-            docid2split[i] = split
+        # docid2split = {}
+        # for i in range(1394):
+        #     if i < 946:
+        #         split = 'train'
+        #     elif i < 1163:
+        #         split = 'dev'
+        #     else:
+        #         split = 'test'
+        #     docid2split[i] = split
 
         for i in range(1, 1394):
             with open(join(self.data_path, 'Conll', 'PPRforNED', 'AIDA_candidates', 'combined', str(i)), 'r') as f:
@@ -68,11 +68,11 @@ class PershinaExamples(object):
                     if 'ENTITY' in line:
                         mention = parts[1][5:]
                         doc_id = int(parts[6][6:])
-                        docid2candidates[docid2split[i]][doc_id][mention] = {'ignore': 0, 'cands': []}
+                        docid2candidates[doc_id][mention] = {'ignore': 0, 'cands': []}
 
                         correct_url = parts[-1][4:]
                         if correct_url == 'NIL':
-                            docid2candidates[docid2split[i]][doc_id][mention]['ignore'] = 1
+                            docid2candidates[doc_id][mention]['ignore'] = 1
 
                     else:
                         wiki_url = parts[5]
@@ -80,7 +80,7 @@ class PershinaExamples(object):
                         if ent_str not in self.ent_dict:
                             continue
 
-                        docid2candidates[docid2split[i]][doc_id - 1][mention]['cands'].append(ent_str)
+                        docid2candidates[doc_id][mention]['cands'].append(ent_str)
 
         return docid2candidates
 
