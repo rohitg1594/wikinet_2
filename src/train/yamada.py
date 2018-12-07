@@ -120,16 +120,11 @@ def setup(args, logger):
     yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
     logger.info("Model loaded.")
 
-    logger.info("Loading Stat features.....")
     priors = FileObjectStore(join(args.data_path, "mmaps", 'str_prior'))
     conditionals = FileObjectStore(join(args.data_path, "mmaps", 'str_cond'))
-    logger.info("Priors and conditionals loaded.")
-
-    logger.info("Loading necounts, redirects and disambiguations.....")
     necounts = FileObjectStore(join(args.data_path, "mmaps", "str_necounts"))
     redirects = FileObjectStore(join(args.data_path, "mmaps", 'redirects'))
     dis_dict = FileObjectStore(join(args.data_path, "mmaps", 'disamb'))
-    logger.info("Necounts and redirects loaded.")
 
     logger.info("Using {} for training.....".format(args.data_type))
     data = defaultdict(dict)
