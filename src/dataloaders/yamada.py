@@ -200,7 +200,6 @@ class YamadaDataset(object):
             cand_ids, cand_strs, not_in_cand, label = self._gen_cands(ent_str, mention_str)
         else:
             cand_ids, cand_strs, not_in_cand, label = self._gen_pershina_cands(doc_id, ent_str, mention_str)
-            print(f'MENTION: {mention_str}, PERSHINA CANDIDATES: {cand_strs[:5]}')
 
         features_dict = self._gen_features(mention_str, cand_strs)
 
