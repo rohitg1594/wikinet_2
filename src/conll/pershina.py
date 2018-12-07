@@ -66,7 +66,7 @@ class PershinaExamples(object):
                     parts = line.split('\t')
 
                     if 'ENTITY' in line:
-                        mention = parts[1][5:]
+                        mention = parts[7][9:]
                         doc_id = int(parts[6][6:])
                         docid2candidates[doc_id][mention] = []
 
@@ -84,16 +84,12 @@ class PershinaExamples(object):
         test_examples = []
 
         docid2context = self._get_context()
-        docid2candidates = self._get_doc_candidates()
+        docid2candidates = self.get_doc_candidates()
 
         for docid, tokenids in docid2context.items():
             mention_cand_tup = []
             for mention, ignore_cand_dict in docid2candidates[docid].items():
-                ignore = docid2candidates[docid][mention]['ignore']
-                if ignore or docid2candidates[docid][mention]['cands'] == []:
-                    continue
-                else:
-                    mention_cand_tup.append((mention, docid2candidates[docid][mention]['cands']))
+                mention_cand_tup.append((mention, docid2candidates[docid][mention]))
 
             if 1 <= docid < 947:
                 training_examples.append((tokenids, mention_cand_tup))
