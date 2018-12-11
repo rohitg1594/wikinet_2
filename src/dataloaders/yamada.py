@@ -125,9 +125,9 @@ class YamadaDataset(object):
             context = [self.word_dict.get(token, 0) for token in self.word_tokenizer.tokenize(context)]
         elif isinstance(context, tuple):
             context = [self.word_dict.get(token, 0) for token in context]
-        context = np.array(equalize_len(context, self.args.max_context_size))
+        context = np.array(equalize_len(context, self.args.max_context_size, pad=0))
 
-        print(f'PROCESSED CONTEXT: {context}')
+        # print(f'PROCESSED CONTEXT: {context}')
 
         return context
 
