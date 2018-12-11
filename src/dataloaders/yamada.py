@@ -229,7 +229,10 @@ class YamadaDataset(object):
             else:
                 cand_ids, cand_strs, not_in_cand, label = self._gen_pershina_cands(doc_id, ent_str, mention_str)
 
-        context = self.processed_id2context[doc_id]
+        try:
+            context = self.processed_id2context[doc_id]
+        except KeyError:
+            context = self.processed_id2context[str(doc_id)]
         features_dict = self._gen_features(mention_str, cand_strs)
 
         output = {'cand_ids': cand_ids,
