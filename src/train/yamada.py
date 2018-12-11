@@ -32,6 +32,7 @@ def parse_args():
     data.add_argument('--data_type', type=str, choices=['conll', 'wiki', 'proto'], help='whether to train with conll or wiki')
     data.add_argument('--num_shards', type=int, help='number of shards of training file')
     data.add_argument('--train_size', type=int, help='number of training abstracts')
+    data.add_argument('--mmap', type=str2bool, help='use dicts or mmaps')
 
     # Max Padding
     padding = parser.add_argument_group('Max Padding for batch.')
@@ -121,11 +122,18 @@ def setup(args, logger):
     yamada_model = pickle_load(join(args.data_path, 'yamada', args.yamada_model))
     logger.info("Model loaded.")
 
-    priors = FileObjectStore(join(args.data_path, "mmaps", 'str_prior'))
-    conditionals = FileObjectStore(join(args.data_path, "mmaps", 'str_cond'))
-    necounts = FileObjectStore(join(args.data_path, "mmaps", "str_necounts"))
-    redirects = FileObjectStore(join(args.data_path, "mmaps", 'redirects'))
-    dis_dict = FileObjectStore(join(args.data_path, "mmaps", 'disamb'))
+    if args.mmap:
+        priors = FileObjectStore(join(args.data_path, "mmaps", 'str_prior'))
+        conditionals = FileObjectStore(join(args.data_path, "mmaps", 'str_cond'))
+        necounts = FileObjectStore(join(args.data_path, "mmaps", "str_necounts"))
+        redirects = FileObjectStore(join(args.data_path, "mmaps", 'redirects'))
+        dis_dict = FileObjectStore(join(args.data_path, "mmaps", 'disamb'))
+    else:
+        priors = json_load(join(args.data_path, "dicts", 'str_prior.josn'))
+        conditionals = json_load(join(args.data_path, "dicts", 'str_cond.json'))
+        necounts = json_load(join(args.data_path, "dicts", "str_necounts.json"))
+        redirects = json_load(join(args.data_path, "dicts", 'redirects.json'))
+        dis_dict = json_load(join(args.data_path, "dicts", 'disamb.json'))
 
     logger.info("Using {} for training.....".format(args.data_type))
     data = defaultdict(dict)
