@@ -127,6 +127,8 @@ class YamadaDataset(object):
             context = [self.word_dict.get(token, 0) for token in context]
         context = np.array(equalize_len(context, self.args.max_context_size))
 
+        print(f'PROCESSED CONTEXT: {context}')
+
         return context
 
     def _gen_features(self, mention_str, cand_strs):
@@ -145,7 +147,7 @@ class YamadaDataset(object):
             if cand_str.startswith(mention_str) or cand_str.endswith(mention_str):
                 contains[cand_idx] = 1
 
-            priors[cand_idx] = self.ent_prior.get(cand_str, 0) * 10**3  # priors are really small, rescale
+            priors[cand_idx] = self.ent_prior.get(cand_str, 0)
             nf = normalise_form(mention_str)
             if nf in self.ent_conditional:
                 conditionals[cand_idx] = self.ent_conditional[nf].get(cand_str, 0)
