@@ -152,6 +152,7 @@ def equalize_len_w_eot(data, max_size, eot=None):
 
     return arr
 
+
 def str2bool(v):
     """
     thanks : https://stackoverflow.com/questions/15008758/parsing-boolean-values-with-argparse
