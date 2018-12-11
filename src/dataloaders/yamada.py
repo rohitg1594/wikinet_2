@@ -61,11 +61,11 @@ class YamadaDataset(object):
         self.examples = examples
         self.id2context = id2context
 
-        logger.info(f'Generating processed id2context for {processed_f_name}....')
+        logger.info(f'Generating processed id2context')
         self.processed_id2context = {}
         for index in self.id2context.keys():
             self.processed_id2context[index] = self._init_context(index)
-        logger.info("Generatedx.")
+        logger.info("Generated.")
 
         if 'corpus_vec' in self.args.model_name:
             self.corpus_flag = True
