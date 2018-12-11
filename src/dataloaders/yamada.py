@@ -154,10 +154,10 @@ class YamadaDataset(object):
             else:
                 conditionals[cand_idx] = 0
 
-        if not np.any(priors):
-            print('PRIOR IS ALL ZERO', mention_str, cand_strs[:10])
-        if not np.any(conditionals):
-            print('CONDITIONALS IS ALL ZERO', mention_str, cand_strs[:10])
+        # if not np.any(priors):
+        #     print('PRIOR IS ALL ZERO', mention_str, cand_strs[:10])
+        # if not np.any(conditionals):
+        #     print('CONDITIONALS IS ALL ZERO', mention_str, cand_strs[:10])
 
         return {'exact_match': exact,
                 'contains': contains,
