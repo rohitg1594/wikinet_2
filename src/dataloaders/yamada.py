@@ -61,7 +61,8 @@ class YamadaDataset(object):
         self.examples = examples
         self.id2context = id2context
 
-        processed_f_name = join(self.args.data_path, 'cache', f'processed_id2context_{self.data_type}_{self.split}')
+        processed_f_name = join(self.args.data_path, 'cache',
+                                f'processed_id2context_coref_{self.coref}_{self.data_type}_{self.split}')
         if os.path.exists(processed_f_name):
             logger.info(f'Loading processed id2context from {processed_f_name}....')
             self.processed_id2context = pickle_load(processed_f_name)
