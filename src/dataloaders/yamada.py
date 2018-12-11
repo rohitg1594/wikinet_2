@@ -222,6 +222,7 @@ class YamadaDataset(object):
 
         if self.coref:
             doc_id, mention_str, ent_str, cand_gen_strs = self.examples[index]
+            ent_str = self.redirects.get(ent_str, ent_str)
             cand_ids, cand_strs, not_in_cand, label = self._get_coref_cands(ent_str, cand_gen_strs)
         else:
             doc_id, example = self.examples[index]
