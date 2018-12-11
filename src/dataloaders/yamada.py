@@ -63,8 +63,8 @@ class YamadaDataset(object):
 
         logger.info(f'Generating processed id2context')
         self.processed_id2context = {}
-        for index in self.id2context.keys():
-            self.processed_id2context[index] = self._init_context(index)
+        for doc_id in self.id2context.keys():
+            self.processed_id2context[doc_id] = self._init_context(doc_id)
         logger.info("Generated.")
 
         if 'corpus_vec' in self.args.model_name:
@@ -116,10 +116,10 @@ class YamadaDataset(object):
 
         return cand_ids, cand_strs, not_in_cand, label
 
-    def _init_context(self, index):
+    def _init_context(self, doc_id):
         """Initialize numpy array that will hold all context word tokens. Also return mentions"""
 
-        context = self.id2context[index]
+        context = self.id2context[doc_id]
         context = context[5:] if self.args.ignore_init else context
         if isinstance(context, str):
             context = [self.word_dict.get(token.text, 0) for token in self.word_tokenizer.tokenize(context)]
@@ -127,7 +127,7 @@ class YamadaDataset(object):
             context = [self.word_dict.get(token.lower(), 0) for token in context]
         context = np.array(equalize_len(context, self.args.max_context_size, pad=0))
 
-        assert np.any(context), ('CONTEXT IS ALL ZERO', self.id2context[index])
+        assert np.any(context), ('CONTEXT IS ALL ZERO', self.id2context[doc_id])
 
         return context
 
@@ -154,8 +154,10 @@ class YamadaDataset(object):
             else:
                 conditionals[cand_idx] = 0
 
-        assert np.any(priors), ('PRIOR IS ALL ZERO', mention_str, cand_strs)
-        assert np.any(conditionals), ('CONDITIONALS IS ALL ZERO', mention_str, cand_strs)
+        if not np.any(priors):
+            print('PRIOR IS ALL ZERO', mention_str, cand_strs[:10])
+        if not np.any(conditionals):
+            print('CONDITIONALS IS ALL ZERO', mention_str, cand_strs[:10])
 
         return {'exact_match': exact,
                 'contains': contains,
