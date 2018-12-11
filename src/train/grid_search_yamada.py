@@ -25,13 +25,13 @@ def grid_search(yamada_model=None,
                 model_dir=None,
                 train_dataset=None,
                 args=None):
-    param_grid = {'dp': [0.1, 0.2, 0.3, 0.5, 0],
+    param_grid = {'dp': [0.1, 0.2, 0.3],
                   'hidden_size': [1000, 2000, 3000],
-                  'lr': [1e-2, 5e-2, 1e-3, 5e-2, 1e-1],
-                  'wd': [1e-3, 1e-4, 1e-5, 1e-6],
-                  'num_candidates': [64, 128, 256],
-                  'prop_gen_candidates': [0.25, 0.5, 0.75, 1],
-                  'other_optim': ['adagrad', 'rmsprop', 'adam']
+                  'lr': [1e-2, 5e-2, 1e-3, 5e-2],
+                  'wd': [1e-4, 1e-5],
+                  'num_candidates': [128, 256],
+                  'prop_gen_candidates': [0.5, 0.75, 1],
+                  'other_optim': ['rmsprop', 'adam']
                   }
     grid_results_dict = {}
     pd_results = list()
