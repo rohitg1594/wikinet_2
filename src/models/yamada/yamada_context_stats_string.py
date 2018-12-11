@@ -48,7 +48,7 @@ class YamadaContextStatsString(YamadaBase, Loss):
         # print(f'AFTER MEAN CONTEXT: {context_embs[:10]}')
 
         # Normalize / Pass through linear layer / Unsqueeze
-        context_embs = self.orig_linear(F.normalize(context_embs, dim=1))
+        context_embs = F.normalize(self.orig_linear(context_embs, dim=1))
         context_embs.unsqueeze_(1)
 
         # print(f'AFTER LINEAR CONTEXT SHAPE: {context_embs.shape}')
