@@ -56,6 +56,7 @@ def parse_args():
     candidate.add_argument('--cand_gen_rand', type=str2bool, help='whether to generate random candidates')
     candidate.add_argument("--num_candidates", type=int, default=32, help="Total number of candidates")
     candidate.add_argument("--prop_gen_candidates", type=float, default=0.5, help="Proportion of candidates generated")
+    candidate.add_argument("--coref", type=str2bool, default=False, help="Whether to use coref cands")
 
     # Training
     training = parser.add_argument_group("Training parameters.")
@@ -161,7 +162,8 @@ def setup(args, logger):
                                   cand_type=(args.cand_type if args.data_type == 'conll' else 'necounts'),
                                   necounts=necounts,
                                   redirects=redirects,
-                                  dis_dict=dis_dict)
+                                  dis_dict=dis_dict,
+                                  coref=(args.coref if args.data_type != 'wiki' else False))
     logger.info("Training dataset created.")
 
     datasets = {}
@@ -176,7 +178,8 @@ def setup(args, logger):
                                             cand_type=(args.cand_type if data_type == 'conll' else 'necounts'),
                                             necounts=necounts,
                                             redirects=redirects,
-                                            dis_dict=dis_dict)
+                                            dis_dict=dis_dict,
+                                            coref=(args.coref if args.data_type != 'wiki' else False))
         logger.info(f"{data_type} dev dataset created.")
 
     return train_dataset, datasets, yamada_model

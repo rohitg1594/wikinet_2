@@ -486,7 +486,7 @@ def load_stats(args, yamada_model):
     return priors, conditionals
 
 
-def load_data(data_type, train_size, data_path):
+def load_data(data_type, train_size, data_path, coref=False):
     """
        Load train data in format used by combined and yamada dataloader.
     """
@@ -526,9 +526,14 @@ def load_data(data_type, train_size, data_path):
                'test': (id2context, test_data)
                }
     elif data_type == 'conll':
-        data_dict = pickle_load(join(data_path, 'training_files', f'all_conll.pickle'))
-        for split in splits:
-            res[split] = data_dict['id2c'], data_dict['data'][split]
+        if coref:
+            res['dev'] = pickle_load(join(data_path, 'training_files', 'coref' f'conll-dev.pickle'))
+            res['train'] = pickle_load(join(data_path, 'training_files', 'coref' f'conll-train.pickle'))
+            res['test'] = []
+        else:
+            data_dict = pickle_load(join(data_path, 'training_files', f'all_conll.pickle'))
+            for split in splits:
+                res[split] = data_dict['id2c'], data_dict['data'][split]
     else:
         logger.error("Data type {} not recognized".format(data_type))
         sys.exit(1)

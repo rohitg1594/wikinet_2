@@ -21,7 +21,8 @@ class YamadaDataset(object):
                  split=None,
                  necounts=None,
                  redirects=None,
-                 dis_dict=None):
+                 dis_dict=None,
+                 coref=False):
         super().__init__()
 
         self.args = args
@@ -38,6 +39,9 @@ class YamadaDataset(object):
         self.data_type = data_type
         self.split = split
         self.word_tokenizer = RegexpTokenizer()
+        # If coref, then there is a special format for which cands have been precomputed.
+        # For file name checkout load_data function in utils file.
+        self.coref = coref
 
         self.redirects = redirects
         self.dis_dict = dis_dict
@@ -189,19 +193,43 @@ class YamadaDataset(object):
 
         return cand_ids, cand_strs, not_in_cand, label
 
+    def _get_coref_cands(self, ent_str, cand_gen_strs):
+
+        cand_gen_strs = list(unique_everseen(cand_gen_strs[:self.num_cand_gen]))
+        if ent_str in cand_gen_strs:
+            not_in_cand = False
+            cand_gen_strs.remove(ent_str)
+        else:
+            not_in_cand = True
+
+        len_rand = self.num_candidates - len(cand_gen_strs) - 1
+        if len_rand >= 0:
+            cand_strs = cand_gen_strs + random.sample(self.ent_strs, len_rand)
+        else:
+            cand_strs = cand_gen_strs[:-1]
+        label = random.randint(0, self.args.num_candidates - 1)
+        cand_strs.insert(label, ent_str)
+        cand_ids = np.array([self.ent2id.get(cand_str, 0) for cand_str in cand_strs], dtype=np.int64)
+
+        return cand_ids, cand_strs, not_in_cand, label
+
     def __getitem__(self, index):
         if isinstance(index, slice):
             return [self[idx] for idx in range(index.start or 0, index.stop or len(self), index.step or 1)]
 
-        doc_id, example = self.examples[index]
-        context = self.processed_id2context[doc_id]
-        mention_str, ent_str, _, _ = example
-        ent_str = self.redirects.get(ent_str, ent_str)
-        if self.cand_type == 'necounts':
-            cand_ids, cand_strs, not_in_cand, label = self._gen_cands(ent_str, mention_str)
+        if self.coref:
+            doc_id, mention_str, ent_str, cand_gen_strs = self.examples[index]
+            cand_ids, cand_strs, not_in_cand, label = self._get_coref_cands(ent_str, cand_gen_strs)
         else:
-            cand_ids, cand_strs, not_in_cand, label = self._gen_pershina_cands(doc_id, ent_str, mention_str)
+            doc_id, example = self.examples[index]
+            mention_str, ent_str, _, _ = example
+            ent_str = self.redirects.get(ent_str, ent_str)
+            if self.cand_type == 'necounts':
+                cand_ids, cand_strs, not_in_cand, label = self._gen_cands(ent_str, mention_str)
+            else:
+                cand_ids, cand_strs, not_in_cand, label = self._gen_pershina_cands(doc_id, ent_str, mention_str)
 
+        context = self.processed_id2context[doc_id]
         features_dict = self._gen_features(mention_str, cand_strs)
 
         output = {'cand_ids': cand_ids,
