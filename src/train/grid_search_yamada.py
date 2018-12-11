@@ -50,6 +50,7 @@ def grid_search(yamada_model=None,
                                                 shuffle=False,
                                                 num_workers=args.num_workers,
                                                 drop_last=False)
+        logger.info("Train loader created.There will be {} batches.".format(len(train_loader)))
 
         logger.info("GRID SEARCH PARAMS : {}".format(param_dict))
         result_key = tuple(param_dict.items())

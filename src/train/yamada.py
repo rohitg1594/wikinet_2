@@ -167,7 +167,7 @@ def setup(args, logger):
                                   redirects=redirects,
                                   dis_dict=dis_dict,
                                   coref=(args.coref if args.data_type != 'wiki' else False))
-    logger.info("Training dataset created.")
+    logger.info("Training dataset created. There will be {len(se")
 
     datasets = {}
     for data_type in DATA_TYPES:
