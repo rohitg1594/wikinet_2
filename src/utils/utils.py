@@ -527,8 +527,8 @@ def load_data(data_type, train_size, data_path, coref=False):
                }
     elif data_type == 'conll':
         if coref:
-            res['dev'] = pickle_load(join(data_path, 'training_files', 'coref' f'conll-dev.pickle'))
-            res['train'] = pickle_load(join(data_path, 'training_files', 'coref' f'conll-train.pickle'))
+            res['dev'] = pickle_load(join(data_path, 'training_files', 'coref' 'conll-dev.pickle'))
+            res['train'] = pickle_load(join(data_path, 'training_files', 'coref' 'conll-train.pickle'))
             res['test'] = []
         else:
             data_dict = pickle_load(join(data_path, 'training_files', f'all_conll.pickle'))
