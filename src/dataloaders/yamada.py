@@ -127,6 +127,8 @@ class YamadaDataset(object):
             context = [self.word_dict.get(token.lower(), 0) for token in context]
         context = np.array(equalize_len(context, self.args.max_context_size, pad=0))
 
+        assert np.all(context), ('CONTEXT IS ALL ZERO', self.id2context[index])
+
         return context
 
     def _gen_features(self, mention_str, cand_strs):
@@ -151,6 +153,9 @@ class YamadaDataset(object):
                 conditionals[cand_idx] = self.ent_conditional[nf].get(cand_str, 0)
             else:
                 conditionals[cand_idx] = 0
+
+        assert np.all(priors), ('PRIOR IS ALL ZERO', mention_str, cand_strs)
+        assert np.all(conditionals), ('CONDITIONALS IS ALL ZERO', mention_str, cand_strs)
 
         return {'exact_match': exact,
                 'contains': contains,
