@@ -129,7 +129,7 @@ def setup(args, logger):
         redirects = FileObjectStore(join(args.data_path, "mmaps", 'redirects'))
         dis_dict = FileObjectStore(join(args.data_path, "mmaps", 'disamb'))
     else:
-        priors = json_load(join(args.data_path, "dicts", 'str_prior.josn'))
+        priors = json_load(join(args.data_path, "dicts", 'str_prior.json'))
         conditionals = json_load(join(args.data_path, "dicts", 'str_cond.json'))
         necounts = json_load(join(args.data_path, "dicts", "str_necounts.json"))
         redirects = json_load(join(args.data_path, "dicts", 'redirects.json'))
