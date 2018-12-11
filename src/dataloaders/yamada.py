@@ -130,8 +130,10 @@ class YamadaDataset(object):
         context = self.id2context[index]
         print(context)
         context = context[5:] if self.args.ignore_init else context
-        if len(context) > 0 and isinstance(context[0], str):
+        if isinstance(context, str):
             context = [self.word_dict.get(token, 0) for token in self.word_tokenizer.tokenize(context)]
+        elif isinstance(context, tuple):
+            context = [self.word_dict.get(token, 0) for token in context]
         context = np.array(equalize_len(context, self.args.max_context_size))
 
         return context
